@@ -3,10 +3,10 @@ require 'spec_helper'
 class MappingExample
   include ActiveRestClient::Mapping
 
-  get :get, "/get", tag:1
-  put :put, "/put", tag:2
-  post :post, "/post", tag:3
-  delete :delete, "/delete", tag:4
+  get :test_get, "/get", tag:1, fake:"{result:true}"
+  put :test_put, "/put", tag:2
+  post :test_post, "/post", tag:3
+  delete :test_delete, "/delete", tag:4
 end
 
 describe ActiveRestClient::Mapping do
@@ -18,23 +18,27 @@ describe ActiveRestClient::Mapping do
   end
 
   it "should save URL for each mapped call" do
-    expect(MappingExample._calls[:get][:url]).to eq("/get")
-    expect(MappingExample._calls[:put][:url]).to eq("/put")
-    expect(MappingExample._calls[:post][:url]).to eq("/post")
-    expect(MappingExample._calls[:delete][:url]).to eq("/delete")
+    expect(MappingExample._calls[:test_get][:url]).to eq("/get")
+    expect(MappingExample._calls[:test_put][:url]).to eq("/put")
+    expect(MappingExample._calls[:test_post][:url]).to eq("/post")
+    expect(MappingExample._calls[:test_delete][:url]).to eq("/delete")
   end
 
   it "should save the correct method type for each mapped call" do
-    expect(MappingExample._calls[:get][:method]).to eq(:get)
-    expect(MappingExample._calls[:put][:method]).to eq(:put)
-    expect(MappingExample._calls[:post][:method]).to eq(:post)
-    expect(MappingExample._calls[:delete][:method]).to eq(:delete)
+    expect(MappingExample._calls[:test_get][:method]).to eq(:get)
+    expect(MappingExample._calls[:test_put][:method]).to eq(:put)
+    expect(MappingExample._calls[:test_post][:method]).to eq(:post)
+    expect(MappingExample._calls[:test_delete][:method]).to eq(:delete)
   end
 
   it "should remember options set for each mapped call" do
-    expect(MappingExample._calls[:get][:options][:tag]).to eq(1)
-    expect(MappingExample._calls[:put][:options][:tag]).to eq(2)
-    expect(MappingExample._calls[:post][:options][:tag]).to eq(3)
-    expect(MappingExample._calls[:delete][:options][:tag]).to eq(4)
+    expect(MappingExample._calls[:test_get][:options][:tag]).to eq(1)
+    expect(MappingExample._calls[:test_put][:options][:tag]).to eq(2)
+    expect(MappingExample._calls[:test_post][:options][:tag]).to eq(3)
+    expect(MappingExample._calls[:test_delete][:options][:tag]).to eq(4)
+  end
+
+  it "should allow for mapped calls on the class" do
+    expect(MappingExample).to respond_to(:test_get)
   end
 end
