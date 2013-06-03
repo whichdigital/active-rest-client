@@ -1,5 +1,7 @@
 require 'rspec'
 require 'active_rest_client'
+require "ostruct"
+require 'simplecov'
 
 RSpec.configure do |config|
   config.color_enabled = true
