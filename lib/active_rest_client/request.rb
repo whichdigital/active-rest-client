@@ -1,4 +1,5 @@
 require "cgi"
+require "oj"
 
 module ActiveRestClient
 
@@ -11,25 +12,32 @@ module ActiveRestClient
       @params = params
     end
 
+    def object_is_class?
+      @object.respond_to?(:get_connection)
+    end
+
     def call
       connection = @object.get_connection rescue @object.class.get_connection
       prepare_params
       prepare_url
-      if @object.respond_to? :_filter_request
+      if object_is_class?
         @object.send(:_filter_request, @method[:name], self)
       end
       append_get_parameters
       prepare_request_body
       case @method[:method]
       when :get
-        connection.get(@url)
+        response = connection.get(@url)
       when :put
-        connection.put(@url, @request_body)
+        response = connection.put(@url, @request_body)
       when :post
-        connection.post(@url, @request_body)
+        response = connection.post(@url, @request_body)
       when :delete
-        connection.delete(@url, @request_body)
+        response = connection.delete(@url, @request_body)
       end
+
+      handle_response(response)
+      @result
     end
 
     def prepare_params
@@ -63,6 +71,56 @@ module ActiveRestClient
     def prepare_request_body
       @request_body = (@post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
     end
+
+    def handle_response(response)
+      body = Oj.load(response.body) || {}
+      if body.is_a? Array
+        @result = []
+        body.each do |json_object|
+          @result << new_object(json_object)
+        end
+      else
+        @result = new_object(body)
+      end
+
+      if response.status == 200
+        @result
+      end
+    end
+
+    def new_object(attributes)
+      if @method[:class]
+        object = @method[:class].new
+      else
+        if object_is_class?
+          object = @object.new
+        else
+          object = @object.class.new
+        end
+      end
+
+      attributes.each do |k,v|
+        k = k.to_sym
+        if v.is_a? Hash
+          object._attributes[k] = new_object(v)
+        elsif v.is_a? Array
+          object._attributes[k] = []
+          v.each do |item|
+            if item.is_a? Hash
+              object._attributes[k] << new_object(item)
+            else
+              object._attributes[k] << item
+            end
+          end
+        else
+          object._attributes[k] = v
+        end
+        object.clean!
+      end
+
+      object
+    end
+
   end
 
 end

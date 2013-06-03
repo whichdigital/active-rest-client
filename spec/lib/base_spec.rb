@@ -15,7 +15,7 @@ describe ActiveRestClient::Base do
 
   it "should save attributes passed in constructor" do
     client = EmptyExample.new(:test => "Something")
-    expect(client.attributes[:test]).to be_an(ActiveRestClient::Attribute)
+    expect(client._attributes[:test]).to be_a(String)
   end
 
   it "should allow attribute reading using missing method names" do
@@ -27,16 +27,16 @@ describe ActiveRestClient::Base do
     client = EmptyExample.new()
     client.test = "Something"
     expect(client.test.to_s).to eq("Something")
-    expect(client.test).to be_dirty
+    expect(client).to be_dirty
   end
 
   it "should overwrite attributes already set and mark them as dirty" do
     client = EmptyExample.new(:hello => "World")
-    client.hello.clean!
-    expect(client.hello).to_not be_dirty
+    client._clean!
+    expect(client).to_not be_dirty
 
     client.hello = "Everybody"
-    expect(client.hello).to be_dirty
+    expect(client).to be_dirty
   end
 
   it "should save the base URL for the API server" do
@@ -53,11 +53,15 @@ describe ActiveRestClient::Base do
 
   it "should be able to easily clean all attributes" do
     client = EmptyExample.new(hello:"World", goodbye:"Everyone")
-    expect(client.hello).to be_dirty
-    expect(client.goodbye).to be_dirty
-    client.clean!
-    expect(client.hello).to_not be_dirty
-    expect(client.goodbye).to_not be_dirty
+    expect(client).to be_dirty
+    client._clean!
+    expect(client).to_not be_dirty
+  end
+
+  it "should not overly pollute the instance method namespace to reduce chances of clashing (<5 instance methods)" do
+    instance_methods = EmptyExample.instance_methods - Object.methods
+    instance_methods = instance_methods - instance_methods.grep(/^_/)
+    expect(instance_methods.size).to be < 5
   end
 
 end

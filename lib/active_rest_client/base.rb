@@ -9,19 +9,28 @@ module ActiveRestClient
       raise Exception.new("Cannot instantiate Base class") if self.class.name == "ActiveRestClient::Base"
 
       @attributes = {}
+      @dirty_attributes = Set.new
+
       attrs.each do |k,v|
-        @attributes[k.to_sym] = Attribute.new(v)
+        @attributes[k.to_sym] = v
+        @dirty_attributes << name
       end
     end
 
-    def clean!
-      @attributes.each do |k,v|
-        v.clean!
-      end
+    def _clean!
+      @dirty_attributes = Set.new
     end
 
-    def attributes
+    def _empty!
+      @attributes = {}
+    end
+
+    def _attributes
       @attributes
+    end
+
+    def dirty?
+      @dirty_attributes.size > 0
     end
 
     def method_missing(name, *args)
@@ -30,7 +39,8 @@ module ActiveRestClient
         request.call
       elsif name.to_s[-1,1] == "="
         name = name.to_s.chop.to_sym
-        @attributes[name] = Attribute.new(args.first)
+        @attributes[name] = args.first
+        @dirty_attributes << name
       else
         name = name.to_sym
         if @attributes.has_key? name
@@ -39,7 +49,7 @@ module ActiveRestClient
           if @@whiny_missing
             raise NoAttributeError.new("Missing attribute #{name}")
           else
-            Attribute.new(nil, true)
+            nil
           end
         end
       end

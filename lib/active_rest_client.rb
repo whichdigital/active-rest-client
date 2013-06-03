@@ -1,5 +1,4 @@
 require "active_rest_client/version"
-require "active_rest_client/attribute"
 require "active_rest_client/mapping"
 require "active_rest_client/configuration"
 require "active_rest_client/connection"
