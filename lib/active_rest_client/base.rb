@@ -3,6 +3,7 @@ module ActiveRestClient
     include Mapping
     include Configuration
     include ConnectionManager
+    include RequestFiltering
 
     def initialize(attrs={})
       raise Exception.new("Cannot instantiate Base class") if self.class.name == "ActiveRestClient::Base"

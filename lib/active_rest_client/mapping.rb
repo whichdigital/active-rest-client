@@ -22,13 +22,14 @@ module ActiveRestClient
 
       def _map_call(name, details)
         @@_calls[name] = {name:name}.merge(details)
-        self.class.send(:define_method, name) do |*args|
-          _call(name, *args)
+        self.class.send(:define_method, name) do |options={}|
+          _call(name, options)
         end
       end
 
-      def _call(name, *args)
-        request = Request.new(mapped, nil)
+      def _call(name, options)
+        mapped = @@_calls[name]
+        request = Request.new(mapped, self, options)
         request.call
       end
 

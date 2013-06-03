@@ -1,5 +1,6 @@
 module ActiveRestClient
   module Configuration
+    @@whiny_missing = false
 
     module ClassMethods
       def base_url(value = nil)
