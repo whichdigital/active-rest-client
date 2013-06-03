@@ -1,4 +1,4 @@
-Copyright (c) 2013 Andy Jeffries
+Copyright (c) 2013 Which? Ltd
 
 MIT License
 

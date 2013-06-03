@@ -31,10 +31,10 @@ end
 class Person < ActiveRestClient::Base
   base_url Rails.application.config.api_server_url
 
-  get :all => "/people"
-  get :find => "/people/:id"
-  put :save => "/people/:id"
-  post :create => "/people"
+  get :all, "/people"
+  get :find, "/people/:id"
+  put :save, "/people/:id"
+  post :create, "/people"
 end
 ```
 
@@ -62,7 +62,9 @@ id = @person.id
 end
 ```
 
-Note, you can assign to any attribute, whether it exists or not before and read from any attribute (which will return nil if not found).  You can also call any mapped method as an instance variable which will pass the current attribute set in as parameters (either GET or POST depending on the mapped method type).  So, we could rewrite the create call above as:
+Note, you can assign to any attribute, whether it exists or not before and read from any attribute (which will return nil if not found).
+
+You can also call any mapped method as an instance variable which will pass the current attribute set in as parameters (either GET or POST depending on the mapped method type).  If the method returns a single instance it will assign the attributes of the calling object and return itself.  If the method returns a list of instances, it will only return the list. So, we could rewrite the create call above as:
 
 ```
 @person = Person.new
@@ -70,6 +72,24 @@ Note, you can assign to any attribute, whether it exists or not before and read 
 @person.last_name  = "Smith"
 @person.create
 puts @person.id
+```
+
+If the call would return a list of instances that are another object, you can also specify this when mapping the method using the `:has_many` option.  It doesn't call anything on that object except for instantiate it, but it does let you have
+
+```
+class Expense < ActiveRestClient::Base
+  def inc_vat
+    ex_vat * 1.20
+  end
+end
+
+class Person < ActiveRestClient::Base
+  get :find, "/people/:id"
+  get :expenses, "/people/:id/expenses", has_many:Expense
+end
+
+@person = Person.find(1)
+puts @person.expenses.reduce {|e| e.inc_vat}
 ```
 
 The response of the #create call set the attributes at that point (any manually set attributes before that point are removed).
@@ -132,9 +152,19 @@ class Person < ActiveRestClient::Base
 end
 ```
 
+### Faking Calls
+
+There are times when an API hasn't been developed yet, so you want to fake the API call response.  To do this, simply pass a `fake` option when mapping the call containing the response.
+
+```
+class Person < ActiveRestClient::Base
+  get :all, '/people', :fake => "[{first_name:"Johnny"}, {first_name:"Bob"}, ]"
+end
+```
+
 ### Validation
 
-
+TODO
 
 ### Content Types
 
