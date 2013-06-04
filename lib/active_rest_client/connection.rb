@@ -2,8 +2,8 @@ require 'patron'
 
 module ActiveRestClient
 
-  class TimeoutException < Exception ; end
-  class ConnectionFailedException < Exception ; end
+  class TimeoutException < StandardError ; end
+  class ConnectionFailedException < StandardError ; end
 
   class Connection
     attr_accessor :session

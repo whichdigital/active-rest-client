@@ -19,5 +19,9 @@ module ActiveRestClient
       end
     end
 
+    def last
+      @items.last
+    end
+
   end
 end

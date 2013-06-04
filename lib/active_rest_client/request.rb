@@ -98,8 +98,7 @@ module ActiveRestClient
     end
 
     def handle_cached_response(cached)
-      # TODO handle cached.status
-      if cached.result.is_a? Array # TODO replace with iterator
+      if cached.result.is_a? ActiveRestClient::ResultIterator
         cached.result
       else
         if object_is_class?
@@ -156,7 +155,7 @@ module ActiveRestClient
         if v.is_a? Hash
           object._attributes[k] = new_object(v)
         elsif v.is_a? Array
-          object._attributes[k] = []  # TODO replace with iterator
+          object._attributes[k] = ActiveRestClient::ResultIterator.new
           v.each do |item|
             if item.is_a? Hash
               object._attributes[k] << new_object(item)

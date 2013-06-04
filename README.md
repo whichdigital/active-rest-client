@@ -164,9 +164,23 @@ There are times when an API hasn't been developed yet, so you want to fake the A
 
 ```
 class Person < ActiveRestClient::Base
-  get :all, '/people', :fake => "[{first_name:"Johnny"}, {first_name:"Bob"}, ]"
+  get :all, '/people', :fake => "[{first_name:"Johnny"}, {first_name:"Bob"}]"
 end
 ```
+
+### HTTP/Parse Error Handling
+
+Sometimes the backend server may respond with a non-200/304 header, in which case the code will raise an `ActiveRestClient::HTTPClientException` for 4xx errors or an `ActiveRestClient::HTTPServerException` for 5xx errors.  These both have a `status` accessor and a `result` accessor (for getting access to the parsed body):
+
+```
+begin
+  Person.all
+rescue ActiveRestClient::HTTPClientException, ActiveRestClient::HTTPServerException => e
+  Rails.logger.error("API returned #{e.status} : #{e.result.message}")
+end
+```
+
+If the response is unparsable (e.g. not in the desired content type), then it will raise an `ActiveRestClient::ResponseParseException` which has a `status` accessor for the HTTP status code and a `body` accessor for the unparsed response body.
 
 ### Validation
 
