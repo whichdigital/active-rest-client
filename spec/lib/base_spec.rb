@@ -64,17 +64,4 @@ describe ActiveRestClient::Base do
     expect(instance_methods.size).to be < 5
   end
 
-  it "should be possible to enable caching for all objects" do
-    ActiveRestClient::Base._reset_configuration!
-    ActiveRestClient::Base._reset_caching!
-
-    expect(ActiveRestClient::Base.perform_caching).to be_false
-
-    ActiveRestClient::Base.perform_caching = true
-    expect(ActiveRestClient::Base.perform_caching).to be_true
-    expect(EmptyExample.perform_caching).to be_true
-
-    ActiveRestClient::Base._reset_configuration!
-  end
-
 end

@@ -28,7 +28,12 @@ module ActiveRestClient
       end
 
       def cache_store
-        @@cache_store || (defined?(Rails) ? Rails.cache : nil)
+        rails_cache_store = if Object.const_defined?(:Rails)
+          ::Rails.cache
+        else
+          nil
+        end
+        (@@cache_store rescue nil) || rails_cache_store
       end
 
       def _reset_caching!
@@ -36,11 +41,42 @@ module ActiveRestClient
         @perform_caching = false
         @@cache_store = nil
       end
+
+      def read_cached_response(request)
+        if cache_store
+          key = "#{request.class_name}:#{request.url}"
+          cache_store.read(key)
+        end
+      end
+
+      def write_cached_response(request, response, result)
+        if cache_store && (response.headers[:etag] || response.headers[:expires])
+          key = "#{request.class_name}:#{request.url}"
+          cached_response = CachedResponse.new(status:response.status, result:result)
+          cached_response.etag = response.headers[:etag] if response.headers[:etag]
+          cached_response.expires = Time.parse(response.headers[:expires]) if response.headers[:expires]
+
+          options = {}
+          options[:expires_in] = cached_response.expires - Time.now if cached_response.expires
+          cache_store.write(key, cached_response, options)
+        end
+      end
     end
 
     def self.included(base)
       base.extend(ClassMethods)
     end
 
+  end
+
+  class CachedResponse
+    attr_accessor :status, :result, :etag, :expires
+
+    def initialize(options)
+      @status = options[:status]
+      @result = options[:result]
+      @etag = options[:etag]
+      @expires = options[:expires]
+    end
   end
 end

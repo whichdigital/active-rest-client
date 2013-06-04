@@ -4,7 +4,7 @@ require "oj"
 module ActiveRestClient
 
   class Request
-    attr_accessor :post_params, :get_params, :url
+    attr_accessor :post_params, :get_params, :url, :path
 
     def initialize(method, object, params = {})
       @method = method
@@ -16,6 +16,14 @@ module ActiveRestClient
       @object.respond_to?(:get_connection)
     end
 
+    def class_name
+      if object_is_class?
+        @object.name
+      else
+        @object.class.name
+      end
+    end
+
     def call
       connection = @object.get_connection || @object.class.get_connection rescue @object.class.get_connection
       prepare_params
@@ -25,18 +33,36 @@ module ActiveRestClient
       end
       append_get_parameters
       prepare_request_body
+      cached = ActiveRestClient::Base.read_cached_response(self)
+      if cached
+        if cached.expires && cached.expires > Time.now
+          return handle_cached_response(cached)
+        else
+          etag = cached.etag
+        end
+      end
+      headers = {}
+      headers["If-None-Match"] = etag if etag
       case @method[:method]
       when :get
-        response = connection.get(@url)
+        response = connection.get(@url, headers)
       when :put
-        response = connection.put(@url, @request_body)
+        response = connection.put(@url, @request_body, headers)
       when :post
-        response = connection.post(@url, @request_body)
+        response = connection.post(@url, @request_body, headers)
       when :delete
-        response = connection.delete(@url, @request_body)
+        response = connection.delete(@url, @request_body, headers)
+      else
+        raise InvalidRequestException.new("Invalid method #{@method[:method]}")
       end
 
-      handle_response(response)
+      result = handle_response(response)
+      ActiveRestClient::Base.write_cached_response(self, response, result)
+      if result == :not_modified && cached
+        cached.result
+      else
+        result
+      end
     end
 
     def prepare_params
@@ -71,7 +97,22 @@ module ActiveRestClient
       @request_body = (@post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
     end
 
+    def handle_cached_response(cached)
+      # TODO handle cached.status
+      if cached.result.is_a? Array # TODO replace with iterator
+        cached.result
+      else
+        if object_is_class?
+          cached.result
+        else
+          @object._copy_from(cached.result)
+          @object
+        end
+      end
+    end
+
     def handle_response(response)
+      return :not_modified if response.status == 304
       body = Oj.load(response.body) || {}
       if body.is_a? Array
         result = []
@@ -110,7 +151,7 @@ module ActiveRestClient
         if v.is_a? Hash
           object._attributes[k] = new_object(v)
         elsif v.is_a? Array
-          object._attributes[k] = []
+          object._attributes[k] = []  # TODO replace with iterator
           v.each do |item|
             if item.is_a? Hash
               object._attributes[k] << new_object(item)
@@ -128,5 +169,7 @@ module ActiveRestClient
     end
 
   end
+
+  class InvalidRequestException < Exception ; end
 
 end
