@@ -4,6 +4,8 @@ module ActiveRestClient
     include Configuration
     include ConnectionManager
     include RequestFiltering
+    # include Validations
+    # include Caching
 
     def initialize(attrs={})
       raise Exception.new("Cannot instantiate Base class") if self.class.name == "ActiveRestClient::Base"
@@ -27,6 +29,10 @@ module ActiveRestClient
 
     def _attributes
       @attributes
+    end
+
+    def _copy_from(result)
+      @attributes =  result._attributes
     end
 
     def dirty?

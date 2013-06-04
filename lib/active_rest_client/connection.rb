@@ -14,7 +14,6 @@ module ActiveRestClient
       @session.timeout               = 10
       @session.base_url              = base_url
       @session.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"
-      # @session.default_response_charset = "UTF-8"
     end
 
     def reconnect
