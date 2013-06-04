@@ -184,7 +184,26 @@ If the response is unparsable (e.g. not in the desired content type), then it wi
 
 ### Validation
 
-TODO
+You can create validations on your objects just like Rails' built in ActiveModel validations.  For example:
+
+```
+class Person < ActiveRestClient::Base
+  validates :first_name, presence:true
+  validates :password, length:{within:6..12}
+  validates :post_code, length:{minimum:6, maximum:8}
+  validates :salary, numericality:true, minimum:20_000, maximum:50_000
+
+  validates :first_name do |object, name, value|
+    object.errors[name] << "must be over 4 chars long" if value.length <= 4
+  end
+
+  get :index, '/'
+end
+```
+
+Note the block based validation is responsible for adding errors to `object.errors[name]` (and this will automatically be ready for `<<` inserting into).
+
+Validations are run when calling `valid?` or when calling any API on an instance (and then only if it is `valid?` will the API go on to be called).
 
 ### Content Types
 

@@ -44,6 +44,7 @@ module ActiveRestClient
 
     def method_missing(name, *args)
       if mapped = self.class._mapped_method(name)
+        raise ValidationFailedException.new unless valid?
         request = Request.new(mapped, self)
         request.call
       elsif name.to_s[-1,1] == "="
@@ -56,7 +57,7 @@ module ActiveRestClient
           @attributes[name]
         else
           if self.class.whiny_missing
-            raise NoAttributeError.new("Missing attribute #{name}")
+            raise NoAttributeException.new("Missing attribute #{name}")
           else
             nil
           end
@@ -65,5 +66,6 @@ module ActiveRestClient
     end
   end
 
-  class NoAttributeError < StandardError ; end
+  class NoAttributeException < StandardError ; end
+  class ValidationFailedException < StandardError ; end
 end
