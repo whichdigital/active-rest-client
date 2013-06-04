@@ -103,16 +103,44 @@ describe ActiveRestClient::Caching do
     end
 
     it "should read from the cache store, and not call the server if there's a hard expiry" do
-      etag = "6527914a91e0c5769f6de281f25bd891"
       cached_response = ActiveRestClient::CachedResponse.new(
         status:200,
         result:@cached_object,
-        etag:@etag,
         expires:Time.now + 30)
       CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(cached_response)
       ActiveRestClient::Connection.any_instance.should_not_receive(:get)
       ret = Person.all
       expect(ret.first_name).to eq("Johnny")
+    end
+
+    it "should read from the cache store and restore to the same object" do
+      cached_response = ActiveRestClient::CachedResponse.new(
+        status:200,
+        result:@cached_object,
+        expires:Time.now + 30)
+      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(cached_response)
+      ActiveRestClient::Connection.any_instance.should_not_receive(:get)
+      p = Person.new(first_name:"Billy")
+      ret = p.all({})
+      expect(ret.first_name).to eq("Johnny")
+    end
+
+    it "should restore a result iterator from the cache store, if there's a hard expiry" do
+      class CachingExample3 < ActiveRestClient::Base ; end
+      object = ActiveRestClient::ResultIterator.new(200)
+      object << CachingExample3.new(first_name:"Johnny")
+      object << CachingExample3.new(first_name:"Billy")
+      etag = "6527914a91e0c5769f6de281f25bd891"
+      cached_response = ActiveRestClient::CachedResponse.new(
+        status:200,
+        result:object,
+        etag:@etag,
+        expires:Time.now + 30)
+      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(cached_response)
+      ActiveRestClient::Connection.any_instance.should_not_receive(:get)
+      ret = Person.all
+      expect(ret.first.first_name).to eq("Johnny")
+      expect(ret._status).to eq(200)
     end
 
     it "should not write the response to the cache unless if has caching headers" do

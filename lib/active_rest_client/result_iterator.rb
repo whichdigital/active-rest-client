@@ -23,5 +23,9 @@ module ActiveRestClient
       @items.last
     end
 
+    def [](key)
+      @items[key]
+    end
+
   end
 end

@@ -30,55 +30,40 @@ module ActiveRestClient
       @session.headers
     end
 
-    def get(path)
-      @session.get(path)
+    def make_safe_request(path, &block)
+      block.call
     rescue Patron::TimeoutError
       raise ActiveRestClient::TimeoutException.new("Timed out getting #{@base_url}#{path}")
     rescue Patron::ConnectionFailed
       begin
         reconnect
-        @session.get(path)
+        block.call
       rescue Patron::ConnectionFailed
         raise ActiveRestClient::ConnectionFailedException.new("Unable to connect to #{@base_url}#{path}")
+      end
+    end
+
+    def get(path)
+      make_safe_request(path) do
+        @session.get(path)
       end
     end
 
     def put(path, data)
-      @session.put(path, data)
-    rescue Patron::TimeoutError
-      raise ActiveRestClient::TimeoutException.new("Timed out getting #{@base_url}#{path}")
-    rescue Patron::ConnectionFailed
-      begin
-        reconnect
+      make_safe_request(path) do
         @session.put(path, data)
-      rescue Patron::ConnectionFailed
-        raise ActiveRestClient::ConnectionFailedException.new("Unable to connect to #{@base_url}#{path}")
       end
     end
 
     def post(path, data)
-      @session.post(path, data)
-    rescue Patron::TimeoutError
-      raise ActiveRestClient::TimeoutException.new("Timed out getting #{@base_url}#{path}")
-    rescue Patron::ConnectionFailed
-      begin
-        reconnect
+      make_safe_request(path) do
         @session.post(path, data)
-      rescue Patron::ConnectionFailed
-        raise ActiveRestClient::ConnectionFailedException.new("Unable to connect to #{@base_url}#{path}")
       end
     end
 
     def delete(path, data)
-      @session.delete(path, data)
-    rescue Patron::TimeoutError
-      raise ActiveRestClient::TimeoutException.new("Timed out getting #{@base_url}#{path}")
-    rescue Patron::ConnectionFailed
-      begin
-        reconnect
+      make_safe_request(path) do
         @session.delete(path, data)
-      rescue Patron::ConnectionFailed
-        raise ActiveRestClient::ConnectionFailedException.new("Unable to connect to #{@base_url}#{path}")
       end
     end
 

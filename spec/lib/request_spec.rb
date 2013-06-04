@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe ActiveRestClient::Request do
   before :each do
+    class ExampleOtherClient < ActiveRestClient::Base ; end
     class ExampleClient < ActiveRestClient::Base
       base_url "http://www.example.com"
 
@@ -10,6 +11,7 @@ describe ActiveRestClient::Request do
       post :create, "/create"
       put :update, "/put/:id"
       delete :remove, "/remove/:id"
+      get :expenses, "/expenses", has_many:ExampleOtherClient
     end
     ActiveRestClient::Request.any_instance.stub(:read_cached_response)
   end
@@ -24,6 +26,11 @@ describe ActiveRestClient::Request do
   it "should get an HTTP connection when called and call get on it" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", {}).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.all
+  end
+
+  it "should get an HTTP connection when called and call delete on it" do
+    ActiveRestClient::Connection.any_instance.should_receive(:delete).with("/remove/1", "", {}).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    ExampleClient.remove(id:1)
   end
 
   it "should pass through get parameters" do
@@ -53,6 +60,23 @@ describe ActiveRestClient::Request do
     expect(object.list.first).to eq(1)
     expect(object.list.last.test).to eq(true)
     expect(object.child.grandchild.test).to eq(true)
+  end
+
+  it "should parse an array within JSON to be a result iterator" do
+    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", {}).and_return(OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, headers:{}))
+    object = ExampleClient.update id:1234, debug:true
+    expect(object).to be_instance_of(ActiveRestClient::ResultIterator)
+    expect(object.first.first_name).to eq("Johnny")
+    expect(object[1].first_name).to eq("Billy")
+    expect(object._status).to eq(200)
+  end
+
+  it "should instantiate other classes using has_many when required to do so" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/expenses?id=1234", {}).and_return(OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, headers:{}))
+    object = ExampleClient.new(first_name:"Danny")
+    expenses = object.expenses(id:1234)
+    expect(expenses).to be_instance_of(ActiveRestClient::ResultIterator)
+    expect(expenses.first).to be_instance_of(ExampleOtherClient)
   end
 
   it "should assign new attributes to the existing object if possible" do
@@ -129,6 +153,21 @@ describe ActiveRestClient::Request do
     expect(e).to be_instance_of(ActiveRestClient::ResponseParseException)
     expect(e.status).to eq(500)
     expect(e.body).to eq(error_content)
+  end
+
+  it "should raise an exception if you try to pass in an unsupport method" do
+    method = {:method => :wiggle, url:"/"}
+    class RequestFakeObject
+      def get_connection
+        true
+      end
+
+      def name ; end
+      def _filter_request(*args) ; end
+    end
+    fake_object = RequestFakeObject.new
+    request = ActiveRestClient::Request.new(method, fake_object, {})
+    expect{request.call}.to raise_error(ActiveRestClient::InvalidRequestException)
   end
 
 end

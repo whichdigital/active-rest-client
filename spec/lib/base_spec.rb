@@ -64,4 +64,8 @@ describe ActiveRestClient::Base do
     expect(instance_methods.size).to be < 5
   end
 
+  it "should raise an exception for missing attributes if whiny_missing is enabled" do
+    expect{EmptyExample.new.first_name}.to raise_error(ActiveRestClient::NoAttributeException)
+  end
+
 end

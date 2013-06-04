@@ -24,7 +24,8 @@ module ActiveRestClient
       end
     end
 
-    def call
+    def call(explicit_parameters=nil)
+      @explicit_parameters = explicit_parameters
       connection = @object.get_connection || @object.class.get_connection rescue @object.class.get_connection
       prepare_params
       prepare_url
@@ -67,6 +68,9 @@ module ActiveRestClient
 
     def prepare_params
       params = @object._attributes rescue @params
+      if @explicit_parameters
+        params = @explicit_parameters
+      end
       if @method[:method] == :get
         @get_params = params || []
         @post_params = nil
@@ -140,8 +144,8 @@ module ActiveRestClient
     end
 
     def new_object(attributes)
-      if @method[:class]
-        object = @method[:class].new
+      if @method[:options][:has_many]
+        object = @method[:options][:has_many].new
       else
         if object_is_class?
           object = @object.new

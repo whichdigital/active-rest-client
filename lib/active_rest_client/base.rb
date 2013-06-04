@@ -25,10 +25,6 @@ module ActiveRestClient
       @dirty_attributes = Set.new
     end
 
-    def _empty!
-      @attributes = {}
-    end
-
     def _attributes
       @attributes
     end
@@ -46,7 +42,8 @@ module ActiveRestClient
       if mapped = self.class._mapped_method(name)
         raise ValidationFailedException.new unless valid?
         request = Request.new(mapped, self)
-        request.call
+        params = (args.first.is_a?(Hash) ? args.first : nil)
+        request.call(params)
       elsif name.to_s[-1,1] == "="
         name = name.to_s.chop.to_sym
         @attributes[name] = args.first
