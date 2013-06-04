@@ -115,24 +115,29 @@ module ActiveRestClient
       return :not_modified if response.status == 304
       body = Oj.load(response.body) || {}
       if body.is_a? Array
-        result = []
+        result = ActiveRestClient::ResultIterator.new(response.status)
         body.each do |json_object|
           result << new_object(json_object)
         end
       else
         result = new_object(body)
+        result._status = response.status
         unless object_is_class?
           @object._copy_from(result)
           result = @object
         end
       end
 
-      # TODO - handle response codes
-      # if response.status == 200
-      #   result
-      # end
+      response.status ||= 200
+      if response.status >= 400 && response.status <= 499
+        raise HTTPClientException.new(status:response.status, result:result)
+      elsif response.status >= 500 && response.status <= 599
+        raise HTTPServerException.new(status:response.status, result:result)
+      end
 
       result
+    rescue Oj::ParseError
+      raise ResponseParseException.new(status:response.status, body:response.body)
     end
 
     def new_object(attributes)
@@ -170,6 +175,23 @@ module ActiveRestClient
 
   end
 
-  class InvalidRequestException < Exception ; end
+  class InvalidRequestException < StandardError ; end
+  class ResponseParseException < StandardError
+    attr_accessor :status, :body
+    def initialize(options)
+      @status = options[:status]
+      @body = options[:body]
+    end
+  end
+
+  class HTTPException < StandardError
+    attr_accessor :status, :result
+    def initialize(options)
+      @status = options[:status]
+      @result = options[:result]
+    end
+  end
+  class HTTPClientException < HTTPException ; end
+  class HTTPServerException < HTTPException ; end
 
 end

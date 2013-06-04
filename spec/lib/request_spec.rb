@@ -69,11 +69,66 @@ describe ActiveRestClient::Request do
   end
 
   it "should clearly pass through 200 status responses" do
-    pending "Need to handle status codes"
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", {}).
+      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+    object = ExampleClient.new(first_name:"John", should_disappear:true)
+    object.create
+    expect(object._status).to eq(200)
   end
 
-  it "should raise exceptions for 4xx/5xx errors" do
-    pending "Need to handle status codes"
+  it "should raise a client exceptions for 4xx errors" do
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", {}).
+      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:404))
+    object = ExampleClient.new(first_name:"John", should_disappear:true)
+    begin
+      object.create
+    rescue ActiveRestClient::HTTPClientException => e
+      e
+    end
+    expect(e).to be_instance_of(ActiveRestClient::HTTPClientException)
+    expect(e.status).to eq(404)
+  expect(e.result.first_name).to eq("John")
+  end
+
+  it "should raise a server exception for 5xx errors" do
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", {}).
+      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:500))
+    object = ExampleClient.new(first_name:"John", should_disappear:true)
+    begin
+      object.create
+    rescue ActiveRestClient::HTTPServerException => e
+      e
+    end
+    expect(e).to be_instance_of(ActiveRestClient::HTTPServerException)
+    expect(e.status).to eq(500)
+    expect(e.result.first_name).to eq("John")
+  end
+
+  it "should raise a parse exception for invalid JSON returns" do
+    error_content = "<h1>500 Server Error</h1>"
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", {}).
+      and_return(OpenStruct.new(body:error_content, headers:{}, status:500))
+    object = ExampleClient.new(first_name:"John", should_disappear:true)
+    begin
+      object.create
+    rescue ActiveRestClient::ResponseParseException => e
+      e
+    end
+    expect(e).to be_instance_of(ActiveRestClient::ResponseParseException)
+    expect(e.status).to eq(500)
+    expect(e.body).to eq(error_content)
   end
 
 end

@@ -20,5 +20,5 @@ module ActiveRestClient
     end
   end
 
-  class InvalidCacheStoreException < Exception ; end
+  class InvalidCacheStoreException < StandardError ; end
 end

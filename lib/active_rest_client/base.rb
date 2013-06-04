@@ -7,6 +7,8 @@ module ActiveRestClient
     # include Validations
     include Caching
 
+    attr_accessor :_status
+
     def initialize(attrs={})
       raise Exception.new("Cannot instantiate Base class") if self.class.name == "ActiveRestClient::Base"
 
@@ -33,6 +35,7 @@ module ActiveRestClient
 
     def _copy_from(result)
       @attributes =  result._attributes
+      @_status = result._status
     end
 
     def dirty?
@@ -62,5 +65,5 @@ module ActiveRestClient
     end
   end
 
-  class NoAttributeError < Exception ; end
+  class NoAttributeError < StandardError ; end
 end
