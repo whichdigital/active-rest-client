@@ -112,6 +112,12 @@ class Person < ActiveRestClient::Base
 end
 ```
 
+If Rails is defined, it will default to using Rails.cache as the cache store, if not, you'll need to configure one with a `ActiveSupport::Cache::Store` compatible object using:
+
+```
+ActiveRestClient::Base.cache_store = Redis::Store.new("redis://localhost:6379/0/cache")
+```
+
 ### Using filters
 
 You can use filters to alter get/post parameters or the URL before a request.  This can either be a block or a named method (like ActionController's `before_filter`/`before_action` methods).

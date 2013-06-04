@@ -5,7 +5,7 @@ module ActiveRestClient
     include ConnectionManager
     include RequestFiltering
     # include Validations
-    # include Caching
+    include Caching
 
     def initialize(attrs={})
       raise Exception.new("Cannot instantiate Base class") if self.class.name == "ActiveRestClient::Base"
@@ -15,7 +15,7 @@ module ActiveRestClient
 
       attrs.each do |k,v|
         @attributes[k.to_sym] = v
-        @dirty_attributes << name
+        @dirty_attributes << k.to_sym
       end
     end
 
@@ -52,7 +52,7 @@ module ActiveRestClient
         if @attributes.has_key? name
           @attributes[name]
         else
-          if @@whiny_missing
+          if self.class.whiny_missing
             raise NoAttributeError.new("Missing attribute #{name}")
           else
             nil

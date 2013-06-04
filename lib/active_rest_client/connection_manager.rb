@@ -3,7 +3,7 @@ module ActiveRestClient
 
     module ClassMethods
       def get_connection
-        @@_connection ||= Connection.new(base_url)
+        @_connection ||= Connection.new(base_url)
       end
     end
 
