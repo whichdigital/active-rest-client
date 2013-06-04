@@ -4,7 +4,7 @@ module ActiveRestClient
     include Configuration
     include ConnectionManager
     include RequestFiltering
-    # include Validations
+    include Validation
     include Caching
 
     attr_accessor :_status

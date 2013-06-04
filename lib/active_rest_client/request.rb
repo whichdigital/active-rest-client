@@ -128,9 +128,9 @@ module ActiveRestClient
       end
 
       response.status ||= 200
-      if response.status >= 400 && response.status <= 499
+      if (400..499).include? response.status
         raise HTTPClientException.new(status:response.status, result:result)
-      elsif response.status >= 500 && response.status <= 599
+      elsif (500..599).include? response.status
         raise HTTPServerException.new(status:response.status, result:result)
       end
 
