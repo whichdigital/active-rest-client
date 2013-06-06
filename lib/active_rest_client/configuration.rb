@@ -11,11 +11,13 @@ module ActiveRestClient
             @base_url
           end
         else
+          value = value.gsub(/\/$/, '')
           @base_url = value
         end
       end
 
       def base_url=(value)
+        value = value.gsub(/\/$/, '')
         @@base_url = value
         @base_url = value
       end

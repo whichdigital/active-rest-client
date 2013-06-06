@@ -38,13 +38,13 @@ class Person < ActiveRestClient::Base
 end
 ```
 
-Note I've specified the base_url in the class above, if you prefer you can set it once with a simple line in the application.rb/production.rb:
+Note I've specified the base_url in the class above.  This is usful where you want to be explicit or use different APIs for some classes and be explicit. If you have one server that's generally used, you can set it once with a simple line in the application.rb/production.rb:
 
 ```
 ActiveRestClient::Base.base_url = "https://www.example.com/api/v1"
 ```
 
-The `base_url` should not end in a `/`.  You can then use your new class like this:
+Any `base_url` settings in specific classes override this declared default. You can then use your new class like this:
 
 ```
 # Create a new person

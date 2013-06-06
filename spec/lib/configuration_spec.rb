@@ -36,9 +36,22 @@ describe ActiveRestClient::Configuration do
     expect(ConfigurationExample.base_url).to eq("http://www.example.com")
   end
 
+  it "should remove a trailing slash from a globally configured base_url" do
+    ActiveRestClient::Base.base_url = "http://general.example.com/"
+    expect(ConfigurationExample.base_url).to eq("http://www.example.com")
+  end
+
   it "should remember the set base_url on the base class if a more specific one hasn't been set" do
     ActiveRestClient::Base.base_url = "http://general.example.com"
     expect(ConfigurationExampleBare.base_url).to eq("http://general.example.com")
+  end
+
+  it "should remove a trailing slash from a specific class configured base_url" do
+    class ConfigurationExample2
+      include ActiveRestClient::Configuration
+      base_url "http://specific.example.com/"
+    end
+    expect(ConfigurationExample2.base_url).to eq("http://specific.example.com")
   end
 
 end
