@@ -1,8 +1,23 @@
 module ActiveRestClient
   module Configuration
     module ClassMethods
+      @@base_url = nil
+
       def base_url(value = nil)
-        value ? @base_url = value : @base_url
+        if value.nil?
+          if @base_url.nil?
+            @@base_url
+          else
+            @base_url
+          end
+        else
+          @base_url = value
+        end
+      end
+
+      def base_url=(value)
+        @@base_url = value
+        @base_url = value
       end
 
       def whiny_missing(value = nil)
@@ -11,6 +26,7 @@ module ActiveRestClient
 
       def _reset_configuration!
         @base_url         = nil
+        @@base_url        = nil
         @whiny_missing    = nil
       end
     end

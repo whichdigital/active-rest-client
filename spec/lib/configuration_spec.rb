@@ -9,6 +9,10 @@ describe ActiveRestClient::Configuration do
       include ActiveRestClient::Configuration
       base_url "http://www.example.com"
     end
+
+    class ConfigurationExampleBare
+      include ActiveRestClient::Configuration
+    end
   end
 
   it "should default to non-whiny missing methods" do
@@ -25,6 +29,16 @@ describe ActiveRestClient::Configuration do
 
   it "should remember the set base_url" do
     expect(ConfigurationExample.base_url).to eq("http://www.example.com")
+  end
+
+  it "should remember the set base_url on a class, overriding a general one" do
+    ActiveRestClient::Base.base_url = "http://general.example.com"
+    expect(ConfigurationExample.base_url).to eq("http://www.example.com")
+  end
+
+  it "should remember the set base_url on the base class if a more specific one hasn't been set" do
+    ActiveRestClient::Base.base_url = "http://general.example.com"
+    expect(ConfigurationExampleBare.base_url).to eq("http://general.example.com")
   end
 
 end

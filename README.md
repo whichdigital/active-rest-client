@@ -38,7 +38,13 @@ class Person < ActiveRestClient::Base
 end
 ```
 
-Then you can use it like this:
+Note I've specified the base_url in the class above, if you prefer you can set it once with a simple line in the application.rb/production.rb:
+
+```
+ActiveRestClient::Base.base_url = "https://www.example.com/api/v1"
+```
+
+The `base_url` should not end in a `/`.  You can then use your new class like this:
 
 ```
 # Create a new person
@@ -142,6 +148,20 @@ class Person < ActiveRestClient::Base
   def replace_token_in_url(name, request)
     request.url.gsub!("#token", SecureRandom.hex)
   end
+end
+```
+
+If you need to, you can create a custom parent class with a filter and all children will inherit this filter.
+
+```
+class MyProject::Base < ActiveRestClient::Base
+  before_filter do |name, request|
+    request.get_params[:api_key] = "1234567890-1234567890"
+  end
+end
+
+class Person < MyProject::Base
+  # No need to declare a before_filter for :api_key, already defined by the parent
 end
 ```
 

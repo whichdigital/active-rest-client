@@ -58,10 +58,10 @@ describe ActiveRestClient::Base do
     expect(client).to_not be_dirty
   end
 
-  it "should not overly pollute the instance method namespace to reduce chances of clashing (<5 instance methods)" do
+  it "should not overly pollute the instance method namespace to reduce chances of clashing (<10 instance methods)" do
     instance_methods = EmptyExample.instance_methods - Object.methods
     instance_methods = instance_methods - instance_methods.grep(/^_/)
-    expect(instance_methods.size).to be < 5
+    expect(instance_methods.size).to be < 10
   end
 
   it "should raise an exception for missing attributes if whiny_missing is enabled" do

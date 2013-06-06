@@ -25,6 +25,12 @@ class RequestFilteringExample
   end
 end
 
+class SubClassedRequestFilteringExample < RequestFilteringExample
+  before_request do |name, request|
+    request.get_params[:api_key] = 1234
+  end
+end
+
 describe ActiveRestClient::RequestFiltering do
   before(:each) do
     @request = OpenStruct.new(get_params:{}, post_params:{}, url:"http://www.example.com")
@@ -49,5 +55,11 @@ describe ActiveRestClient::RequestFiltering do
   it "should allow adjusting the URL via a named filter as an instance method" do
     RequestFilteringExample._filter_request(:test, @request)
     expect(@request.url).to match(/\/\/new\./)
+  end
+
+  it "should allow filters to be set on the parent or on the child" do
+    SubClassedRequestFilteringExample._filter_request(:test, @request)
+    expect(@request.url).to match(/\/\/new\./)
+    expect(@request.get_params[:api_key]).to eq(1234)
   end
 end
