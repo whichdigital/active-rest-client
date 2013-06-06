@@ -188,6 +188,26 @@ class Person < ActiveRestClient::Base
 end
 ```
 
+### Default Parameters
+
+If you want to specify default parameters you shouldn't use a path like:
+
+```
+class Person < ActiveRestClient::Base
+  get :all, '/people?all=true' # THIS IS WRONG!!!
+end
+```
+
+You should use a defaults option to specify the defaults, then they will be correctly overwritten when making the request
+
+```
+class Person < ActiveRestClient::Base
+  get :all, '/people', :defaults => {:active => true}
+end
+
+@people = Person.all(active:false)
+```
+
 ### HTTP/Parse Error Handling
 
 Sometimes the backend server may respond with a non-200/304 header, in which case the code will raise an `ActiveRestClient::HTTPClientException` for 4xx errors or an `ActiveRestClient::HTTPServerException` for 5xx errors.  These both have a `status` accessor and a `result` accessor (for getting access to the parsed body):

@@ -12,6 +12,8 @@ describe ActiveRestClient::Request do
       put :update, "/put/:id"
       delete :remove, "/remove/:id"
       get :expenses, "/expenses", has_many:ExampleOtherClient
+      get :fake, "/fake", fake:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"child\":{\"grandchild\":{\"test\":true}}}"
+      get :defaults, "/defaults", defaults:{overwrite:"no", persist:"yes"}
     end
     ActiveRestClient::Request.any_instance.stub(:read_cached_response)
   end
@@ -38,6 +40,11 @@ describe ActiveRestClient::Request do
     ExampleClient.all debug:true
   end
 
+  it "should pass through get parameters, using defaults specified" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/defaults?overwrite=yes&persist=yes", {}).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    ExampleClient.defaults overwrite:"yes"
+  end
+
   it "should pass through url parameters" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/1234", {}).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.find id:1234
@@ -56,6 +63,14 @@ describe ActiveRestClient::Request do
   it "should parse JSON to give a nice object" do
     ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", {}).and_return(OpenStruct.new(body:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"child\":{\"grandchild\":{\"test\":true}}}", headers:{}))
     object = ExampleClient.update id:1234, debug:true
+    expect(object.result).to eq(true)
+    expect(object.list.first).to eq(1)
+    expect(object.list.last.test).to eq(true)
+    expect(object.child.grandchild.test).to eq(true)
+  end
+
+  it "should parse JSON and return a nice object for faked responses" do
+    object = ExampleClient.fake id:1234, debug:true
     expect(object.result).to eq(true)
     expect(object.list.first).to eq(1)
     expect(object.list.last.test).to eq(true)

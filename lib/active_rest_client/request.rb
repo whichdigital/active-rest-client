@@ -7,9 +7,10 @@ module ActiveRestClient
     attr_accessor :post_params, :get_params, :url, :path
 
     def initialize(method, object, params = {})
-      @method = method
-      @object = object
-      @params = params
+      @method             = method
+      @method[:options]   ||= {}
+      @object             = object
+      @params             = params
     end
 
     def object_is_class?
@@ -25,8 +26,10 @@ module ActiveRestClient
     end
 
     def call(explicit_parameters=nil)
+      if @method[:options][:fake]
+        return handle_response(OpenStruct.new(status:200, body:@method[:options][:fake]))
+      end
       @explicit_parameters = explicit_parameters
-      connection = @object.get_connection || @object.class.get_connection rescue @object.class.get_connection
       prepare_params
       prepare_url
       if object_is_class?
@@ -42,21 +45,7 @@ module ActiveRestClient
           etag = cached.etag
         end
       end
-      headers = {}
-      headers["If-None-Match"] = etag if etag
-      case @method[:method]
-      when :get
-        response = connection.get(@url, headers)
-      when :put
-        response = connection.put(@url, @request_body, headers)
-      when :post
-        response = connection.post(@url, @request_body, headers)
-      when :delete
-        response = connection.delete(@url, @request_body, headers)
-      else
-        raise InvalidRequestException.new("Invalid method #{@method[:method]}")
-      end
-
+      response = do_request(etag)
       result = handle_response(response)
       ActiveRestClient::Base.write_cached_response(self, response, result)
       if result == :not_modified && cached
@@ -68,14 +57,16 @@ module ActiveRestClient
 
     def prepare_params
       params = @object._attributes rescue @params
+      default_params = @method[:options][:defaults] || {}
+
       if @explicit_parameters
         params = @explicit_parameters
       end
       if @method[:method] == :get
-        @get_params = params || []
+        @get_params = default_params.merge(params || [])
         @post_params = nil
       else
-        @post_params = params || []
+        @post_params = default_params.merge(params || [])
         @get_params = {}
       end
     end
@@ -99,6 +90,25 @@ module ActiveRestClient
 
     def prepare_request_body
       @request_body = (@post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
+    end
+
+    def do_request(etag)
+      headers = {}
+      headers["If-None-Match"] = etag if etag
+      connection = @object.get_connection || @object.class.get_connection rescue @object.class.get_connection
+      case @method[:method]
+      when :get
+        response = connection.get(@url, headers)
+      when :put
+        response = connection.put(@url, @request_body, headers)
+      when :post
+        response = connection.post(@url, @request_body, headers)
+      when :delete
+        response = connection.delete(@url, @request_body, headers)
+      else
+        raise InvalidRequestException.new("Invalid method #{@method[:method]}")
+      end
+      response
     end
 
     def handle_cached_response(cached)
