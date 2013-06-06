@@ -23,28 +23,28 @@ describe ActiveRestClient::Connection do
 
   it "should pass a GET request through to Patron" do
     @connection.session = double(Patron::Session)
-    @connection.session.stub!(:get).with("/foo").and_return(OpenStruct.new(body:"{result:true}"))
+    @connection.session.stub!(:get).with("/foo", {}).and_return(OpenStruct.new(body:"{result:true}"))
     result = @connection.get("/foo")
     expect(result.body).to eq("{result:true}")
   end
 
   it "should pass a PUT request through to Patron" do
     @connection.session = double(Patron::Session)
-    @connection.session.stub!(:put).with("/foo", "body").and_return(OpenStruct.new(body:"{result:true}"))
+    @connection.session.stub!(:put).with("/foo", "body", {}).and_return(OpenStruct.new(body:"{result:true}"))
     result = @connection.put("/foo", "body")
     expect(result.body).to eq("{result:true}")
   end
 
   it "should pass a POST request through to Patron" do
     @connection.session = double(Patron::Session)
-    @connection.session.stub!(:post).with("/foo", "body").and_return(OpenStruct.new(body:"{result:true}"))
+    @connection.session.stub!(:post).with("/foo", "body", {}).and_return(OpenStruct.new(body:"{result:true}"))
     result = @connection.post("/foo", "body")
     expect(result.body).to eq("{result:true}")
   end
 
   it "should pass a DELETE request through to Patron" do
     @connection.session = double(Patron::Session)
-    @connection.session.stub!(:delete).with("/foo", "body").and_return(OpenStruct.new(body:"{result:true}"))
+    @connection.session.stub!(:delete).with("/foo", "body", {}).and_return(OpenStruct.new(body:"{result:true}"))
     result = @connection.delete("/foo", "body")
     expect(result.body).to eq("{result:true}")
   end
