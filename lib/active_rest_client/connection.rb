@@ -14,6 +14,8 @@ module ActiveRestClient
       @session.timeout               = 10
       @session.base_url              = base_url
       @session.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"
+      @session.headers['Connection'] = "Keep-Alive"
+      @session.headers['Accept']     = "application/json"
     end
 
     def reconnect

@@ -17,6 +17,10 @@ describe ActiveRestClient::Connection do
     expect(@connection.headers["User-Agent"]).to match(/^ActiveRestClient\/[0-9.]+$/)
   end
 
+  it "should try to Keep-Alive Patron session connections" do
+    expect(@connection.headers["Connection"]).to match(/Keep-Alive/)
+  end
+
   it "should pass a GET request through to Patron" do
     @connection.session = double(Patron::Session)
     @connection.session.stub!(:get).with("/foo").and_return(OpenStruct.new(body:"{result:true}"))

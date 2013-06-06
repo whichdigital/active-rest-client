@@ -207,6 +207,8 @@ Validations are run when calling `valid?` or when calling any API on an instance
 
 ### Content Types
 
+** FOR THIS RELEASE THE ONLY CONTENT TYPE IS APPLICATION/JSON - THE BELOW IS PLANNED FOR A FUTURE RELEASE **
+
 The default configuration is that the response should be JSON.  This automatically adds an "Accept" header "application/json".  If you prefer you can have the response as XML by using the following:
 
 ```
