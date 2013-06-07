@@ -26,28 +26,36 @@ module ActiveRestClient
     end
 
     def call(explicit_parameters=nil)
-      if @method[:options][:fake]
-        return handle_response(OpenStruct.new(status:200, body:@method[:options][:fake]))
-      end
-      @explicit_parameters = explicit_parameters
-      prepare_params
-      prepare_url
-      if object_is_class?
-        @object.send(:_filter_request, @method[:name], self)
-      end
-      append_get_parameters
-      prepare_request_body
-      cached = ActiveRestClient::Base.read_cached_response(self)
-      if cached
-        if cached.expires && cached.expires > Time.now
-          return handle_cached_response(cached)
-        else
-          etag = cached.etag
+      @instrumentation_name = "#{class_name}##{@method[:name]}"
+      result = nil
+      cached = nil
+      ActiveSupport::Notifications.instrument("request_call.active_rest_client", :name => @instrumentation_name) do
+        if @method[:options][:fake]
+          ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Faked response found"
+          return handle_response(OpenStruct.new(status:200, body:@method[:options][:fake]))
         end
+        @explicit_parameters = explicit_parameters
+        prepare_params
+        prepare_url
+        if object_is_class?
+          @object.send(:_filter_request, @method[:name], self)
+        end
+        append_get_parameters
+        prepare_request_body
+        cached = ActiveRestClient::Base.read_cached_response(self)
+        if cached
+          if cached.expires && cached.expires > Time.now
+            ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Absolutely cached copy found"
+            return handle_cached_response(cached)
+          else
+            ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag cached copy found"
+            etag = cached.etag
+          end
+        end
+        response = do_request(etag)
+        result = handle_response(response)
+        ActiveRestClient::Base.write_cached_response(self, response, result)
       end
-      response = do_request(etag)
-      result = handle_response(response)
-      ActiveRestClient::Base.write_cached_response(self, response, result)
       if result == :not_modified && cached
         cached.result
       else
@@ -125,7 +133,13 @@ module ActiveRestClient
     end
 
     def handle_response(response)
-      return :not_modified if response.status == 304
+      if response.status == 304
+        ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag copy is the same as the server"
+        return :not_modified
+      end
+      ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response received #{response.body.size} bytes"
+
+
       body = Oj.load(response.body) || {}
       if body.is_a? Array
         result = ActiveRestClient::ResultIterator.new(response.status)

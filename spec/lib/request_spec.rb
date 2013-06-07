@@ -77,6 +77,12 @@ describe ActiveRestClient::Request do
     expect(object.child.grandchild.test).to eq(true)
   end
 
+  it "should log faked responses" do
+    ActiveRestClient::Logger.stub(:debug)
+    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first["Faked response found"]}
+    object = ExampleClient.fake id:1234, debug:true
+  end
+
   it "should parse an array within JSON to be a result iterator" do
     ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", {}).and_return(OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, headers:{}))
     object = ExampleClient.update id:1234, debug:true
@@ -113,9 +119,23 @@ describe ActiveRestClient::Request do
       should_receive(:post).
       with("/create", "first_name=John&should_disappear=true", {}).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/Response received \d+ bytes/]}
+
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     object.create
     expect(object._status).to eq(200)
+  end
+
+  it "should debug log 200 responses" do
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", {}).
+      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/Response received \d+ bytes/]}
+
+    object = ExampleClient.new(first_name:"John", should_disappear:true)
+    object.create
   end
 
   it "should raise a client exceptions for 4xx errors" do

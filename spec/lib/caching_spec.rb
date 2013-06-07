@@ -35,7 +35,21 @@ describe ActiveRestClient::Caching do
       ActiveRestClient::Base._reset_caching!
     end
 
-    it "should use a custom cache store if a valid one is set" do
+    it "should use Rails.cache if available" do
+      begin
+        class Rails
+          def self.cache
+            true
+          end
+        end
+        expect(ActiveRestClient::Base.cache_store).to eq(true)
+      ensure
+        Object.send(:remove_const, :Rails) if defined?(Rails)
+      end
+
+    end
+
+    it "should use a custom cache store if a valid one is manually set" do
       class CachingExampleCacheStore1
         def read(key) ; end
         def write(key, value, options={}) ; end
@@ -46,7 +60,7 @@ describe ActiveRestClient::Caching do
       expect(ActiveRestClient::Base.cache_store).to eq(cache_store)
     end
 
-    it "should use a custom cache store if a valid one is set" do
+    it "should error if you try to use a custom cache store that doesn't match the required interface" do
       class CachingExampleCacheStore2
         def write(key, value, options={}) ; end
         def fetch(key, &block) ; end
@@ -75,17 +89,13 @@ describe ActiveRestClient::Caching do
         def fetch(key, &block) ; end
       end
 
-      class Rails
-        def self.cache
-          CachingExampleCacheStore5.new
-        end
-      end
-
       class Person < ActiveRestClient::Base
         perform_caching true
         base_url "http://www.example.com"
         get :all, "/"
       end
+
+      Person.cache_store = CachingExampleCacheStore5.new
 
       @etag = "6527914a91e0c5769f6de281f25bd891"
       @cached_object = Person.new(first_name:"Johnny")
