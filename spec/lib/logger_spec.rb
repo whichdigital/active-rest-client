@@ -14,8 +14,10 @@ describe ActiveRestClient::Instrumentation do
 
     Rails.logger = double("Logger")
     Rails.logger.should_receive(:debug)
+    Rails.logger.should_receive(:info)
     Rails.logger.should_receive(:error)
     ActiveRestClient::Logger.debug("Hello world")
+    ActiveRestClient::Logger.info("Hello world")
     ActiveRestClient::Logger.error("Hello world")
     Object.send(:remove_const, :Rails)
   end
@@ -29,6 +31,11 @@ describe ActiveRestClient::Instrumentation do
 
     file = mock('file')
     File.should_receive(:open).with("test.log", "a").and_yield(file)
+    file.should_receive(:<<).with("Hello info")
+    ActiveRestClient::Logger.info("Hello info")
+
+    file = mock('file')
+    File.should_receive(:open).with("test.log", "a").and_yield(file)
     file.should_receive(:<<).with("Hello error")
     ActiveRestClient::Logger.error("Hello error")
   end
@@ -36,10 +43,12 @@ describe ActiveRestClient::Instrumentation do
   it "should append to its own messages list if neither Rails nor a logfile has been specified" do
     File.should_not_receive(:open)
     ActiveRestClient::Logger.debug("Hello world")
+    ActiveRestClient::Logger.info("Hello info")
     ActiveRestClient::Logger.error("Hello error")
-    expect(ActiveRestClient::Logger.messages.size).to eq(2)
+    expect(ActiveRestClient::Logger.messages.size).to eq(3)
     expect(ActiveRestClient::Logger.messages[0]).to eq("Hello world")
-    expect(ActiveRestClient::Logger.messages[1]).to eq("Hello error")
+    expect(ActiveRestClient::Logger.messages[1]).to eq("Hello info")
+    expect(ActiveRestClient::Logger.messages[2]).to eq("Hello error")
   end
 
 end

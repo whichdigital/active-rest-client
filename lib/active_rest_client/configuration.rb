@@ -18,7 +18,7 @@ module ActiveRestClient
 
       def base_url=(value)
         ActiveRestClient::Logger.info "\033[1;4;32m#{name}\033[0m Base URL set to be #{value}"
-        value = value.gsub(/\/$/, '')
+        value = value.gsub(/\/+$/, '')
         @@base_url = value
       end
 
