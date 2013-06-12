@@ -103,8 +103,9 @@ module ActiveRestClient
     def do_request(etag)
       headers = {}
       headers["If-None-Match"] = etag if etag
-      connection = @object.get_connection || @object.class.get_connection rescue @object.class.get_connection
-      ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Requesting #{@url}"
+      connection = @object.get_connection rescue nil
+      connection ||= @object.class.get_connection
+      ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Requesting #{connection.base_url}#{@url}"
       case @method[:method]
       when :get
         response = connection.get(@url, headers)

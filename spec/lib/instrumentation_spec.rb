@@ -30,8 +30,8 @@ describe ActiveRestClient::Instrumentation do
       should_receive(:get).
       with("/real", {}).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
-    ActiveRestClient::Logger.should_receive(:debug)
     ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/ActiveRestClient.*ms\)/]}
+    ActiveRestClient::Logger.should_receive(:debug).at_least(:once).with(any_args)
     InstrumentationExampleClient.real
   end
 

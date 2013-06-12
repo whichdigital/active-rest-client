@@ -41,9 +41,19 @@ describe ActiveRestClient::Base do
 
   it "should save the base URL for the API server" do
     class BaseExample < ActiveRestClient::Base
-      base_url "https://ww.example.com/api/v1"
+      base_url "https://www.example.com/api/v1"
     end
-    expect(BaseExample.base_url).to eq("https://ww.example.com/api/v1")
+    expect(BaseExample.base_url).to eq("https://www.example.com/api/v1")
+  end
+
+  it "should allow changing the base_url while running" do
+    class OutsideBaseExample < ActiveRestClient::Base ; end
+
+    ActiveRestClient::Base.base_url = "https://www.example.com/api/v1"
+    expect(OutsideBaseExample.base_url).to eq("https://www.example.com/api/v1")
+
+    ActiveRestClient::Base.base_url = "https://www.example.com/api/v2"
+    expect(OutsideBaseExample.base_url).to eq("https://www.example.com/api/v2")
   end
 
   it "should include the Mapping module" do

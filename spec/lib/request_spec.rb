@@ -19,7 +19,7 @@ describe ActiveRestClient::Request do
   end
 
   it "should get an HTTP connection when called" do
-    connection = double(ActiveRestClient::Connection)
+    connection = double(ActiveRestClient::Connection).as_null_object
     ExampleClient.should_receive(:get_connection).and_return(connection)
     connection.should_receive(:get).with("/", {}).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.all
@@ -119,6 +119,7 @@ describe ActiveRestClient::Request do
       should_receive(:post).
       with("/create", "first_name=John&should_disappear=true", {}).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
     ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/Response received \d+ bytes/]}
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -132,6 +133,7 @@ describe ActiveRestClient::Request do
       should_receive(:post).
       with("/create", "first_name=John&should_disappear=true", {}).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
     ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/Response received \d+ bytes/]}
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -193,8 +195,11 @@ describe ActiveRestClient::Request do
   it "should raise an exception if you try to pass in an unsupport method" do
     method = {:method => :wiggle, url:"/"}
     class RequestFakeObject
+      def self.get_connection
+        ActiveRestClient::Connection.new("http://www.example.com/")
+      end
       def get_connection
-        true
+        ActiveRestClient::Connection.new("http://www.example.com/")
       end
 
       def name ; end

@@ -6,7 +6,7 @@ module ActiveRestClient
   class ConnectionFailedException < StandardError ; end
 
   class Connection
-    attr_accessor :session
+    attr_accessor :session, :base_url
 
     def initialize(base_url)
       @base_url                      = base_url
