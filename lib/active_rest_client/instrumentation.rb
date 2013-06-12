@@ -4,7 +4,7 @@ module ActiveRestClient
       self.class.time_spent += event.duration
       self.class.calls_made += 1
       name = '%s (%.1fms)' % [ActiveRestClient::NAME, event.duration]
-      ActiveRestClient::Logger.debug "  \033[1;4;32m#{name}\033[0m #{event.payload[:name]}" if defined?(:Rails)
+      ActiveRestClient::Logger.debug "  \033[1;4;32m#{name}\033[0m #{event.payload[:name]}"
     end
 
     def self.time_spent=(value)
