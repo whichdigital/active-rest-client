@@ -20,7 +20,6 @@ module ActiveRestClient
         ActiveRestClient::Logger.info "\033[1;4;32m#{name}\033[0m Base URL set to be #{value}"
         value = value.gsub(/\/$/, '')
         @@base_url = value
-        @base_url = value
       end
 
       def whiny_missing(value = nil)
