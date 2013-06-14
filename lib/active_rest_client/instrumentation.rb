@@ -25,7 +25,7 @@ module ActiveRestClient
 
     def self.reset
       @@time_spent = 0
-      @@cals_made = 0
+      @@calls_made = 0
     end
 
     def logger
