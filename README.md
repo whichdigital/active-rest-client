@@ -6,7 +6,9 @@ This gem is for accessing REST services in an ActiveRecord style.  ActiveResourc
 
 Add this line to your application's Gemfile:
 
-    gem 'active_rest_client'
+```ruby
+gem 'active_rest_client'
+```
 
 And then execute:
 
@@ -20,7 +22,7 @@ Or install it yourself as:
 
 First you need to create your new model class:
 
-```
+```ruby
 # config/environments/production.rb
 MyApp::Application.configure do
   # ...
@@ -40,13 +42,13 @@ end
 
 Note I've specified the base_url in the class above.  This is usful where you want to be explicit or use different APIs for some classes and be explicit. If you have one server that's generally used, you can set it once with a simple line in the application.rb/production.rb:
 
-```
+```ruby
 ActiveRestClient::Base.base_url = "https://www.example.com/api/v1"
 ```
 
 Any `base_url` settings in specific classes override this declared default. You can then use your new class like this:
 
-```
+```ruby
 # Create a new person
 @person = Person.create(
   first_name:"John"
@@ -72,7 +74,7 @@ Note, you can assign to any attribute, whether it exists or not before and read 
 
 You can also call any mapped method as an instance variable which will pass the current attribute set in as parameters (either GET or POST depending on the mapped method type).  If the method returns a single instance it will assign the attributes of the calling object and return itself.  If the method returns a list of instances, it will only return the list. So, we could rewrite the create call above as:
 
-```
+```ruby
 @person = Person.new
 @person.first_name = "John"
 @person.last_name  = "Smith"
@@ -82,7 +84,7 @@ puts @person.id
 
 If the call would return a list of instances that are another object, you can also specify this when mapping the method using the `:has_many` option.  It doesn't call anything on that object except for instantiate it, but it does let you have
 
-```
+```ruby
 class Expense < ActiveRestClient::Base
   def inc_vat
     ex_vat * 1.20
@@ -106,13 +108,13 @@ The response of the #create call set the attributes at that point (any manually 
 
 You can enable Expires and ETag based caching with a simple line in the application.rb/production.rb:
 
-```
+```ruby
 ActiveRestClient::Base.perform_caching = true
 ```
 
 or you can enable it per classes with:
 
-```
+```ruby
 class Person < ActiveRestClient::Base
   perform_caching true
 end
@@ -120,7 +122,7 @@ end
 
 If Rails is defined, it will default to using Rails.cache as the cache store, if not, you'll need to configure one with a `ActiveSupport::Cache::Store` compatible object using:
 
-```
+```ruby
 ActiveRestClient::Base.cache_store = Redis::Store.new("redis://localhost:6379/0/cache")
 ```
 
@@ -130,7 +132,7 @@ You can use filters to alter get/post parameters or the URL before a request.  T
 
 The filter is passed the name of the method (e.g. `:save`) and a request object. The request object has three public attributes `post_params` (a Hash of the POST parameters), `get_params` (a Hash of the GET parameters) and `url` (a String containing the full URL without GET parameters appended)
 
-```
+```ruby
 require 'secure_random'
 
 class Person < ActiveRestClient::Base
@@ -153,7 +155,7 @@ end
 
 If you need to, you can create a custom parent class with a filter and all children will inherit this filter.
 
-```
+```ruby
 class MyProject::Base < ActiveRestClient::Base
   before_filter do |name, request|
     request.get_params[:api_key] = "1234567890-1234567890"
@@ -169,7 +171,7 @@ end
 
 You can authenticate with Basic authentication by putting the username and password in to the `base_url` or by setting them within the specific model:
 
-```
+```ruby
 class Person < ActiveRestClient::Base
   username 'api'
   password 'eb693ec-8252c-d6301-02fd0-d0fb7-c3485'
@@ -182,7 +184,7 @@ end
 
 There are times when an API hasn't been developed yet, so you want to fake the API call response.  To do this, simply pass a `fake` option when mapping the call containing the response.
 
-```
+```ruby
 class Person < ActiveRestClient::Base
   get :all, '/people', :fake => "[{first_name:"Johnny"}, {first_name:"Bob"}]"
 end
@@ -192,7 +194,7 @@ end
 
 If you want to specify default parameters you shouldn't use a path like:
 
-```
+```ruby
 class Person < ActiveRestClient::Base
   get :all, '/people?all=true' # THIS IS WRONG!!!
 end
@@ -200,7 +202,7 @@ end
 
 You should use a defaults option to specify the defaults, then they will be correctly overwritten when making the request
 
-```
+```ruby
 class Person < ActiveRestClient::Base
   get :all, '/people', :defaults => {:active => true}
 end
@@ -212,7 +214,7 @@ end
 
 Sometimes the backend server may respond with a non-200/304 header, in which case the code will raise an `ActiveRestClient::HTTPClientException` for 4xx errors or an `ActiveRestClient::HTTPServerException` for 5xx errors.  These both have a `status` accessor and a `result` accessor (for getting access to the parsed body):
 
-```
+```ruby
 begin
   Person.all
 rescue ActiveRestClient::HTTPClientException, ActiveRestClient::HTTPServerException => e
@@ -226,7 +228,7 @@ If the response is unparsable (e.g. not in the desired content type), then it wi
 
 You can create validations on your objects just like Rails' built in ActiveModel validations.  For example:
 
-```
+```ruby
 class Person < ActiveRestClient::Base
   validates :first_name, presence:true
   validates :password, length:{within:6..12}
@@ -251,7 +253,7 @@ Validations are run when calling `valid?` or when calling any API on an instance
 
 The default configuration is that the response should be JSON.  This automatically adds an "Accept" header "application/json".  If you prefer you can have the response as XML by using the following:
 
-```
+```ruby
 class Person < ActiveRestClient::Base
   content_type :xml
 
