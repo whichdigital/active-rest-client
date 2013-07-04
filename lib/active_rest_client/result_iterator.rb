@@ -27,5 +27,10 @@ module ActiveRestClient
       @items[key]
     end
 
+    def shuffle
+      @items = @items.shuffle
+      self
+    end
+
   end
 end

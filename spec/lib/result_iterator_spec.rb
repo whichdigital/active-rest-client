@@ -42,4 +42,12 @@ describe ActiveRestClient::ResultIterator do
     expect(result[0]).to eq("a")
     expect(result[1]).to eq("z")
   end
+
+  it "should implement shuffle" do
+    result = ActiveRestClient::ResultIterator.new
+    100.times do |n|
+      result << n
+    end
+    expect(result.shuffle.first == result.shuffle.first && result.shuffle.first == result.shuffle.first).to_not be_true
+  end
 end
