@@ -119,7 +119,7 @@ describe ActiveRestClient::Request do
       should_receive(:post).
       with("/create", "first_name=John&should_disappear=true", {}).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
-    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
+    ActiveRestClient::Logger.should_receive(:info).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
     ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/Response received \d+ bytes/]}
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -133,7 +133,7 @@ describe ActiveRestClient::Request do
       should_receive(:post).
       with("/create", "first_name=John&should_disappear=true", {}).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
-    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
+    ActiveRestClient::Logger.should_receive(:info).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
     ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/Response received \d+ bytes/]}
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
