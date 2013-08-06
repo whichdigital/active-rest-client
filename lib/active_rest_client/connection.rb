@@ -13,6 +13,7 @@ module ActiveRestClient
       @session                       = Patron::Session.new
       @session.timeout               = 10
       @session.base_url              = base_url
+      @session.insecure              = true
       @session.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"
       @session.headers['Connection'] = "Keep-Alive"
       @session.headers['Accept']     = "application/json"
