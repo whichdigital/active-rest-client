@@ -11,6 +11,10 @@ class RequestFilteringExample
     request.post_params[:post_filter1] = "World"
   end
 
+  before_request do |name, request|
+    request.headers["X-My-Header"] = "myvalue"
+  end
+
   before_request :set_to_ssl
   before_request :set_via_instance
 
@@ -33,7 +37,7 @@ end
 
 describe ActiveRestClient::RequestFiltering do
   before(:each) do
-    @request = OpenStruct.new(get_params:{}, post_params:{}, url:"http://www.example.com")
+    @request = OpenStruct.new(get_params:{}, post_params:{}, url:"http://www.example.com", headers:ActiveRestClient::HeadersList.new)
   end
 
   it "should call through to adjust the parameters" do
@@ -61,5 +65,10 @@ describe ActiveRestClient::RequestFiltering do
     SubClassedRequestFilteringExample._filter_request(:test, @request)
     expect(@request.url).to match(/\/\/new\./)
     expect(@request.get_params[:api_key]).to eq(1234)
+  end
+
+  it "should allow filters to add custom headers" do
+    RequestFilteringExample._filter_request(:test, @request)
+    expect(@request.headers["X-My-Header"]).to eq("myvalue")
   end
 end

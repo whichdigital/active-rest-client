@@ -4,13 +4,14 @@ require "oj"
 module ActiveRestClient
 
   class Request
-    attr_accessor :post_params, :get_params, :url, :path
+    attr_accessor :post_params, :get_params, :url, :path, :headers, :method
 
     def initialize(method, object, params = {})
       @method             = method
       @method[:options]   ||= {}
       @object             = object
       @params             = params
+      @headers            = HeadersList.new
     end
 
     def object_is_class?
@@ -101,20 +102,24 @@ module ActiveRestClient
     end
 
     def do_request(etag)
-      headers = {}
-      headers["If-None-Match"] = etag if etag
+      http_headers = {}
+      http_headers["If-None-Match"] = etag if etag
+      headers.each do |key,value|
+        value = value.join(",") if value.is_a?(Array)
+        http_headers[key] = value
+      end
       connection = @object.get_connection rescue nil
       connection ||= @object.class.get_connection
       ActiveRestClient::Logger.info "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Requesting #{connection.base_url}#{@url}"
       case @method[:method]
       when :get
-        response = connection.get(@url, headers)
+        response = connection.get(@url, http_headers)
       when :put
-        response = connection.put(@url, @request_body, headers)
+        response = connection.put(@url, @request_body, http_headers)
       when :post
-        response = connection.post(@url, @request_body, headers)
+        response = connection.post(@url, @request_body, http_headers)
       when :delete
-        response = connection.delete(@url, @request_body, headers)
+        response = connection.delete(@url, @request_body, http_headers)
       else
         raise InvalidRequestException.new("Invalid method #{@method[:method]}")
       end

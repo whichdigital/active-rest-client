@@ -6,7 +6,14 @@ describe ActiveRestClient::Request do
     class ExampleClient < ActiveRestClient::Base
       base_url "http://www.example.com"
 
+      before_request do |name, request|
+        if request.method[:name] == :headers
+          request.headers["X-My-Header"] = "myvalue"
+        end
+      end
+
       get :all, "/"
+      get :headers, "/headers"
       get :find, "/:id"
       post :create, "/create"
       put :update, "/put/:id"
@@ -58,6 +65,11 @@ describe ActiveRestClient::Request do
   it "should pass through url parameters and put parameters" do
     ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", {}).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
     ExampleClient.update id:1234, debug:true
+  end
+
+  it "should pass through custom headers" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/headers", {"X-My-Header" => "myvalue"}).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    ExampleClient.headers
   end
 
   it "should parse JSON to give a nice object" do
