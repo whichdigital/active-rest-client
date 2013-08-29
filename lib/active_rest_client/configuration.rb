@@ -2,6 +2,7 @@ module ActiveRestClient
   module Configuration
     module ClassMethods
       @@base_url = nil
+      @lazy_load = false
 
       def base_url(value = nil)
         if value.nil?
@@ -22,6 +23,14 @@ module ActiveRestClient
         @@base_url = value
       end
 
+      def lazy_load!
+        @lazy_load = true
+      end
+
+      def lazy_load?
+        @lazy_load || false
+      end
+
       def whiny_missing(value = nil)
         value ? @whiny_missing = value : @whiny_missing || false
       end
@@ -30,6 +39,7 @@ module ActiveRestClient
         @base_url         = nil
         @@base_url        = nil
         @whiny_missing    = nil
+        @lazy_load        = false
       end
     end
 

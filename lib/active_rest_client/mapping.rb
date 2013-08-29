@@ -30,7 +30,11 @@ module ActiveRestClient
       def _call(name, options)
         mapped = @@_calls[name]
         request = Request.new(mapped, self, options)
-        request.call
+        if lazy_load?
+          ActiveRestClient::LazyLoader.new(request)
+        else
+          request.call
+        end
       end
 
       def _calls
