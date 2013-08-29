@@ -2,7 +2,6 @@ require 'spec_helper'
 
 class MappingExample
   include ActiveRestClient::Mapping
-
   get :test_get, "/get", tag:1, fake:"{result:true}"
   put :test_put, "/put", tag:2
   post :test_post, "/post", tag:3

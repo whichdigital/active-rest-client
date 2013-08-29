@@ -22,6 +22,10 @@ describe ActiveRestClient::Request do
       get :fake, "/fake", fake:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"child\":{\"grandchild\":{\"test\":true}}}"
       get :defaults, "/defaults", defaults:{overwrite:"no", persist:"yes"}
     end
+    class LazyLoadedExampleClient < ExampleClient
+      lazy_load!
+    end
+
     ActiveRestClient::Request.any_instance.stub(:read_cached_response)
   end
 
@@ -89,6 +93,19 @@ describe ActiveRestClient::Request do
     expect(object.child.grandchild.test).to eq(true)
   end
 
+  it "should return a lazy loader object if lazy loading is enabled" do
+    object = LazyLoadedExampleClient.fake id:1234, debug:true
+    expect(object).to be_an_instance_of(ActiveRestClient::LazyLoader)
+  end
+
+  it "should proxy through nice object for lazy loaded responses" do
+    object = LazyLoadedExampleClient.fake id:1234, debug:true
+    expect(object.result).to eq(true)
+    expect(object.list.first).to eq(1)
+    expect(object.list.last.test).to eq(true)
+    expect(object.child.grandchild.test).to eq(true)
+  end
+
   it "should log faked responses" do
     ActiveRestClient::Logger.stub(:debug)
     ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first["Faked response found"]}
@@ -104,6 +121,7 @@ describe ActiveRestClient::Request do
     expect(object._status).to eq(200)
   end
 
+  # TODO - look at this
   it "should instantiate other classes using has_many when required to do so" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/expenses?id=1234", {}).and_return(OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, headers:{}))
     object = ExampleClient.new(first_name:"Danny")

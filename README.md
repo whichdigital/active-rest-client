@@ -173,6 +173,20 @@ class Person < MyProject::Base
 end
 ```
 
+### Lazy Loading
+
+ActiveRestClient supports lazy loading (delaying the actual API call until the response is actually used, so that views can be cached without still causing API calls).
+
+**Note: Currently this isn't enabled by default, but this is likely to change in the future to make lazy loading the default.**
+
+To enable it, simply call the lazy_load! method in your class definition:
+
+```ruby
+class Article < ActiveRestClient::Base
+  lazy_load!
+end
+```
+
 ### Authentication
 
 You can authenticate with Basic authentication by putting the username and password in to the `base_url` or by setting them within the specific model:
