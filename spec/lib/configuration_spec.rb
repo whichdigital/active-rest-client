@@ -54,4 +54,20 @@ describe ActiveRestClient::Configuration do
     expect(ConfigurationExample2.base_url).to eq("http://specific.example.com")
   end
 
+  it "should default to non-lazy loading" do
+    class LazyLoadingConfigurationExample1
+      include ActiveRestClient::Configuration
+    end
+    expect(LazyLoadingConfigurationExample1.lazy_load?).to be_false
+  end
+
+  it "should be able to switch on lazy loading" do
+    class LazyLoadingConfigurationExample2
+      include ActiveRestClient::Configuration
+      lazy_load!
+    end
+    expect(LazyLoadingConfigurationExample2.lazy_load?).to be_true
+  end
+
+
 end
