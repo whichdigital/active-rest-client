@@ -4,6 +4,12 @@ describe ActiveRestClient::LazyAssociationLoader do
   let(:url1) { "http://www.example.com/some/url" }
   let(:url2) { "http://www.example.com/some/other" }
 
+  it "should raise an exception if you initialize it with a value that is not a string, hash or array" do
+    expect do
+      ActiveRestClient::LazyAssociationLoader.new(:person, OpenStruct.new, nil)
+    end.to raise_error(ActiveRestClient::InvalidLazyAssociationContentException)
+  end
+
   it "should store a URL passed as a string to the new object during creation" do
     loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, nil)
     expect(loader.instance_variable_get(:@url)).to eq(url1)
