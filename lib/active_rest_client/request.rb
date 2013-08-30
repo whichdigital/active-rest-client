@@ -4,18 +4,19 @@ require "oj"
 module ActiveRestClient
 
   class Request
-    attr_accessor :post_params, :get_params, :url, :path, :headers, :method
+    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object
 
     def initialize(method, object, params = {})
-      @method             = method
-      @method[:options]   ||= {}
-      @object             = object
-      @params             = params
-      @headers            = HeadersList.new
+      @method                  = method
+      @method[:options]        ||= {}
+      @method[:options][:lazy] ||= []
+      @object                  = object
+      @params                  = params
+      @headers                 = HeadersList.new
     end
 
     def object_is_class?
-      @object.respond_to?(:get_connection)
+      !@object.respond_to?(:dirty?)
     end
 
     def class_name
@@ -23,6 +24,14 @@ module ActiveRestClient
         @object.name
       else
         @object.class.name
+      end
+    end
+
+    def base_url
+      if object_is_class?
+        @object.base_url
+      else
+        @object.class.base_url
       end
     end
 
@@ -108,8 +117,18 @@ module ActiveRestClient
         value = value.join(",") if value.is_a?(Array)
         http_headers[key] = value
       end
-      connection = @object.get_connection rescue nil
-      connection ||= @object.class.get_connection
+      if @method[:options][:url]
+        @url = @method[:options][:url]
+        @method[:method] = :get
+        if connection = ActiveRestClient::ConnectionManager.find_connection_for_url(@url)
+          @url = @url.slice(connection.base_url.length, 255)
+        else
+          _, @base_url, @url = @url.match(%r{^(https?://[a-z\d\.:-]+?)(/.*)}).to_a
+          connection = ActiveRestClient::ConnectionManager.get_connection(@base_url)
+        end
+      else
+        connection = ActiveRestClient::ConnectionManager.get_connection(base_url)
+      end
       ActiveRestClient::Logger.info "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Requesting #{connection.base_url}#{@url}"
       case @method[:method]
       when :get
@@ -187,7 +206,9 @@ module ActiveRestClient
 
       attributes.each do |k,v|
         k = k.to_sym
-        if v.is_a? Hash
+        if @method[:options][:lazy].include?(k)
+          object._attributes[k] = ActiveRestClient::LazyAssociationLoader.new(k, v, self)
+        elsif v.is_a? Hash
           object._attributes[k] = new_object(v)
         elsif v.is_a? Array
           object._attributes[k] = ActiveRestClient::ResultIterator.new
@@ -201,8 +222,8 @@ module ActiveRestClient
         else
           object._attributes[k] = v
         end
-        object.clean!
       end
+      object.clean!
 
       object
     end

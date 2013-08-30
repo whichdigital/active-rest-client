@@ -2,7 +2,7 @@ require 'spec_helper'
 
 class MappingExample
   include ActiveRestClient::Mapping
-  get :test_get, "/get", tag:1, fake:"{result:true}"
+  get :test_get, "/get", tag:1, fake:"{result:true}", lazy:[:something]
   put :test_put, "/put", tag:2
   post :test_post, "/post", tag:3
   delete :test_delete, "/delete", tag:4
@@ -31,6 +31,8 @@ describe ActiveRestClient::Mapping do
   end
 
   it "should remember options set for each mapped call" do
+    expect(MappingExample._calls[:test_get][:options][:fake]).to eq("{result:true}")
+    expect(MappingExample._calls[:test_get][:options][:lazy]).to eq([:something])
     expect(MappingExample._calls[:test_get][:options][:tag]).to eq(1)
     expect(MappingExample._calls[:test_put][:options][:tag]).to eq(2)
     expect(MappingExample._calls[:test_post][:options][:tag]).to eq(3)

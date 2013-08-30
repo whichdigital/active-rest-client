@@ -82,6 +82,16 @@ You can also call any mapped method as an instance variable which will pass the 
 puts @person.id
 ```
 
+The response of the #create call set the attributes at that point (any manually set attributes before that point are removed).
+
+## Advanced Features
+
+### Associations
+
+There are two types of association.  One assumes when you call a method you actually want it to call the method on a separate class (as that class has other methods that are useful).  The other is lazy loading related classes from a separate URL.
+
+#### Association Type 1 - Loading Other Classes
+
 If the call would return a list of instances that are another object, you can also specify this when mapping the method using the `:has_many` option.  It doesn't call anything on that object except for instantiate it, but it does let you have
 
 ```ruby
@@ -100,9 +110,31 @@ end
 puts @person.expenses.reduce {|e| e.inc_vat}
 ```
 
-The response of the #create call set the attributes at that point (any manually set attributes before that point are removed).
+#### Association Type 2 - Lazy Loading From Other URLs
 
-## Advanced Features
+When mapping the method, passing a list of attributes will cause any requests for those attributes to mapped to the URLs given in the response.  The response for the attribute may be one of the following:
+
+`"attribute" : "URL"`
+`"attribute" : { "url" : "URL"}`
+`"attribute" : ["URL", "URL"]`
+
+It is required that the URL is a complete URL including a protocol starting with "http".  To configure this use code like:
+
+```ruby
+class Article < ActiveRestClient::Base
+  get :find, "/articles/:id", :lazy => [:site_structure, :people]
+end
+```
+
+And use it like this:
+
+```ruby
+# Makes a call to /articles/1
+@article = Article.find(1)
+
+# Makes a call to the first URL found in the "people":[...] array in the article response
+@article.people.first.name
+```
 
 ### Caching
 

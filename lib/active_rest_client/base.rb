@@ -2,7 +2,6 @@ module ActiveRestClient
   class Base
     include Mapping
     include Configuration
-    include ConnectionManager
     include RequestFiltering
     include Validation
     include Caching
@@ -50,6 +49,9 @@ module ActiveRestClient
         @dirty_attributes << name
       else
         name = name.to_sym
+
+        # Handle self.class._mapped_method(name)
+
         if @attributes.has_key? name
           @attributes[name]
         else

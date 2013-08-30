@@ -21,6 +21,7 @@ describe ActiveRestClient::Request do
       get :expenses, "/expenses", has_many:ExampleOtherClient
       get :fake, "/fake", fake:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"child\":{\"grandchild\":{\"test\":true}}}"
       get :defaults, "/defaults", defaults:{overwrite:"no", persist:"yes"}
+      get :lazy_test, "/does-not-matter", fake:"{\"people\":[\"http://www.example.com/some/url\"]}", :lazy => %i{people}
     end
     class LazyLoadedExampleClient < ExampleClient
       lazy_load!
@@ -31,7 +32,7 @@ describe ActiveRestClient::Request do
 
   it "should get an HTTP connection when called" do
     connection = double(ActiveRestClient::Connection).as_null_object
-    ExampleClient.should_receive(:get_connection).and_return(connection)
+    ActiveRestClient::ConnectionManager.should_receive(:get_connection).and_return(connection)
     connection.should_receive(:get).with("/", {}).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.all
   end
@@ -104,6 +105,12 @@ describe ActiveRestClient::Request do
     expect(object.list.first).to eq(1)
     expect(object.list.last.test).to eq(true)
     expect(object.child.grandchild.test).to eq(true)
+  end
+
+  it "should return a LazyAssociationLoader for lazy loaded properties" do
+    object = LazyLoadedExampleClient.lazy_test
+    expect(object.people.size).to eq(1)
+    expect(object.people).to be_an_instance_of(ActiveRestClient::LazyAssociationLoader)
   end
 
   it "should log faked responses" do
@@ -225,11 +232,8 @@ describe ActiveRestClient::Request do
   it "should raise an exception if you try to pass in an unsupport method" do
     method = {:method => :wiggle, url:"/"}
     class RequestFakeObject
-      def self.get_connection
-        ActiveRestClient::Connection.new("http://www.example.com/")
-      end
-      def get_connection
-        ActiveRestClient::Connection.new("http://www.example.com/")
+      def base_url
+        "http://www.example.com/"
       end
 
       def name ; end
@@ -240,4 +244,43 @@ describe ActiveRestClient::Request do
     expect{request.call}.to raise_error(ActiveRestClient::InvalidRequestException)
   end
 
+  context "Direct URL requests" do
+    class SameServerExampleClient < ActiveRestClient::Base
+      URL = "http://www.example.com/some/url"
+      base_url "http://www.example.com"
+      get :same_server, "/does-not-matter", url:URL
+    end
+
+    class OtherServerExampleClient < ActiveRestClient::Base
+      URL = "http://other.example.com/some/url"
+      base_url "http://www.example.com"
+      get :other_server, "/does-not-matter", url:URL
+    end
+
+    it "should allow requests directly to URLs" do
+      ActiveRestClient::ConnectionManager.reset!
+      ActiveRestClient::Connection.
+        any_instance.
+        should_receive(:get).
+        with("/some/url", {}).
+        and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+      SameServerExampleClient.same_server
+    end
+
+    it "should allow requests directly to URLs even if to different URLs" do
+      ActiveRestClient::ConnectionManager.reset!
+      connection = double("Connection")
+      connection.
+        should_receive(:get).
+        with("/some/url", {}).
+        and_return(OpenStruct.new(body:"", headers:{}, status:304))
+      connection.
+        should_receive(:base_url).
+        any_number_of_times.
+        and_return("http://other.example.com")
+      ActiveRestClient::ConnectionManager.should_receive(:find_connection_for_url).with(OtherServerExampleClient::URL).and_return(connection)
+      OtherServerExampleClient.other_server
+    end
+
+  end
 end
