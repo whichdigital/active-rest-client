@@ -12,13 +12,12 @@ describe ActiveRestClient::Request do
         end
       end
 
-      get :all, "/"
+      get :all, "/", :has_many => {:expenses => ExampleOtherClient}
       get :headers, "/headers"
       get :find, "/:id"
       post :create, "/create"
       put :update, "/put/:id"
       delete :remove, "/remove/:id"
-      get :expenses, "/expenses", has_many:ExampleOtherClient
       get :fake, "/fake", fake:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"child\":{\"grandchild\":{\"test\":true}}}"
       get :defaults, "/defaults", defaults:{overwrite:"no", persist:"yes"}
       get :lazy_test, "/does-not-matter", fake:"{\"people\":[\"http://www.example.com/some/url\"]}", :lazy => %i{people}
@@ -128,13 +127,10 @@ describe ActiveRestClient::Request do
     expect(object._status).to eq(200)
   end
 
-  # TODO - look at this
   it "should instantiate other classes using has_many when required to do so" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/expenses?id=1234", {}).and_return(OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, headers:{}))
-    object = ExampleClient.new(first_name:"Danny")
-    expenses = object.expenses(id:1234)
-    expect(expenses).to be_instance_of(ActiveRestClient::ResultIterator)
-    expect(expenses.first).to be_instance_of(ExampleOtherClient)
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", {}).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    object = ExampleClient.all
+    expect(object.expenses.first).to be_instance_of(ExampleOtherClient)
   end
 
   it "should assign new attributes to the existing object if possible" do

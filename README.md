@@ -92,7 +92,7 @@ There are two types of association.  One assumes when you call a method you actu
 
 #### Association Type 1 - Loading Other Classes
 
-If the call would return a list of instances that are another object, you can also specify this when mapping the method using the `:has_many` option.  It doesn't call anything on that object except for instantiate it, but it does let you have
+If the call would return a list of instances that should be considered another object, you can also specify this when mapping the method using the `:has_many` option.  It doesn't call anything on that object except for instantiate it, but it does let you have objects of a different class to the one you initially called.
 
 ```ruby
 class Expense < ActiveRestClient::Base
@@ -102,8 +102,7 @@ class Expense < ActiveRestClient::Base
 end
 
 class Person < ActiveRestClient::Base
-  get :find, "/people/:id"
-  get :expenses, "/people/:id/expenses", has_many:Expense
+  get :find, "/people/:id", :has_many => {:expenses => Expense}
 end
 
 @person = Person.find(1)
@@ -112,7 +111,7 @@ puts @person.expenses.reduce {|e| e.inc_vat}
 
 #### Association Type 2 - Lazy Loading From Other URLs
 
-When mapping the method, passing a list of attributes will cause any requests for those attributes to mapped to the URLs given in the response.  The response for the attribute may be one of the following:
+When mapping the method, passing a list of attributes will cause any requests for those attributes to mapped to the URLs given in their responses.  The response for the attribute may be one of the following:
 
 `"attribute" : "URL"`
 `"attribute" : { "url" : "URL"}`
@@ -121,20 +120,88 @@ When mapping the method, passing a list of attributes will cause any requests fo
 It is required that the URL is a complete URL including a protocol starting with "http".  To configure this use code like:
 
 ```ruby
-class Article < ActiveRestClient::Base
-  get :find, "/articles/:id", :lazy => [:site_structure, :people]
+class Person < ActiveRestClient::Base
+  get :find, "/people/:id", :lazy => [:orders, :refunds]
 end
 ```
 
 And use it like this:
 
 ```ruby
-# Makes a call to /articles/1
-@article = Article.find(1)
+# Makes a call to /people/1
+@person = Person.find(1)
 
-# Makes a call to the first URL found in the "people":[...] array in the article response
-@article.people.first.name
+# Makes a call to the first URL found in the "books":[...] array in the article response
+# only makes the HTTP request when first used though
+@person.books.first.name
 ```
+
+#### Combined Example
+
+OK, so let's say you have an API for getting articles.  Each article has a property called `title` (which is a string) and a property `images` which includes a list of URIs.  Following this URI would take you to a image API that returns the image's `filename` and `filesize`.  We would declare our two models (one for articles and one for images) like the following:
+
+```ruby
+class Article < ActiveRestClient::Base
+  get :find, '/articles/:id', lazy:[:images], has_many:{:images => Image}
+end
+
+class Image < ActiveRestClient::Base
+  # You may have mappings here
+
+  def nice_size
+    "#{size/1024}KB"
+  end
+end
+```
+
+We assume the /articles/:id call returns something like the following:
+
+```json
+{
+  "title": "Fly Fishing",
+  "author": "J R Hartley",
+  "images": [
+    "http://api.example.com/images/1",
+    "http://api.example.com/images/2"
+  ]
+}
+```
+
+We said above that the /images/:id call would return something like:
+
+```json
+{
+  "filename": "http://cdn.example.com/images/foo.jpg",
+  "filesize": 123456
+}
+```
+
+When it comes time to use it, you would do something like this:
+
+```ruby
+@article = Article.find(1)
+@article.images.is_a?(ActiveRestClient::LazyAssociationLoader)
+@article.images.size == 2
+@article.images.each do |image|
+  puts image.inspect
+end
+```
+
+At this point, only the HTTP call to '/articles/1' has been made.  When you actually start using properties of the images list/image object then it makes a call to the URL given in the images list and you can use the properties as if it was a nested JSON object in the original response instead of just a URL:
+
+```ruby
+@image = @article.images.first
+puts @image.filename
+# => http://cdn.example.com/images/foo.jpg
+puts @image.filesize
+# => 123456
+```
+
+You can also treat `@image` looks like an Image class (and you should 100% treat it as one) it's technically a lazy loading proxy.  So, if you cache the views for your application should only make HTTP API requests when actually necessary.
+
+```ruby
+puts @image.nice_size
+# => 121KB
 
 ### Caching
 

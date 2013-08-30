@@ -193,9 +193,10 @@ module ActiveRestClient
       raise ResponseParseException.new(status:response.status, body:response.body)
     end
 
-    def new_object(attributes)
-      if @method[:options][:has_many]
-        object = @method[:options][:has_many].new
+    def new_object(attributes, name = nil)
+      @method[:options][:has_many] ||= {}
+      if @method[:options][:has_many][name]
+        object = @method[:options][:has_many][name].new
       else
         if object_is_class?
           object = @object.new
@@ -209,12 +210,12 @@ module ActiveRestClient
         if @method[:options][:lazy].include?(k)
           object._attributes[k] = ActiveRestClient::LazyAssociationLoader.new(k, v, self)
         elsif v.is_a? Hash
-          object._attributes[k] = new_object(v)
+          object._attributes[k] = new_object(v, k)
         elsif v.is_a? Array
           object._attributes[k] = ActiveRestClient::ResultIterator.new
           v.each do |item|
             if item.is_a? Hash
-              object._attributes[k] << new_object(item)
+              object._attributes[k] << new_object(item, k)
             else
               object._attributes[k] << item
             end
