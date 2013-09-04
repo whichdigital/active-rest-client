@@ -42,7 +42,7 @@ module ActiveRestClient
       ActiveSupport::Notifications.instrument("request_call.active_rest_client", :name => @instrumentation_name) do
         if @method[:options][:fake]
           ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Faked response found"
-          return handle_response(OpenStruct.new(status:200, body:@method[:options][:fake]))
+          return handle_response(OpenStruct.new(status:200, body:@method[:options][:fake], headers:{}))
         end
         @explicit_parameters = explicit_parameters
         prepare_params
@@ -165,6 +165,7 @@ module ActiveRestClient
       end
       ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response received #{response.body.size} bytes"
 
+      @response = response
 
       body = Oj.load(response.body) || {}
       if body.is_a? Array
@@ -194,6 +195,10 @@ module ActiveRestClient
     end
 
     def new_object(attributes, name = nil)
+      if hal_response? && name.nil?
+        attributes = handle_hal_links_embedded(attributes)
+      end
+
       @method[:options][:has_many] ||= {}
       if @method[:options][:has_many][name]
         object = @method[:options][:has_many][name].new
@@ -229,6 +234,32 @@ module ActiveRestClient
       object
     end
 
+    def hal_response?
+      _, content_type = @response.headers.detect{|k,v| k.downcase == "content-type"}
+      content_type && content_type[%r{application\/hal\+json}i]
+    end
+
+    def handle_hal_links_embedded(attributes)
+      attributes.each do |k,v|
+        k = k.to_sym
+        if @method[:options][:lazy].include?(k)
+          object._attributes[k] = ActiveRestClient::LazyAssociationLoader.new(k, v, self)
+        elsif v.is_a? Hash
+          object._attributes[k] = new_object(v, k)
+        elsif v.is_a? Array
+          object._attributes[k] = ActiveRestClient::ResultIterator.new
+          v.each do |item|
+            if item.is_a? Hash
+              object._attributes[k] << new_object(item, k)
+            else
+              object._attributes[k] << item
+            end
+          end
+        else
+          object._attributes[k] = v
+        end
+      end
+    end
   end
 
   class InvalidRequestException < StandardError ; end
