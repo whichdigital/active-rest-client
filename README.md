@@ -140,11 +140,11 @@ And use it like this:
 
 #### Combined Example
 
-OK, so let's say you have an API for getting articles.  Each article has a property called `title` (which is a string) and a property `images` which includes a list of URIs.  Following this URI would take you to a image API that returns the image's `filename` and `filesize`.  We would declare our two models (one for articles and one for images) like the following:
+OK, so let's say you have an API for getting articles.  Each article has a property called `title` (which is a string) and a property `images` which includes a list of URIs.  Following this URI would take you to a image API that returns the image's `filename` and `filesize`.  We'll also assume this is a HAL compliant API. We would declare our two models (one for articles and one for images) like the following:
 
 ```ruby
 class Article < ActiveRestClient::Base
-  get :find, '/articles/:id', lazy:[:images], has_many:{:images => Image}
+  get :find, '/articles/:id', has_many:{:images => Image} # ,lazy:[:images] isn't needed as we're using HAL
 end
 
 class Image < ActiveRestClient::Base
