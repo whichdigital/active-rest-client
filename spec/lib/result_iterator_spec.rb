@@ -35,6 +35,13 @@ describe ActiveRestClient::ResultIterator do
     expect(result.last).to eq("z")
   end
 
+  it "should implement size" do
+    result = ActiveRestClient::ResultIterator.new
+    result << "a"
+    result << "z"
+    expect(result.size).to eq(2)
+  end
+
   it "should implement direct index access" do
     result = ActiveRestClient::ResultIterator.new
     result << "a"

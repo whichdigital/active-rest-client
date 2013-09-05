@@ -42,7 +42,7 @@ module ActiveRestClient
       ActiveSupport::Notifications.instrument("request_call.active_rest_client", :name => @instrumentation_name) do
         if @method[:options][:fake]
           ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Faked response found"
-          return handle_response(OpenStruct.new(status:200, body:@method[:options][:fake], headers:{}))
+          return handle_response(OpenStruct.new(status:200, body:@method[:options][:fake], headers:{"X-ARC-Faked-Response" => "true"}))
         end
         @explicit_parameters = explicit_parameters
         prepare_params
@@ -113,6 +113,7 @@ module ActiveRestClient
     def do_request(etag)
       http_headers = {}
       http_headers["If-None-Match"] = etag if etag
+      http_headers["Accept"] = "application/hal+json, application/json;q=0.5"
       headers.each do |key,value|
         value = value.join(",") if value.is_a?(Array)
         http_headers[key] = value
@@ -195,10 +196,6 @@ module ActiveRestClient
     end
 
     def new_object(attributes, name = nil)
-      if hal_response? && name.nil?
-        attributes = handle_hal_links_embedded(attributes)
-      end
-
       @method[:options][:has_many] ||= {}
       if @method[:options][:has_many][name]
         object = @method[:options][:has_many][name].new
@@ -208,6 +205,10 @@ module ActiveRestClient
         else
           object = @object.class.new
         end
+      end
+
+      if hal_response? && name.nil?
+        attributes = handle_hal_links_embedded(object, attributes)
       end
 
       attributes.each do |k,v|
@@ -236,29 +237,37 @@ module ActiveRestClient
 
     def hal_response?
       _, content_type = @response.headers.detect{|k,v| k.downcase == "content-type"}
-      content_type && content_type[%r{application\/hal\+json}i]
+      faked_response = @response.headers.detect{|k,v| k.downcase == "x-arc-faked-response"}
+      content_type && content_type[%r{application\/hal\+json}i] || faked_response
     end
 
-    def handle_hal_links_embedded(attributes)
-      attributes.each do |k,v|
-        k = k.to_sym
-        if @method[:options][:lazy].include?(k)
-          object._attributes[k] = ActiveRestClient::LazyAssociationLoader.new(k, v, self)
-        elsif v.is_a? Hash
-          object._attributes[k] = new_object(v, k)
-        elsif v.is_a? Array
-          object._attributes[k] = ActiveRestClient::ResultIterator.new
-          v.each do |item|
-            if item.is_a? Hash
-              object._attributes[k] << new_object(item, k)
-            else
-              object._attributes[k] << item
+    def handle_hal_links_embedded(object, attributes)
+      if attributes["_links"]
+        attributes["_links"].each do |key, value|
+          if value.is_a?(Array)
+            object._attributes[key.to_sym] ||= ActiveRestClient::ResultIterator.new
+            value.each do |element|
+              begin
+                embedded_version = attributes["_embedded"][key].detect{|embed| embed["_links"]["self"]["href"] == element["href"]}
+                object._attributes[key.to_sym] << new_object(embedded_version, key)
+              rescue NoMethodError
+                object._attributes[key.to_sym] << ActiveRestClient::LazyAssociationLoader.new(key, element, self)
+              end
+            end
+          else
+            begin
+              embedded_version = attributes["_embedded"][key]
+              object._attributes[key.to_sym] = new_object(embedded_version, key)
+            rescue NoMethodError
+              object._attributes[key.to_sym] = ActiveRestClient::LazyAssociationLoader.new(key, value, self)
             end
           end
-        else
-          object._attributes[k] = v
         end
+        attributes.delete("_links")
+        attributes.delete("_embedded")
       end
+
+      attributes
     end
   end
 

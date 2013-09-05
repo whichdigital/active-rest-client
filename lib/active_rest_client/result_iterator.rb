@@ -13,6 +13,10 @@ module ActiveRestClient
       @items << item
     end
 
+    def size
+      @items.size
+    end
+
     def each
       @items.each do |el|
         yield el

@@ -136,6 +136,8 @@ And use it like this:
 @person.books.first.name
 ```
 
+**Note: You don't need to define lazy attributes if they are defined using [HAL](http://stateless.co/hal_specification.html) (with an optional embedded representation).**
+
 #### Combined Example
 
 OK, so let's say you have an API for getting articles.  Each article has a property called `title` (which is a string) and a property `images` which includes a list of URIs.  Following this URI would take you to a image API that returns the image's `filename` and `filesize`.  We would declare our two models (one for articles and one for images) like the following:
@@ -365,22 +367,6 @@ end
 Note the block based validation is responsible for adding errors to `object.errors[name]` (and this will automatically be ready for `<<` inserting into).
 
 Validations are run when calling `valid?` or when calling any API on an instance (and then only if it is `valid?` will the API go on to be called).
-
-### Content Types
-
-** FOR THIS RELEASE THE ONLY CONTENT TYPE IS APPLICATION/JSON - THE BELOW IS PLANNED FOR A FUTURE RELEASE **
-
-The default configuration is that the response should be JSON.  This automatically adds an "Accept" header "application/json".  If you prefer you can have the response as XML by using the following:
-
-```ruby
-class Person < ActiveRestClient::Base
-  content_type :xml
-
-  # ...
-end
-```
-
-This works for any MIME type registered in Rails using `Mime::Type.register`.
 
 ## Contributing
 

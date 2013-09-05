@@ -28,7 +28,7 @@ describe ActiveRestClient::Instrumentation do
     ActiveRestClient::Connection.
       any_instance.
       should_receive(:get).
-      with("/real", {}).
+      with("/real", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
     ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/ActiveRestClient.*ms\)/]}
     ActiveRestClient::Logger.should_receive(:debug).at_least(:once).with(any_args)
