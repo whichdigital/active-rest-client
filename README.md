@@ -136,7 +136,9 @@ And use it like this:
 @person.books.first.name
 ```
 
-**Note: You don't need to define lazy attributes if they are defined using [HAL](http://stateless.co/hal_specification.html) (with an optional embedded representation).**
+#### Association Type 3 - HAL Auto-loaded Resources
+
+You don't need to define lazy attributes if they are defined using [HAL](http://stateless.co/hal_specification.html) (with an optional embedded representation).  If your resource has an _links item (and optionally an _embedded item) then it will automatically treat the linked resources (with the _embedded cache) as if they were defined using `:lazy` as per type 2 above.
 
 #### Combined Example
 
