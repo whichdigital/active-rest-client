@@ -70,7 +70,15 @@ id = @person.id
 end
 ```
 
-Note, you can assign to any attribute, whether it exists or not before and read from any attribute (which will return nil if not found).
+Note, you can assign to any attribute, whether it exists or not before and read from any attribute (which will return nil if not found).  If you pass a string or a number to a method it will assume that it's for the "id" field.  Any other field values must be passed as a hash and you can't mix passing a string/number and a hash.
+
+```ruby
+@person = Person.find(1234)  # valid
+@person = Person.find("1234")  # valid
+@person = Person.find(:id => 1234)  # valid
+@person = Person.find(:id => 1234, :name => "Billy")  # valid
+@person = Person.find(1234, :name => "Billy")  # invalid
+```
 
 You can also call any mapped method as an instance variable which will pass the current attribute set in as parameters (either GET or POST depending on the mapped method type).  If the method returns a single instance it will assign the attributes of the calling object and return itself.  If the method returns a list of instances, it will only return the list. So, we could rewrite the create call above as:
 

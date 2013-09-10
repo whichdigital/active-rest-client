@@ -64,6 +64,16 @@ describe ActiveRestClient::Request do
     ExampleClient.find id:1234
   end
 
+  it "should accept an integer as the only parameter and use it as id" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    ExampleClient.find(1234)
+  end
+
+  it "should accept a string as the only parameter and use it as id" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    ExampleClient.find("1234")
+  end
+
   it "should pass through url parameters and get parameters" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/1234?debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
     ExampleClient.find id:1234, debug:true

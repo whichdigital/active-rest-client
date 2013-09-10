@@ -83,16 +83,20 @@ module ActiveRestClient
 
     def prepare_params
       params = @object._attributes rescue @params
+      if params.is_a?(String) || params.is_a?(Fixnum)
+        params = {id:params}
+      end
+
       default_params = @method[:options][:defaults] || {}
 
       if @explicit_parameters
         params = @explicit_parameters
       end
       if @method[:method] == :get
-        @get_params = default_params.merge(params || [])
+        @get_params = default_params.merge(params || {})
         @post_params = nil
       else
-        @post_params = default_params.merge(params || [])
+        @post_params = default_params.merge(params || {})
         @get_params = {}
       end
     end
