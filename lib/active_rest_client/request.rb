@@ -35,6 +35,14 @@ module ActiveRestClient
       end
     end
 
+    def translator
+      if object_is_class?
+        @object.translator
+      else
+        @object.class.translator
+      end
+    end
+
     def call(explicit_parameters=nil)
       @instrumentation_name = "#{class_name}##{@method[:name]}"
       result = nil
@@ -169,6 +177,7 @@ module ActiveRestClient
       @response = response
 
       body = Oj.load(response.body) || {}
+      body = translator.send(@method[:name], body) rescue body
       if body.is_a? Array
         result = ActiveRestClient::ResultIterator.new(response.status)
         body.each do |json_object|

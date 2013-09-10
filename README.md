@@ -313,6 +313,30 @@ class Person < ActiveRestClient::Base
 end
 ```
 
+### Translating APIs
+
+Sometimes you may be working with an API that returns JSON in a less than ideal format.  In this case you can define a barebones class and pass it to your model.  The Translator class must have class methods that are passed the JSON object and should return an object in the correct format.  It doesn't need to have a method unless it's going to translate that mapping though (so in the example below there's no list method). For example:
+
+```ruby
+class ArticleTranslator
+  def self.all(object)
+    ret = {}
+    ret["first_name"] = object["name"]
+    ret
+  end
+end
+
+class Article < ActiveRestClient::Base
+  translator ArticleTranslator
+  base_url "http://www.example.com"
+
+  get :all, "/all", fake:"{\"name\":\"Billy\"}"
+  get :list, "/list", fake:"[{\"name\":\"Billy\"}, {\"name\":\"John\"}]"
+end
+
+TranslatorClientExample.all.first_name == "Billy"
+```
+
 ### Default Parameters
 
 If you want to specify default parameters you shouldn't use a path like:

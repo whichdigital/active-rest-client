@@ -1,9 +1,6 @@
 module ActiveRestClient
   module Mapping
-
     module ClassMethods
-      @@_calls = {}
-
       def get(name, url, options = {})
         _map_call(name, url:url, method: :get, options:options)
       end
@@ -21,14 +18,14 @@ module ActiveRestClient
       end
 
       def _map_call(name, details)
-        @@_calls[name] = {name:name}.merge(details)
+        _calls[name] = {name:name}.merge(details)
         self.class.send(:define_method, name) do |options={}|
           _call(name, options)
         end
       end
 
       def _call(name, options)
-        mapped = @@_calls[name]
+        mapped = _calls[name]
         request = Request.new(mapped, self, options)
         if lazy_load?
           ActiveRestClient::LazyLoader.new(request)
@@ -38,12 +35,17 @@ module ActiveRestClient
       end
 
       def _calls
-        @@_calls
+        @_calls
       end
 
       def _mapped_method(name)
-        @@_calls[name]
+        _calls[name]
       end
+
+      def inherited(subclass)
+        subclass.instance_variable_set(:@_calls, {})
+      end
+
     end
 
     def self.included(base)

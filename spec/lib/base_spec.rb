@@ -4,6 +4,22 @@ class EmptyExample < ActiveRestClient::Base
   whiny_missing true
 end
 
+class TranslatorExample
+  def self.all(object)
+    ret = {}
+    ret["first_name"] = object["name"]
+    ret
+  end
+end
+
+class TranslatorClientExample < ActiveRestClient::Base
+  translator TranslatorExample
+  base_url "http://www.example.com"
+
+  get :all, "/all", fake:"{\"name\":\"Billy\"}"
+  get :list, "/list", fake:"{\"name\":\"Billy\"}"
+end
+
 describe ActiveRestClient::Base do
   it 'should instantiate a new descendant' do
     expect{EmptyExample.new}.to_not raise_error(Exception)
@@ -76,6 +92,30 @@ describe ActiveRestClient::Base do
 
   it "should raise an exception for missing attributes if whiny_missing is enabled" do
     expect{EmptyExample.new.first_name}.to raise_error(ActiveRestClient::NoAttributeException)
+  end
+
+  context "accepts a Translator to reformat JSON" do
+    it "should call Translator#method when calling the mapped method if it responds to it" do
+      TranslatorExample.should_receive(:all).with(an_instance_of(Hash)).and_return({})
+      TranslatorClientExample.all
+    end
+
+    it "should not raise errors when calling Translator#method if it does not respond to it" do
+      expect {TranslatorClientExample.list}.to_not raise_error
+    end
+
+    it "should translate JSON returned through the Translator" do
+      ret = TranslatorClientExample.all
+      expect(ret.first_name).to eq("Billy")
+      expect(ret.name).to be_nil
+    end
+
+    it "should return original JSON for items that aren't handled by the Translator" do
+      ret = TranslatorClientExample.list
+      expect(ret.name).to eq("Billy")
+      expect(ret.first_name).to be_nil
+    end
+
   end
 
 end

@@ -69,5 +69,11 @@ describe ActiveRestClient::Configuration do
     expect(LazyLoadingConfigurationExample2.lazy_load?).to be_true
   end
 
+  it "should store a translator given" do
+    expect{ ConfigurationExample.send(:translator) }.to_not raise_error
+    ConfigurationExample.send(:translator, String)
+    expect{ ConfigurationExample.translator.respond_to?(:length) }.to be_true
+  end
+
 
 end

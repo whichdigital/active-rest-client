@@ -35,6 +35,10 @@ module ActiveRestClient
         value ? @whiny_missing = value : @whiny_missing || false
       end
 
+      def translator(value = nil)
+        value ? @translator = value : @translator || nil
+      end
+
       def _reset_configuration!
         @base_url         = nil
         @@base_url        = nil

@@ -1,7 +1,10 @@
 require 'spec_helper'
 
-class MappingExample
+class MappingExampleBase
   include ActiveRestClient::Mapping
+end
+
+class MappingExample < MappingExampleBase
   get :test_get, "/get", tag:1, fake:"{result:true}", lazy:[:something]
   put :test_put, "/put", tag:2
   post :test_post, "/post", tag:3
