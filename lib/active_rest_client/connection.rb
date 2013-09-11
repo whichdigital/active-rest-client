@@ -48,25 +48,25 @@ module ActiveRestClient
 
     def get(path, headers={})
       make_safe_request(path) do
-        @session.get(path, headers={})
+        @session.get(path, headers)
       end
     end
 
     def put(path, data, headers={})
       make_safe_request(path) do
-        @session.put(path, data, headers={})
+        @session.put(path, data, headers)
       end
     end
 
     def post(path, data, headers={})
       make_safe_request(path) do
-        @session.post(path, data, headers={})
+        @session.post(path, data, headers)
       end
     end
 
     def delete(path, data, headers={})
       make_safe_request(path) do
-        @session.delete(path, data, headers={})
+        @session.delete(path, data, headers)
       end
     end
 
