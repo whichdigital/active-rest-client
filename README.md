@@ -402,6 +402,22 @@ Note the block based validation is responsible for adding errors to `object.erro
 
 Validations are run when calling `valid?` or when calling any API on an instance (and then only if it is `valid?` will the API go on to be called).
 
+### Debugging
+
+You can turn on verbose debugging to see what is sent to the API server and what is returned in one of these two ways:
+
+```ruby
+class Article
+  verbose true
+end
+
+class Person
+  verbose!
+end
+```
+
+By default verbose logging isn't enabled, so it's up to the developer to enable it (and remember to disable it afterwards).  It does use debug level logging, so it shouldn't fill up a correctly configured production server anyway.
+
 ## Contributing
 
 1. Fork it

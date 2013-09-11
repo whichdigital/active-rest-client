@@ -69,6 +69,26 @@ describe ActiveRestClient::Configuration do
     expect(LazyLoadingConfigurationExample2.lazy_load?).to be_true
   end
 
+  it "should default to non-verbose loggingg" do
+    class VerboseConfigurationExample1
+      include ActiveRestClient::Configuration
+    end
+    expect(VerboseConfigurationExample1.verbose).to be_false
+  end
+
+  it "should be able to switch on verbose logging" do
+    class VerboseConfigurationExample2
+      include ActiveRestClient::Configuration
+      verbose!
+    end
+    class VerboseConfigurationExample3
+      include ActiveRestClient::Configuration
+      verbose true
+    end
+    expect(VerboseConfigurationExample2.verbose).to be_true
+    expect(VerboseConfigurationExample3.verbose).to be_true
+  end
+
   it "should store a translator given" do
     expect{ ConfigurationExample.send(:translator) }.to_not raise_error
     ConfigurationExample.send(:translator, String)

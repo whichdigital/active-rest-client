@@ -29,6 +29,11 @@ describe ActiveRestClient::Request do
       get :lazy_test, "/does-not-matter", fake:"{\"people\":[\"http://www.example.com/some/url\"]}", :lazy => %i{people}
     end
 
+    class VerboseExampleClient < ExampleClient
+      verbose!
+      get :all, "/all"
+    end
+
     ActiveRestClient::Request.any_instance.stub(:read_cached_response)
   end
 
@@ -186,6 +191,17 @@ describe ActiveRestClient::Request do
     object.create
   end
 
+  it "should verbose log if enabled" do
+    connection = double(ActiveRestClient::Connection).as_null_object
+    ActiveRestClient::ConnectionManager.should_receive(:get_connection).and_return(connection)
+    connection.should_receive(:get).with("/all", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{"Content-Type" => "application/json", "Connection" => "close"}))
+    ActiveRestClient::Logger.should_receive(:debug).with("ActiveRestClient Verbose Log:")
+    ActiveRestClient::Logger.should_receive(:debug).with(/ > /).at_least(:twice)
+    ActiveRestClient::Logger.should_receive(:debug).with(/ < /).at_least(:twice)
+    ActiveRestClient::Logger.should_receive(:debug).with(any_args).any_number_of_times
+    VerboseExampleClient.all
+  end
+
   it "should raise a client exceptions for 4xx errors" do
     ActiveRestClient::Connection.
       any_instance.
@@ -247,6 +263,7 @@ describe ActiveRestClient::Request do
 
       def name ; end
       def _filter_request(*args) ; end
+      def verbose ; false ; end
     end
     fake_object = RequestFakeObject.new
     request = ActiveRestClient::Request.new(method, fake_object, {})

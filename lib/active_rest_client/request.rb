@@ -35,6 +35,14 @@ module ActiveRestClient
       end
     end
 
+    def verbose?
+      if object_is_class?
+        @object.verbose
+      else
+        @object.class.verbose
+      end
+    end
+
     def translator
       if object_is_class?
         @object.translator
@@ -143,6 +151,15 @@ module ActiveRestClient
         connection = ActiveRestClient::ConnectionManager.get_connection(base_url)
       end
       ActiveRestClient::Logger.info "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Requesting #{connection.base_url}#{@url}"
+
+      if verbose?
+        ActiveRestClient::Logger.debug "ActiveRestClient Verbose Log:"
+        http_headers.each do |k,v|
+          ActiveRestClient::Logger.debug "  > #{k} : #{v}"
+        end
+        ActiveRestClient::Logger.debug "  > #{@request_body}"
+      end
+
       case @method[:method]
       when :get
         response = connection.get(@url, http_headers)
@@ -155,6 +172,14 @@ module ActiveRestClient
       else
         raise InvalidRequestException.new("Invalid method #{@method[:method]}")
       end
+
+      if verbose?
+        response.headers.each do |k,v|
+          ActiveRestClient::Logger.debug "  < #{k} : #{v}"
+        end
+        ActiveRestClient::Logger.debug "  < #{response.body}"
+      end
+
       response
     end
 

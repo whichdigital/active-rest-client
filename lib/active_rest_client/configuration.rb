@@ -35,6 +35,14 @@ module ActiveRestClient
         value ? @whiny_missing = value : @whiny_missing || false
       end
 
+      def verbose!
+        @verbose = true
+      end
+
+      def verbose(value = nil)
+        value ? @verbose = value : @verbose || false
+      end
+
       def translator(value = nil)
         value ? @translator = value : @translator || nil
       end
