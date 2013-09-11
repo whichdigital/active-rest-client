@@ -332,9 +332,9 @@ module ActiveRestClient
     end
   end
   class HTTPClientException < HTTPException ; end
-  class HTTPUnauthorisedClientException < HTTPException ; end
-  class HTTPForbiddenClientException < HTTPException ; end
-  class HTTPNotFoundClientException < HTTPException ; end
+  class HTTPUnauthorisedClientException < HTTPClientException ; end
+  class HTTPForbiddenClientException < HTTPClientException ; end
+  class HTTPNotFoundClientException < HTTPClientException ; end
   class HTTPServerException < HTTPException ; end
 
 end
