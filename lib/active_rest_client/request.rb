@@ -222,7 +222,13 @@ module ActiveRestClient
       end
 
       response.status ||= 200
-      if (400..499).include? response.status
+      if response.status == 401
+        raise HTTPUnauthorisedClientException.new(status:response.status, result:result)
+      elsif response.status == 403
+        raise HTTPForbiddenClientException.new(status:response.status, result:result)
+      elsif response.status == 404
+        raise HTTPNotFoundClientException.new(status:response.status, result:result)
+      elsif (400..499).include? response.status
         raise HTTPClientException.new(status:response.status, result:result)
       elsif (500..599).include? response.status
         raise HTTPServerException.new(status:response.status, result:result)
@@ -326,6 +332,9 @@ module ActiveRestClient
     end
   end
   class HTTPClientException < HTTPException ; end
+  class HTTPUnauthorisedClientException < HTTPException ; end
+  class HTTPForbiddenClientException < HTTPException ; end
+  class HTTPNotFoundClientException < HTTPException ; end
   class HTTPServerException < HTTPException ; end
 
 end
