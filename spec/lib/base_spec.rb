@@ -118,4 +118,34 @@ describe ActiveRestClient::Base do
 
   end
 
+  context "directly call a URL, rather than via a mapped method" do
+    it "should be able to directly call a URL" do
+      ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      EmptyExample._request("http://api.example.com/", :get)
+    end
+
+    it "runs filters as usual" do
+      ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      EmptyExample.should_receive(:_filter_request).with(any_args)
+      EmptyExample._request("http://api.example.com/", :get)
+    end
+
+    it "should make an HTTP request" do
+      ActiveRestClient::Connection.any_instance.should_receive(:get).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      EmptyExample._request("http://api.example.com/", :get)
+    end
+
+    it "should map the response from the directly called URL in the normal way" do
+      ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      example = EmptyExample._request("http://api.example.com/", :get)
+      expect(example.first_name).to eq("Billy")
+    end
+
+    it "should be able to specify a method and parameters for the call" do
+      ActiveRestClient::Connection.any_instance.should_receive(:post).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      EmptyExample._request("http://api.example.com/", :post, {id:1234})
+    end
+
+  end
+
 end

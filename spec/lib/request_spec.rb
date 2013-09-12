@@ -321,6 +321,19 @@ describe ActiveRestClient::Request do
     expect{request.call}.to raise_error(ActiveRestClient::InvalidRequestException)
   end
 
+  it "should send all class mapped methods through _filter_request" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    ExampleClient.should_receive(:_filter_request).with(any_args)
+    ExampleClient.all
+  end
+
+  it "should send all instance mapped methods through _filter_request" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    ExampleClient.should_receive(:_filter_request).with(any_args)
+    e = ExampleClient.new
+    e.all
+  end
+
   context "Direct URL requests" do
     class SameServerExampleClient < ActiveRestClient::Base
       URL = "http://www.example.com/some/url"

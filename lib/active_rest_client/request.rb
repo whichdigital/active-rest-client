@@ -65,6 +65,8 @@ module ActiveRestClient
         prepare_url
         if object_is_class?
           @object.send(:_filter_request, @method[:name], self)
+        else
+          @object.class.send(:_filter_request, @method[:name], self)
         end
         append_get_parameters
         prepare_request_body
@@ -140,7 +142,6 @@ module ActiveRestClient
       end
       if @method[:options][:url]
         @url = @method[:options][:url]
-        @method[:method] = :get
         if connection = ActiveRestClient::ConnectionManager.find_connection_for_url(@url)
           @url = @url.slice(connection.base_url.length, 255)
         else
@@ -274,7 +275,7 @@ module ActiveRestClient
           object._attributes[k] = v
         end
       end
-      object.clean!
+      object.clean! unless object_is_class?
 
       object
     end

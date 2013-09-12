@@ -327,6 +327,20 @@ class Person < ActiveRestClient::Base
 end
 ```
 
+### Raw Requests
+
+Sometimes you have have a URL that you just want to force through, but have the response handled in the same way as normal objects or you want to have the filters run (say for authentication).  The easiest way to do that is to call `_request` on the class:
+
+```ruby
+class Person < ActiveRestClient::Base
+end
+
+people = Person._request('http://api.example.com/v1/people') # Defaults to get with no parameters
+# people is a normal ActiveRestClient object, implementing iteration, HAL loading, etc.
+
+Person._request('http://api.example.com/v1/people', :post, {id:1234,name:"John"}) # Post with parameters
+```
+
 ### Translating APIs
 
 Sometimes you may be working with an API that returns JSON in a less than ideal format.  In this case you can define a barebones class and pass it to your model.  The Translator class must have class methods that are passed the JSON object and should return an object in the correct format.  It doesn't need to have a method unless it's going to translate that mapping though (so in the example below there's no list method). For example:

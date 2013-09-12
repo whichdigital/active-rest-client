@@ -37,6 +37,12 @@ module ActiveRestClient
       @dirty_attributes.size > 0
     end
 
+    def self._request(url, method = :get, params={})
+      mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:url}}
+      request = Request.new(mapped, self)
+      request.call(params)
+    end
+
     def method_missing(name, *args)
       if mapped = self.class._mapped_method(name)
         raise ValidationFailedException.new unless valid?
