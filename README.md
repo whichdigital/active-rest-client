@@ -121,9 +121,15 @@ puts @person.expenses.reduce {|e| e.inc_vat}
 
 When mapping the method, passing a list of attributes will cause any requests for those attributes to mapped to the URLs given in their responses.  The response for the attribute may be one of the following:
 
-`"attribute" : "URL"`
-`"attribute" : { "url" : "URL"}`
-`"attribute" : ["URL", "URL"]`
+```ruby
+"attribute" : "URL"
+"attribute" : ["URL", "URL"]
+"attribute" : { "url" : "URL"}
+"attribute" : { "href" : "URL"}
+"attribute" : { "something" : "URL"}
+```
+
+The difference between the last 3 examples is that a key of `url` or `href` signifies it's a single object that is lazy loaded from the value specified.  Any other keys assume that it's a nested set of URLs (like in the array situation, but accessible via the keys - e.g. object.attribute.something in the above example).
 
 It is required that the URL is a complete URL including a protocol starting with "http".  To configure this use code like:
 

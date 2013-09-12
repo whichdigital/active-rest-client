@@ -12,6 +12,14 @@ module ActiveRestClient
         @url = value["url"]
       elsif value.is_a?(Hash) && value.has_key?("href") # HAL
         @url = value["href"]
+      elsif value.is_a?(Hash)
+        # TODO Take in to account {"foo":LAL, "bar":LAL}
+        mapped = {}
+        value.each do |k,v|
+          mapped[k.to_sym] = LazyAssociationLoader.new(name, v, request)
+        end
+        @subloaders = mapped
+        # Need to also ensure that the hash/wrapped object is returned when the property is accessed
       elsif value.is_a? String
         @url = value
       else
@@ -25,15 +33,27 @@ module ActiveRestClient
 
     def each
       if @subloaders
-        @subloaders.each do |subloader|
-          yield subloader
+        if @subloaders.is_a? Array
+          @subloaders.each do |loader|
+            yield loader
+          end
+        elsif @subloaders.is_a? Hash
+          @subloaders.each do |key,value|
+            yield key, value
+          end
         end
       end
     end
 
+    def keys
+      @subloaders.keys
+    end
+
     def method_missing(name, *args)
-      if @object.nil?
-        @request.method = @request.method.dup
+      if @subloaders.is_a? Hash
+        return @subloaders[name.to_sym]
+      elsif @object.nil?
+        @request.method[:method] = :get
         @request.method[:options][:url] = @url
         request = ActiveRestClient::Request.new(@request.method, @request.object)
         @object = request.call

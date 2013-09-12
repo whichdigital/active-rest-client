@@ -3,6 +3,8 @@ require 'spec_helper'
 describe ActiveRestClient::LazyAssociationLoader do
   let(:url1) { "http://www.example.com/some/url" }
   let(:url2) { "http://www.example.com/some/other" }
+  let(:calling_object) { o = double("Object").as_null_object }
+  let(:request) { ActiveRestClient::Request.new({:method => :get, url:"http://api.example.com/v1/foo"}, calling_object) }
 
   it "should raise an exception if you initialize it with a value that is not a string, hash or array" do
     expect do
@@ -26,6 +28,32 @@ describe ActiveRestClient::LazyAssociationLoader do
     expect(array[0].instance_variable_get(:@url)).to eq(url1)
     expect(array[1].instance_variable_get(:@url)).to eq(url2)
     expect(array[2]).to be_nil
+  end
+
+  it "should store a hash of URLs from a hash passed to the new object during creation" do
+    loader = ActiveRestClient::LazyAssociationLoader.new(:person, {"main" => url1, "thumb" => url2}, request)
+    expect(loader.main.instance_variable_get(:@url)).to eq(url1)
+    expect(loader.thumb.instance_variable_get(:@url)).to eq(url2)
+    expect(loader.size).to eq(2)
+  end
+
+  it "should still be able to iterate over a hash of URLs from a hash passed to the new object during creation" do
+    loader = ActiveRestClient::LazyAssociationLoader.new(:person, {"main" => url1, "thumb" => url2}, request)
+    output = []
+    loader.each do |k, v|
+      output << v.instance_variable_get(:@url)
+    end
+    expect(output.size).to eq(2)
+    expect(output[0]).to eq(url1)
+    expect(output[1]).to eq(url2)
+    expect(output[2]).to be_nil
+  end
+
+  it "should be able to list the keys from a hash passed to the new object during creation" do
+    loader = ActiveRestClient::LazyAssociationLoader.new(:person, {"main" => url1, "thumb" => url2}, request)
+    expect(loader.keys[0]).to eq(:main)
+    expect(loader.keys[1]).to eq(:thumb)
+    expect(loader.keys.size).to eq(2)
   end
 
   it "should report the size of a list of stored URLs" do
@@ -57,7 +85,6 @@ describe ActiveRestClient::LazyAssociationLoader do
     method_data = {options:{url:"foo"}}
     request = double("Request")
     request.should_receive(:method).any_number_of_times.and_return(method_data)
-    request.should_receive(:method=).with(any_args).and_return(method_data)
     request.should_receive(:object).with(any_args).and_return(Array.new)
     request.should_receive(:call).with(any_args).and_return("")
     ActiveRestClient::Request.should_receive(:new).with(any_args).and_return(request)
@@ -66,7 +93,7 @@ describe ActiveRestClient::LazyAssociationLoader do
   end
 
   it "should proxy methods to the underlying object if the request has been made" do
-    loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, nil)
+    loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, request)
     object = double("Object")
     object.should_receive(:length).and_return(1)
     loader.instance_variable_set(:@object, object)
