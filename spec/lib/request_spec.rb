@@ -337,13 +337,13 @@ describe ActiveRestClient::Request do
   context "Direct URL requests" do
     class SameServerExampleClient < ActiveRestClient::Base
       URL = "http://www.example.com/some/url"
-      base_url "http://www.example.com"
+      base_url "http://www.example.com/v1"
       get :same_server, "/does-not-matter", url:URL
     end
 
     class OtherServerExampleClient < ActiveRestClient::Base
       URL = "http://other.example.com/some/url"
-      base_url "http://www.example.com"
+      base_url "http://www.example.com/v1"
       get :other_server, "/does-not-matter", url:URL
     end
 
@@ -370,6 +370,17 @@ describe ActiveRestClient::Request do
         and_return("http://other.example.com")
       ActiveRestClient::ConnectionManager.should_receive(:find_connection_for_url).with(OtherServerExampleClient::URL).and_return(connection)
       OtherServerExampleClient.other_server
+    end
+
+    it "should allow requests to partial URLs using the current base_url" do
+      ActiveRestClient::ConnectionManager.reset!
+      connection = double("Connection").as_null_object
+      ActiveRestClient::ConnectionManager.should_receive(:get_connection).with("http://www.example.com").and_return(connection)
+      connection.
+        should_receive(:get).
+        with("/people", an_instance_of(Hash)).
+        and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+      @obj = SameServerExampleClient._request('/people')
     end
   end
 

@@ -145,7 +145,12 @@ module ActiveRestClient
         if connection = ActiveRestClient::ConnectionManager.find_connection_for_url(@url)
           @url = @url.slice(connection.base_url.length, 255)
         else
-          _, @base_url, @url = @url.match(%r{^(https?://[a-z\d\.:-]+?)(/.*)}).to_a
+          parts = @url.match(%r{^(https?://[a-z\d\.:-]+?)(/.*)}).to_a
+          if (parts.empty?) # Not a full URL, so use hostname/protocol from existing base_url
+            _, @base_url, _ = base_url.match(%r{^(https?://[a-z\d\.:-]+?)(/.*)}).to_a
+          else
+            _, @base_url, @url = parts
+          end
           connection = ActiveRestClient::ConnectionManager.get_connection(@base_url)
         end
       else
