@@ -147,7 +147,8 @@ module ActiveRestClient
         else
           parts = @url.match(%r{^(https?://[a-z\d\.:-]+?)(/.*)}).to_a
           if (parts.empty?) # Not a full URL, so use hostname/protocol from existing base_url
-            _, @base_url, _ = base_url.match(%r{^(https?://[a-z\d\.:-]+?)(/.*)}).to_a
+            uri = URI.parse(base_url)
+            @base_url = "#{uri.scheme}://#{uri.host}#{":#{uri.port}" if uri.port != 80 && uri.port != 443}"
           else
             _, @base_url, @url = parts
           end
