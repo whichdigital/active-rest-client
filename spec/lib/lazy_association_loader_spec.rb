@@ -99,4 +99,14 @@ describe ActiveRestClient::LazyAssociationLoader do
     loader.instance_variable_set(:@object, object)
     expect(loader.length).to eq(1)
   end
+
+  it "should be able to iterate underlying object if it's an array" do
+    loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, request)
+    ActiveRestClient::Request.any_instance.should_receive(:call).with(any_args).and_return([1,2,3])
+    test = []
+    loader.each do |item|
+      test << item
+    end
+    expect(test).to eq([1,2,3])
+  end
 end

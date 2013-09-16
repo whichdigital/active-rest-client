@@ -42,6 +42,11 @@ module ActiveRestClient
             yield key, value
           end
         end
+      else
+        ensure_lazy_loaded
+        @object.each do |obj|
+          yield obj
+        end
       end
     end
 
@@ -52,14 +57,21 @@ module ActiveRestClient
     def method_missing(name, *args)
       if @subloaders.is_a? Hash
         return @subloaders[name.to_sym]
-      elsif @object.nil?
+      end
+      ensure_lazy_loaded
+      if @object
+        @object.send(name, *args)
+      end
+    end
+
+    private
+
+    def ensure_lazy_loaded
+      if @object.nil?
         @request.method[:method] = :get
         @request.method[:options][:url] = @url
         request = ActiveRestClient::Request.new(@request.method, @request.object)
         @object = request.call
-      end
-      if @object
-        @object.send(name, *args)
       end
     end
   end
