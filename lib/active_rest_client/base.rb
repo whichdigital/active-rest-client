@@ -44,24 +44,22 @@ module ActiveRestClient
     end
 
     def method_missing(name, *args)
-      if mapped = self.class._mapped_method(name)
-        raise ValidationFailedException.new unless valid?
-        request = Request.new(mapped, self)
-        params = (args.first.is_a?(Hash) ? args.first : nil)
-        request.call(params)
-      elsif name.to_s[-1,1] == "="
+      if name.to_s[-1,1] == "="
         name = name.to_s.chop.to_sym
         @attributes[name] = args.first
         @dirty_attributes << name
       else
         name = name.to_sym
 
-        # Handle self.class._mapped_method(name)
-
         if @attributes.has_key? name
           @attributes[name]
         else
-          if self.class.whiny_missing
+          if mapped = self.class._mapped_method(name)
+            raise ValidationFailedException.new unless valid?
+            request = Request.new(mapped, self)
+            params = (args.first.is_a?(Hash) ? args.first : nil)
+            request.call(params)
+          elsif self.class.whiny_missing
             raise NoAttributeException.new("Missing attribute #{name}")
           else
             nil
