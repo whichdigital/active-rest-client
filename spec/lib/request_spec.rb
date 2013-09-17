@@ -18,7 +18,7 @@ describe ActiveRestClient::Request do
       post :create, "/create"
       put :update, "/put/:id"
       delete :remove, "/remove/:id"
-      get :hal, "/hal", fake:"{\"_links\":{\"child\": {\"href\": \"/child/1\"}, \"cars\":[{\"href\": \"/car/1\"}, {\"href\": \"/car/2\"} ], \"lazy\": {\"href\": \"/lazy/load\"}, \"invalid\": [{\"href\": \"/invalid/1\"}]}, \"_embedded\":{\"child\":{\"name\":\"Billy\"}, \"cars\":[{\"_links\": {\"self\": {\"href\": \"/car/1\"} }, \"make\": \"Bugatti\", \"model\": \"Veyron\"}, {\"_links\": {\"self\": {\"href\": \"/car/2\"} }, \"make\": \"Ferrari\", \"model\": \"F458 Italia\"} ], \"invalid\": [{\"present\":true, \"_links\": {} } ] } }"
+      get :hal, "/hal", fake:"{\"_links\":{\"child\": {\"href\": \"/child/1\"}, \"cars\":[{\"href\": \"/car/1\", \"name\":\"car1\"}, {\"href\": \"/car/2\", \"name\":\"car2\"}, {\"href\": \"/car/not-embed\", \"name\":\"car_not_embed\"} ], \"lazy\": {\"href\": \"/lazy/load\"}, \"invalid\": [{\"href\": \"/invalid/1\"}]}, \"_embedded\":{\"child\":{\"name\":\"Billy\"}, \"cars\":[{\"_links\": {\"self\": {\"href\": \"/car/1\"} }, \"make\": \"Bugatti\", \"model\": \"Veyron\"}, {\"_links\": {\"self\": {\"href\": \"/car/2\"} }, \"make\": \"Ferrari\", \"model\": \"F458 Italia\"} ], \"invalid\": [{\"present\":true, \"_links\": {} } ] } }"
       get :fake, "/fake", fake:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"child\":{\"grandchild\":{\"test\":true}}}"
       get :defaults, "/defaults", defaults:{overwrite:"no", persist:"yes"}
     end
@@ -411,7 +411,12 @@ describe ActiveRestClient::Request do
 
     it "should map _links in to the normal attributes" do
       expect(hal.child).to be_an_instance_of(ExampleClient)
-      expect(hal.cars.size).to eq(2)
+      expect(hal.cars.size).to eq(3)
+    end
+
+    it "should be able to use other attributes of _links using _hal_attributes method with a key" do
+      expect(hal.child).to be_an_instance_of(ExampleClient)
+      expect(hal.cars[2]._hal_attributes("name")).to eq('car_not_embed')
     end
 
     it "should use _embedded responses instead of lazy loading if possible" do

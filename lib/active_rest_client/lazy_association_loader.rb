@@ -1,3 +1,5 @@
+require 'active_support/hash_with_indifferent_access'
+
 module ActiveRestClient
   class LazyAssociationLoader
     include Enumerable
@@ -12,8 +14,8 @@ module ActiveRestClient
         @url = value["url"]
       elsif value.is_a?(Hash) && value.has_key?("href") # HAL
         @url = value["href"]
+        @_hal_attributes = HashWithIndifferentAccess.new(value)
       elsif value.is_a?(Hash)
-        # TODO Take in to account {"foo":LAL, "bar":LAL}
         mapped = {}
         value.each do |k,v|
           mapped[k.to_sym] = LazyAssociationLoader.new(name, v, request)
@@ -25,6 +27,10 @@ module ActiveRestClient
       else
         raise InvalidLazyAssociationContentException.new("Invalid content for #{@name}, expected Array, String or Hash containing 'url' key")
       end
+    end
+
+    def _hal_attributes(key)
+      @_hal_attributes[key]
     end
 
     def size

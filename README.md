@@ -162,6 +162,13 @@ And use it like this:
 
 You don't need to define lazy attributes if they are defined using [HAL](http://stateless.co/hal_specification.html) (with an optional embedded representation).  If your resource has an _links item (and optionally an _embedded item) then it will automatically treat the linked resources (with the _embedded cache) as if they were defined using `:lazy` as per type 2 above.
 
+If you need to, you can access properties of the HAL association.  By default just using the HAL association gets the embedded resource (or requests the remote resource if not available in the _embedded list).
+
+```ruby
+@person = Person.find(1)
+@person.students[0]._hal_attributes("title")
+```
+
 #### Combined Example
 
 OK, so let's say you have an API for getting articles.  Each article has a property called `title` (which is a string) and a property `images` which includes a list of URIs.  Following this URI would take you to a image API that returns the image's `filename` and `filesize`.  We'll also assume this is a HAL compliant API. We would declare our two models (one for articles and one for images) like the following:
