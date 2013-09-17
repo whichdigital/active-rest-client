@@ -278,7 +278,11 @@ module ActiveRestClient
             end
           end
         else
-          object._attributes[k] = v
+          if v.to_s[/\d{4}\-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})/]
+            object._attributes[k] = DateTime.parse(v)
+          else
+            object._attributes[k] = v
+          end
         end
       end
       object.clean! unless object_is_class?

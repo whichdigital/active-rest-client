@@ -95,11 +95,12 @@ describe ActiveRestClient::Request do
   end
 
   it "should parse JSON to give a nice object" do
-    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"child\":{\"grandchild\":{\"test\":true}}}", headers:{}))
+    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"created_at\":\"2012-03-04T01:02:03Z\", \"child\":{\"grandchild\":{\"test\":true}}}", headers:{}))
     object = ExampleClient.update id:1234, debug:true
     expect(object.result).to eq(true)
     expect(object.list.first).to eq(1)
     expect(object.list.last.test).to eq(true)
+    expect(object.created_at).to be_an_instance_of(DateTime)
     expect(object.child.grandchild.test).to eq(true)
   end
 
