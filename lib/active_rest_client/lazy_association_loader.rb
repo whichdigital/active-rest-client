@@ -34,7 +34,12 @@ module ActiveRestClient
     end
 
     def size
-      @subloaders.size
+      if @subloaders
+        @subloaders.size
+      else
+        ensure_lazy_loaded
+        @object.size
+      end
     end
 
     def each

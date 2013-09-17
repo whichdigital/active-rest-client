@@ -109,4 +109,10 @@ describe ActiveRestClient::LazyAssociationLoader do
     end
     expect(test).to eq([1,2,3])
   end
+
+  it "should be able to return the size of the underlying object if it's an array" do
+    loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, request)
+    ActiveRestClient::Request.any_instance.should_receive(:call).with(any_args).and_return([1,2,3])
+    expect(loader.size).to eq(3)
+  end
 end
