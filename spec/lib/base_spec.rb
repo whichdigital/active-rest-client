@@ -44,6 +44,13 @@ describe ActiveRestClient::Base do
     expect(client["test"]).to eq("Something")
   end
 
+  it "should automatically parse ISO 8601 format dates" do
+    t = Time.now
+    client = EmptyExample.new(:test => t.iso8601)
+    expect(client["test"]).to be_an_instance_of(DateTime)
+    expect(client["test"].to_s).to eq(t.to_datetime.to_s)
+  end
+
   it "should store attributes set using missing method names and mark them as dirty" do
     client = EmptyExample.new()
     client.test = "Something"
