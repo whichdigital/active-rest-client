@@ -39,10 +39,22 @@ describe ActiveRestClient::Base do
     expect(client.test).to eq("Something")
   end
 
+  it "should allow attribute reading using [] array notation" do
+    client = EmptyExample.new(:test => "Something")
+    expect(client["test"]).to eq("Something")
+  end
+
   it "should store attributes set using missing method names and mark them as dirty" do
     client = EmptyExample.new()
     client.test = "Something"
     expect(client.test.to_s).to eq("Something")
+    expect(client).to be_dirty
+  end
+
+  it "should store attribute set using []= array notation and mark them as dirty" do
+    client = EmptyExample.new()
+    client["test"] = "Something"
+    expect(client["test"].to_s).to eq("Something")
     expect(client).to be_dirty
   end
 

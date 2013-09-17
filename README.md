@@ -92,6 +92,14 @@ puts @person.id
 
 The response of the #create call set the attributes at that point (any manually set attributes before that point are removed).
 
+If you have attributes beginning with a number, Ruby doesn't like this.  So, you can use hash style notation to read/write the attributes:
+
+```ruby
+@tv = Tv.find(model:"UE55U8000") # { "properties" : {"3d" : false} }
+puts @tv.properties["3d"]
+@tv.properties["3d"] = true
+```
+
 ## Advanced Features
 
 ### Associations

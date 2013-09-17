@@ -43,6 +43,15 @@ module ActiveRestClient
       request.call(params)
     end
 
+    def [](key)
+      @attributes[key.to_sym]
+    end
+
+    def []=(key, value)
+      @attributes[key.to_sym] = value
+      @dirty_attributes << key
+    end
+
     def method_missing(name, *args)
       if name.to_s[-1,1] == "="
         name = name.to_s.chop.to_sym
