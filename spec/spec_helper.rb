@@ -3,6 +3,11 @@ require 'simplecov'
 require 'active_rest_client'
 require "ostruct"
 
+if ENV["JENKINS"]
+  require 'simplecov-rcov'
+  SimpleCov.formatter = SimpleCov::Formatter::RcovFormatter
+end
+
 RSpec.configure do |config|
   config.color_enabled = true
   # config.formatter     = 'documentation'
