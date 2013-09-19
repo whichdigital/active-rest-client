@@ -199,7 +199,7 @@ describe ActiveRestClient::Request do
     ActiveRestClient::Logger.should_receive(:debug).with("ActiveRestClient Verbose Log:")
     ActiveRestClient::Logger.should_receive(:debug).with(/ > /).at_least(:twice)
     ActiveRestClient::Logger.should_receive(:debug).with(/ < /).at_least(:twice)
-    ActiveRestClient::Logger.should_receive(:debug).with(any_args).any_number_of_times
+    ActiveRestClient::Logger.stub(:debug).with(any_args)
     VerboseExampleClient.all
   end
 
@@ -366,8 +366,7 @@ describe ActiveRestClient::Request do
         with("/some/url", an_instance_of(Hash)).
         and_return(OpenStruct.new(body:"", headers:{}, status:304))
       connection.
-        should_receive(:base_url).
-        any_number_of_times.
+        stub(:base_url).
         and_return("http://other.example.com")
       ActiveRestClient::ConnectionManager.should_receive(:find_connection_for_url).with(OtherServerExampleClient::URL).and_return(connection)
       OtherServerExampleClient.other_server

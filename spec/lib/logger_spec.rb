@@ -24,17 +24,17 @@ describe ActiveRestClient::Instrumentation do
 
   it "should write to a logfile if one has been specified" do
     ActiveRestClient::Logger.logfile = "/dev/null"
-    file = mock('file')
+    file = double('file')
     File.should_receive(:open).with("/dev/null", "a").and_yield(file)
     file.should_receive(:<<).with("Hello world")
     ActiveRestClient::Logger.debug("Hello world")
 
-    file = mock('file')
+    file = double('file')
     File.should_receive(:open).with("/dev/null", "a").and_yield(file)
     file.should_receive(:<<).with("Hello info")
     ActiveRestClient::Logger.info("Hello info")
 
-    file = mock('file')
+    file = double('file')
     File.should_receive(:open).with("/dev/null", "a").and_yield(file)
     file.should_receive(:<<).with("Hello error")
     ActiveRestClient::Logger.error("Hello error")
