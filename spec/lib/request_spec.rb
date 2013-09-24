@@ -407,6 +407,12 @@ describe ActiveRestClient::Request do
       request = ActiveRestClient::Request.new(method, fake_object, {})
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "application/hal+json"}))
       expect(request.hal_response?).to be_true
+      request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "application/json"}))
+      expect(request.hal_response?).to be_false
+      request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain", "application/hal+json"]}))
+      expect(request.hal_response?).to be_true
+      request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain", "application/json"]}))
+      expect(request.hal_response?).to be_false
     end
 
     it "should map _links in to the normal attributes" do

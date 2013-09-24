@@ -213,7 +213,11 @@ module ActiveRestClient
       @response = response
 
       body = Oj.load(response.body) || {}
-      body = translator.send(@method[:name], body) rescue body
+      body = begin
+        @method[:name].nil? ? body : translator.send(@method[:name], body)
+      rescue NoMethodError
+        body
+      end
       if body.is_a? Array
         result = ActiveRestClient::ResultIterator.new(response.status)
         body.each do |json_object|

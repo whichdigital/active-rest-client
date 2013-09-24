@@ -17,6 +17,10 @@ module ActiveRestClient
       @items.size
     end
 
+    def empty?
+      size == 0
+    end
+
     def each
       @items.each do |el|
         yield el
