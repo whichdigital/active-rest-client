@@ -293,7 +293,14 @@ module ActiveRestClient
     def hal_response?
       _, content_type = @response.headers.detect{|k,v| k.downcase == "content-type"}
       faked_response = @response.headers.detect{|k,v| k.downcase == "x-arc-faked-response"}
-      content_type && content_type[%r{application\/hal\+json}i] || faked_response
+      if content_type && content_type.respond_to?(:each)
+        content_type.each do |ct|
+          return true if ct[%r{application\/hal\+json}i]
+        end
+        faked_response
+      else
+        content_type && content_type[%r{application\/hal\+json}i] || faked_response
+      end
     end
 
     def handle_hal_links_embedded(object, attributes)
