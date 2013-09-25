@@ -41,10 +41,16 @@ module ActiveRestClient
       @dirty_attributes.size > 0
     end
 
-    def self._request(url, method = :get, params={})
+    def self._request(url, method = :get, params = {})
       mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:url}}
       request = Request.new(mapped, self)
       request.call(params)
+    end
+
+    def self._lazy_request(url, method = :get, params = {})
+      mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:url}}
+      request = Request.new(mapped, self)
+      ActiveRestClient::LazyLoader.new(request)
     end
 
     def [](key)

@@ -114,6 +114,8 @@ module ActiveRestClient
     def prepare_url
       @url = @method[:url].dup
       matches = @url.scan(/(:[a-z_-]+)/)
+      @get_params ||= {}
+      @post_params ||= {}
       matches.each do |token|
         token = token.first[1,999]
         target = @get_params.delete(token.to_sym) || @post_params.delete(token.to_sym) || ""
