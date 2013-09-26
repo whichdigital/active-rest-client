@@ -19,15 +19,24 @@ module ActiveRestClient
 
       def _map_call(name, details)
         _calls[name] = {name:name}.merge(details)
+        _calls["lazy_#{name}".to_sym] = {name:name}.merge(details)
         self.class.send(:define_method, name) do |options={}|
           _call(name, options)
+        end
+        self.class.send(:define_method, "lazy_#{name}".to_sym) do |options={}|
+          _call("lazy_#{name}", options)
         end
       end
 
       def _call(name, options)
         mapped = _calls[name]
+        lazy_forced = false
+        if mapped.nil? && name.to_s[/^lazy_/]
+          mapped = _calls[name.to_s.gsub(/^lazy_/, '').to_sym]
+          lazy_forced = true
+        end
         request = Request.new(mapped, self, options)
-        if lazy_load?
+        if lazy_load? || lazy_forced
           ActiveRestClient::LazyLoader.new(request)
         else
           request.call

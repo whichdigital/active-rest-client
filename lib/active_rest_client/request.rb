@@ -92,7 +92,7 @@ module ActiveRestClient
     end
 
     def prepare_params
-      params = @object._attributes rescue @params
+      params = @params || @object._attributes rescue {}
       if params.is_a?(String) || params.is_a?(Fixnum)
         params = {id:params}
       end

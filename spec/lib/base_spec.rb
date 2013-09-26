@@ -18,6 +18,7 @@ class TranslatorClientExample < ActiveRestClient::Base
 
   get :all, "/all", fake:"{\"name\":\"Billy\"}"
   get :list, "/list", fake:"{\"name\":\"Billy\"}"
+  get :find, "/find/:id"
 end
 
 describe ActiveRestClient::Base do
@@ -113,6 +114,20 @@ describe ActiveRestClient::Base do
     expect{EmptyExample.new.first_name}.to raise_error(ActiveRestClient::NoAttributeException)
   end
 
+  it "should be able to lazy instantiate an object from a prefixed lazy_ method call" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+    example = TranslatorClientExample.lazy_find(1)
+    expect(example).to be_an_instance_of(ActiveRestClient::LazyLoader)
+    expect(example.first_name).to eq("Billy")
+  end
+
+  it "should be able to lazy instantiate an object from a prefixed lazy_ method call from an instance" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+    example = TranslatorClientExample.new.lazy_find(1)
+    expect(example).to be_an_instance_of(ActiveRestClient::LazyLoader)
+    expect(example.first_name).to eq("Billy")
+  end
+
   context "accepts a Translator to reformat JSON" do
     it "should call Translator#method when calling the mapped method if it responds to it" do
       TranslatorExample.should_receive(:all).with(an_instance_of(Hash)).and_return({})
@@ -170,6 +185,13 @@ describe ActiveRestClient::Base do
     it "should be able to specify a method and parameters for the call" do
       ActiveRestClient::Connection.any_instance.should_receive(:post).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       EmptyExample._request("http://api.example.com/", :post, {id:1234})
+    end
+
+    it "should be able to use mapped methods to create a request to pass in to _lazy_request" do
+      ActiveRestClient::Connection.any_instance.should_receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      request = TranslatorClientExample._request_for(:find, :id => 1)
+      example = TranslatorClientExample._lazy_request(request)
+      expect(example.first_name).to eq("Billy")
     end
 
   end

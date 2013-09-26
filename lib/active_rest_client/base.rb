@@ -41,16 +41,30 @@ module ActiveRestClient
       @dirty_attributes.size > 0
     end
 
-    def self._request(url, method = :get, params = {})
-      mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:url}}
-      request = Request.new(mapped, self)
+    def self._request(request, method = :get, params = nil)
+      unless request.is_a? ActiveRestClient::Request
+        mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:request}}
+        request = Request.new(mapped, self)
+      end
       request.call(params)
     end
 
-    def self._lazy_request(url, method = :get, params = {})
-      mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:url}}
-      request = Request.new(mapped, self)
-      ActiveRestClient::LazyLoader.new(request)
+    def self._lazy_request(request, method = :get, params = nil)
+      unless request.is_a? ActiveRestClient::Request
+        mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:request}}
+        request = Request.new(mapped, self)
+      end
+      ActiveRestClient::LazyLoader.new(request, params)
+    end
+
+    def self._request_for(method_name, *args)
+      if mapped = self._mapped_method(method_name)
+        params = (args.first.is_a?(Hash) ? args.first : nil)
+        request = Request.new(mapped, self, params)
+        request
+      else
+        nil
+      end
     end
 
     def [](key)
@@ -68,18 +82,23 @@ module ActiveRestClient
         @attributes[name] = args.first
         @dirty_attributes << name
       else
-        name = name.to_sym
+        name_sym = name.to_sym
+        name = name.to_s
 
-        if @attributes.has_key? name
-          @attributes[name]
+        if @attributes.has_key? name_sym
+          @attributes[name_sym]
         else
-          if mapped = self.class._mapped_method(name)
+          if name[/^lazy_/] && mapped = self.class._mapped_method(name_sym)
             raise ValidationFailedException.new unless valid?
-            request = Request.new(mapped, self)
-            params = (args.first.is_a?(Hash) ? args.first : nil)
-            request.call(params)
+            request = Request.new(mapped, self, args.first)
+            ActiveRestClient::LazyLoader.new(request)
+          elsif mapped = self.class._mapped_method(name_sym)
+            raise ValidationFailedException.new unless valid?
+            # params = (args.first.is_a?(Hash) ? args.first : nil)
+            request = Request.new(mapped, self, args.first)
+            request.call
           elsif self.class.whiny_missing
-            raise NoAttributeException.new("Missing attribute #{name}")
+            raise NoAttributeException.new("Missing attribute #{name_sym}")
           else
             nil
           end
