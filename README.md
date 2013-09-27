@@ -291,17 +291,17 @@ class Person < ActiveRestClient::Base
 end
 ```
 
-If you need to, you can create a custom parent class with a filter and all children will inherit this filter.
+If you need to, you can create a custom parent class with a `before_request` filter and all children will inherit this filter.
 
 ```ruby
 class MyProject::Base < ActiveRestClient::Base
-  before_filter do |name, request|
+  before_request do |name, request|
     request.get_params[:api_key] = "1234567890-1234567890"
   end
 end
 
 class Person < MyProject::Base
-  # No need to declare a before_filter for :api_key, already defined by the parent
+  # No need to declare a before_request for :api_key, already defined by the parent
 end
 ```
 
