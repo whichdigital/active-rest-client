@@ -4,12 +4,13 @@ module ActiveRestClient
   class LazyAssociationLoader
     include Enumerable
 
-    def initialize(name, value, request)
+    def initialize(name, value, request, options = {})
       @name = name
       @request = request
       @object = nil
+      @options = options
       if value.is_a? Array
-        @subloaders = value.map {|url| LazyAssociationLoader.new(name, url, request)}
+        @subloaders = value.map {|url| LazyAssociationLoader.new(name, url, request, options)}
       elsif value.is_a?(Hash) && value.has_key?("url")
         @url = value["url"]
       elsif value.is_a?(Hash) && value.has_key?("href") # HAL
@@ -18,7 +19,7 @@ module ActiveRestClient
       elsif value.is_a?(Hash)
         mapped = {}
         value.each do |k,v|
-          mapped[k.to_sym] = LazyAssociationLoader.new(name, v, request)
+          mapped[k.to_sym] = LazyAssociationLoader.new(name, v, request, options)
         end
         @subloaders = mapped
         # Need to also ensure that the hash/wrapped object is returned when the property is accessed
@@ -81,6 +82,7 @@ module ActiveRestClient
       if @object.nil?
         @request.method[:method] = :get
         @request.method[:options][:url] = @url
+        @request.method[:options][:overriden_name] = @options[:overriden_name]
         request = ActiveRestClient::Request.new(@request.method, @request.object)
         @object = request.call
       end

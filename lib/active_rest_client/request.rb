@@ -10,6 +10,7 @@ module ActiveRestClient
       @method                  = method
       @method[:options]        ||= {}
       @method[:options][:lazy] ||= []
+      @overriden_name          = @method[:options][:overriden_name]
       @object                  = object
       @params                  = params
       @headers                 = HeadersList.new
@@ -223,10 +224,10 @@ module ActiveRestClient
       if body.is_a? Array
         result = ActiveRestClient::ResultIterator.new(response.status)
         body.each do |json_object|
-          result << new_object(json_object)
+          result << new_object(json_object, @overriden_name)
         end
       else
-        result = new_object(body)
+        result = new_object(body, @overriden_name)
         result._status = response.status
         unless object_is_class?
           @object._copy_from(result)
@@ -255,6 +256,7 @@ module ActiveRestClient
     def new_object(attributes, name = nil)
       @method[:options][:has_many] ||= {}
       if @method[:options][:has_many][name]
+        overriden_name = name
         object = @method[:options][:has_many][name].new
       else
         if object_is_class?
@@ -271,14 +273,14 @@ module ActiveRestClient
       attributes.each do |k,v|
         k = k.to_sym
         if @method[:options][:lazy].include?(k)
-          object._attributes[k] = ActiveRestClient::LazyAssociationLoader.new(k, v, self)
+          object._attributes[k] = ActiveRestClient::LazyAssociationLoader.new(overriden_name || k, v, self, overriden_name:(overriden_name||k))
         elsif v.is_a? Hash
-          object._attributes[k] = new_object(v, k)
+          object._attributes[k] = new_object(v, overriden_name || k)
         elsif v.is_a? Array
           object._attributes[k] = ActiveRestClient::ResultIterator.new
           v.each do |item|
             if item.is_a? Hash
-              object._attributes[k] << new_object(item, k)
+              object._attributes[k] << new_object(item, overriden_name || k)
             else
               object._attributes[k] << item
             end

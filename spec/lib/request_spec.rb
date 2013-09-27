@@ -13,6 +13,7 @@ describe ActiveRestClient::Request do
       end
 
       get :all, "/", :has_many => {:expenses => ExampleOtherClient}
+      get :babies, "/babies", :has_many => {:children => ExampleOtherClient}
       get :headers, "/headers"
       get :find, "/:id"
       post :create, "/create"
@@ -150,6 +151,12 @@ describe ActiveRestClient::Request do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
     object = ExampleClient.all
     expect(object.expenses.first).to be_instance_of(ExampleOtherClient)
+  end
+
+  it "should instantiate other classes using has_many even if nested off the root" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/babies", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"children\":{\"eldest\":[{\"name\":\"Billy\"}]}}", status:200, headers:{}))
+    object = ExampleClient.babies
+    expect(object.children.eldest.first).to be_instance_of(ExampleOtherClient)
   end
 
   it "should assign new attributes to the existing object if possible" do
