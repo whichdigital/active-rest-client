@@ -235,6 +235,7 @@ You can also treat `@image` looks like an Image class (and you should 100% treat
 ```ruby
 puts @image.nice_size
 # => 121KB
+```
 
 ### Caching
 
