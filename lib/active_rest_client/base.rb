@@ -105,6 +105,10 @@ module ActiveRestClient
         end
       end
     end
+
+    def respond_to_missing?(method_name, include_private = false)
+      @attributes.has_key? method_name.to_sym
+    end
   end
 
   class NoAttributeException < StandardError ; end

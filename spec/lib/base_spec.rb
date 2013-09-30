@@ -75,6 +75,12 @@ describe ActiveRestClient::Base do
     expect(client).to be_dirty
   end
 
+  it 'should respond_to? attributes defined in the response' do
+    client = EmptyExample.new(:hello => "World")
+    client.respond_to?(:hello).should be_true
+    client.respond_to?(:world).should be_false
+  end
+
   it "should save the base URL for the API server" do
     class BaseExample < ActiveRestClient::Base
       base_url "https://www.example.com/api/v1"
