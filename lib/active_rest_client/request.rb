@@ -341,8 +341,10 @@ module ActiveRestClient
     end
   end
 
-  class InvalidRequestException < StandardError ; end
-  class ResponseParseException < StandardError
+  class RequestException < StandardError ; end
+
+  class InvalidRequestException < RequestException ; end
+  class ResponseParseException < RequestException
     attr_accessor :status, :body
     def initialize(options)
       @status = options[:status]
@@ -350,7 +352,7 @@ module ActiveRestClient
     end
   end
 
-  class HTTPException < StandardError
+  class HTTPException < RequestException
     attr_accessor :status, :result
     def initialize(options)
       @status = options[:status]
