@@ -1,3 +1,3 @@
 module ActiveRestClient
-  VERSION = "0.9.26"
+  VERSION = "0.9.27"
 end

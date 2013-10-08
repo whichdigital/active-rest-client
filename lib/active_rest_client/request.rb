@@ -126,7 +126,7 @@ module ActiveRestClient
     end
 
     def append_get_parameters
-      if @method[:method] == :get && @get_params.any?
+      if @get_params.any?
         params = @get_params.map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}
         @url += "?" + params.sort * "&"
       end
