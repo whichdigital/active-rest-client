@@ -261,7 +261,7 @@ ActiveRestClient::Base.cache_store = Redis::Store.new("redis://localhost:6379/0/
 
 ### Using filters
 
-You can use filters to alter get/post parameters or the URL before a request.  This can either be a block or a named method (like ActionController's `before_filter`/`before_action` methods).
+You can use filters to alter get/post parameters, the URL or set the post body (doing so overrides normal parameter insertion in to the body) before a request.  This can either be a block or a named method (like ActionController's `before_filter`/`before_action` methods).
 
 The filter is passed the name of the method (e.g. `:save`) and a request object. The request object has four public attributes `post_params` (a Hash of the POST parameters), `get_params` (a Hash of the GET parameters), headers and `url` (a String containing the full URL without GET parameters appended)
 
@@ -280,6 +280,8 @@ class Person < ActiveRestClient::Base
 
   before_request :add_authentication_details
 
+  before_request :replace_body
+
   private
 
   def replace_token_in_url(name, request)
@@ -288,6 +290,12 @@ class Person < ActiveRestClient::Base
 
   def add_authentication_details(name, request)
     request.headers["X-Custom-Authentication-Token"] = ENV["AUTH_TOKEN"]
+  end
+
+  def replace_body(name, request)
+    if name == :create
+      request.body = request.post_params.to_json
+    end
   end
 end
 ```

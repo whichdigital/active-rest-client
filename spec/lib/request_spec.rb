@@ -35,6 +35,14 @@ describe ActiveRestClient::Request do
       get :all, "/all"
     end
 
+    class FilteredBodyExampleClient < ExampleClient
+      before_request do |name, request|
+        request.body = Oj.dump(request.post_params)
+      end
+
+      post :save, "/save"
+    end
+
     ActiveRestClient::Request.any_instance.stub(:read_cached_response)
   end
 
@@ -444,6 +452,13 @@ describe ActiveRestClient::Request do
     it "should lazy load _links attributes if not embedded" do
       expect(hal.lazy).to be_an_instance_of(ActiveRestClient::LazyAssociationLoader)
       expect(hal.lazy.instance_variable_get(:@url)).to eq("/lazy/load")
+    end
+  end
+
+  context "Body completely replaced" do
+    it "replaces the body completely in a filter" do
+      ActiveRestClient::Connection.any_instance.should_receive(:post).with("/save", "{\":id\":1234,\":name\":\"john\"}", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{}", headers:{}))
+      FilteredBodyExampleClient.save id:1234, name:'john'
     end
   end
 end

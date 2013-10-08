@@ -4,7 +4,7 @@ require "oj"
 module ActiveRestClient
 
   class Request
-    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object
+    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object, :body
 
     def initialize(method, object, params = {})
       @method                  = method
@@ -62,6 +62,7 @@ module ActiveRestClient
           return handle_response(OpenStruct.new(status:200, body:@method[:options][:fake], headers:{"X-ARC-Faked-Response" => "true"}))
         end
         @explicit_parameters = explicit_parameters
+        @body = nil
         prepare_params
         prepare_url
         if object_is_class?
@@ -132,7 +133,7 @@ module ActiveRestClient
     end
 
     def prepare_request_body
-      @request_body = (@post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
+      @body ||= (@post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
     end
 
     def do_request(etag)
@@ -167,18 +168,18 @@ module ActiveRestClient
         http_headers.each do |k,v|
           ActiveRestClient::Logger.debug "  > #{k} : #{v}"
         end
-        ActiveRestClient::Logger.debug "  > #{@request_body}"
+        ActiveRestClient::Logger.debug "  > #{@body}"
       end
 
       case @method[:method]
       when :get
         response = connection.get(@url, http_headers)
       when :put
-        response = connection.put(@url, @request_body, http_headers)
+        response = connection.put(@url, @body, http_headers)
       when :post
-        response = connection.post(@url, @request_body, http_headers)
+        response = connection.post(@url, @body, http_headers)
       when :delete
-        response = connection.delete(@url, @request_body, http_headers)
+        response = connection.delete(@url, @body, http_headers)
       else
         raise InvalidRequestException.new("Invalid method #{@method[:method]}")
       end

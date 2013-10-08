@@ -36,39 +36,37 @@ class SubClassedRequestFilteringExample < RequestFilteringExample
 end
 
 describe ActiveRestClient::RequestFiltering do
-  before(:each) do
-    @request = OpenStruct.new(get_params:{}, post_params:{}, url:"http://www.example.com", headers:ActiveRestClient::HeadersList.new)
-  end
+  let(:request) { OpenStruct.new(get_params:{}, post_params:{}, url:"http://www.example.com", headers:ActiveRestClient::HeadersList.new) }
 
   it "should call through to adjust the parameters" do
-    RequestFilteringExample._filter_request(:test, @request)
-    expect(@request.get_params).to have_key(:filter1)
+    RequestFilteringExample._filter_request(:test, request)
+    expect(request.get_params).to have_key(:filter1)
   end
 
   it "should call through for more than one filter" do
-    RequestFilteringExample._filter_request(:test, @request)
-    expect(@request.get_params).to have_key(:filter1)
-    expect(@request.post_params).to have_key(:post_filter1)
+    RequestFilteringExample._filter_request(:test, request)
+    expect(request.get_params).to have_key(:filter1)
+    expect(request.post_params).to have_key(:post_filter1)
   end
 
   it "should allow adjusting the URL via a named filter" do
-    RequestFilteringExample._filter_request(:test, @request)
-    expect(@request.url).to match(/https:\/\//)
+    RequestFilteringExample._filter_request(:test, request)
+    expect(request.url).to match(/https:\/\//)
   end
 
   it "should allow adjusting the URL via a named filter as an instance method" do
-    RequestFilteringExample._filter_request(:test, @request)
-    expect(@request.url).to match(/\/\/new\./)
+    RequestFilteringExample._filter_request(:test, request)
+    expect(request.url).to match(/\/\/new\./)
   end
 
   it "should allow filters to be set on the parent or on the child" do
-    SubClassedRequestFilteringExample._filter_request(:test, @request)
-    expect(@request.url).to match(/\/\/new\./)
-    expect(@request.get_params[:api_key]).to eq(1234)
+    SubClassedRequestFilteringExample._filter_request(:test, request)
+    expect(request.url).to match(/\/\/new\./)
+    expect(request.get_params[:api_key]).to eq(1234)
   end
 
   it "should allow filters to add custom headers" do
-    RequestFilteringExample._filter_request(:test, @request)
-    expect(@request.headers["X-My-Header"]).to eq("myvalue")
+    RequestFilteringExample._filter_request(:test, request)
+    expect(request.headers["X-My-Header"]).to eq("myvalue")
   end
 end
