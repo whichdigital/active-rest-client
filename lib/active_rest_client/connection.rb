@@ -64,9 +64,9 @@ module ActiveRestClient
       end
     end
 
-    def delete(path, data, headers={})
+    def delete(path, headers={})
       make_safe_request(path) do
-        @session.delete(path, data, headers)
+        @session.delete(path, headers)
       end
     end
 

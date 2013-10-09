@@ -238,15 +238,15 @@ module ActiveRestClient
 
       response.status ||= 200
       if response.status == 401
-        raise HTTPUnauthorisedClientException.new(status:response.status, result:result)
+        raise HTTPUnauthorisedClientException.new(status:response.status, result:result, url:@url)
       elsif response.status == 403
-        raise HTTPForbiddenClientException.new(status:response.status, result:result)
+        raise HTTPForbiddenClientException.new(status:response.status, result:result, url:@url)
       elsif response.status == 404
-        raise HTTPNotFoundClientException.new(status:response.status, result:result)
+        raise HTTPNotFoundClientException.new(status:response.status, result:result, url:@url)
       elsif (400..499).include? response.status
-        raise HTTPClientException.new(status:response.status, result:result)
+        raise HTTPClientException.new(status:response.status, result:result, url:@url)
       elsif (500..599).include? response.status
-        raise HTTPServerException.new(status:response.status, result:result)
+        raise HTTPServerException.new(status:response.status, result:result, url:@url)
       end
 
       result
@@ -354,10 +354,11 @@ module ActiveRestClient
   end
 
   class HTTPException < RequestException
-    attr_accessor :status, :result
+    attr_accessor :status, :result, :request_url
     def initialize(options)
       @status = options[:status]
       @result = options[:result]
+      @request_url = options[:url]
     end
   end
   class HTTPClientException < HTTPException ; end

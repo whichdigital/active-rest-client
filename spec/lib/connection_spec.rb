@@ -44,8 +44,8 @@ describe ActiveRestClient::Connection do
 
   it "should pass a DELETE request through to Patron" do
     @connection.session = double(Patron::Session)
-    @connection.session.stub(:delete).with("/foo", "body", {}).and_return(OpenStruct.new(body:"{result:true}"))
-    result = @connection.delete("/foo", "body")
+    @connection.session.stub(:delete).with("/foo", {}).and_return(OpenStruct.new(body:"{result:true}"))
+    result = @connection.delete("/foo")
     expect(result.body).to eq("{result:true}")
   end
 
