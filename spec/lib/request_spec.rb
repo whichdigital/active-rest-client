@@ -59,7 +59,7 @@ describe ActiveRestClient::Request do
   end
 
   it "should get an HTTP connection when called and call delete on it" do
-    ActiveRestClient::Connection.any_instance.should_receive(:delete).with("/remove/1", "", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    ActiveRestClient::Connection.any_instance.should_receive(:delete).with("/remove/1", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.remove(id:1)
   end
 

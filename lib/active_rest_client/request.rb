@@ -179,7 +179,7 @@ module ActiveRestClient
       when :post
         response = connection.post(@url, @body, http_headers)
       when :delete
-        response = connection.delete(@url, @body, http_headers)
+        response = connection.delete(@url, http_headers)
       else
         raise InvalidRequestException.new("Invalid method #{@method[:method]}")
       end
