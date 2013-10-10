@@ -14,13 +14,14 @@ module ActiveRestClient
       @attributes = {}
       @dirty_attributes = Set.new
 
-      attrs.each do |k,v|
-        if v.to_s[/\d{4}\-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})/]
-          @attributes[k.to_sym] = DateTime.parse(v)
+      attrs.each do |attribute_name, attribute_value|
+        attribute_name = attribute_name.to_sym
+        if attribute_value.to_s[/\d{4}\-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})/]
+          @attributes[attribute_name] = DateTime.parse(attribute_value)
         else
-          @attributes[k.to_sym] = v
+          @attributes[attribute_name] = attribute_value
         end
-        @dirty_attributes << k.to_sym
+        @dirty_attributes << attribute_name
       end
     end
 
@@ -42,19 +43,19 @@ module ActiveRestClient
     end
 
     def self._request(request, method = :get, params = nil)
-      unless request.is_a? ActiveRestClient::Request
-        mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:request}}
-        request = Request.new(mapped, self)
-      end
-      request.call(params)
+      prepare_direct_request(request, method).call(params)
     end
 
     def self._lazy_request(request, method = :get, params = nil)
+      ActiveRestClient::LazyLoader.new(prepare_direct_request(request, method), params)
+    end
+
+    def self.prepare_direct_request(request, method)
       unless request.is_a? ActiveRestClient::Request
         mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:request}}
         request = Request.new(mapped, self)
       end
-      ActiveRestClient::LazyLoader.new(request, params)
+      request
     end
 
     def self._request_for(method_name, *args)
@@ -94,7 +95,6 @@ module ActiveRestClient
             ActiveRestClient::LazyLoader.new(request)
           elsif mapped = self.class._mapped_method(name_sym)
             raise ValidationFailedException.new unless valid?
-            # params = (args.first.is_a?(Hash) ? args.first : nil)
             request = Request.new(mapped, self, args.first)
             request.call
           elsif self.class.whiny_missing
