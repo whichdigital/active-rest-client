@@ -95,5 +95,11 @@ describe ActiveRestClient::Configuration do
     expect{ ConfigurationExample.translator.respond_to?(:length) }.to be_true
   end
 
+  it "should store a proxy given" do
+    expect{ ConfigurationExample.send(:proxy) }.to_not raise_error
+    ConfigurationExample.send(:proxy, String)
+    expect{ ConfigurationExample.proxy.respond_to?(:length) }.to be_true
+  end
+
 
 end

@@ -36,6 +36,7 @@ describe ActiveRestClient::Request do
     end
 
     class FilteredBodyExampleClient < ExampleClient
+      base_url "http://www.example.com"
       before_request do |name, request|
         request.body = Oj.dump(request.post_params)
       end
@@ -455,10 +456,8 @@ describe ActiveRestClient::Request do
     end
   end
 
-  context "Body completely replaced" do
-    it "replaces the body completely in a filter" do
-      ActiveRestClient::Connection.any_instance.should_receive(:post).with("/save", "{\":id\":1234,\":name\":\"john\"}", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{}", headers:{}))
-      FilteredBodyExampleClient.save id:1234, name:'john'
-    end
+  it "replaces the body completely in a filter" do
+    ActiveRestClient::Connection.any_instance.should_receive(:post).with("/save", "{\":id\":1234,\":name\":\"john\"}", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{}", headers:{}))
+    FilteredBodyExampleClient.save id:1234, name:'john'
   end
 end

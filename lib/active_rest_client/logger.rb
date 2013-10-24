@@ -40,6 +40,18 @@ module ActiveRestClient
       end
     end
 
+    def self.warn(message)
+      if defined?(Rails) && Rails.respond_to?(:logger)
+        Rails.logger.warn(message)
+      elsif @logfile
+        File.open(@logfile, "a") do |f|
+          f << message
+        end
+      else
+        @messages << message
+      end
+    end
+
     def self.error(message)
       if defined?(Rails) && Rails.respond_to?(:logger)
         Rails.logger.error(message)

@@ -52,6 +52,20 @@ module ActiveRestClient
       end
     end
 
+    def proxy
+      if object_is_class?
+        @object.proxy
+      else
+        @object.class.proxy
+      end
+    rescue
+      nil
+    end
+
+    def http_method
+      @method[:method]
+    end
+
     def call(explicit_parameters=nil)
       @instrumentation_name = "#{class_name}##{@method[:name]}"
       result = nil
@@ -82,7 +96,13 @@ module ActiveRestClient
             etag = cached.etag
           end
         end
-        response = do_request(etag)
+        response = if proxy
+          proxy.handle(self) do |request|
+            request.do_request(etag)
+          end
+        else
+          do_request(etag)
+        end
         result = handle_response(response)
         ActiveRestClient::Base.write_cached_response(self, response, result)
       end
@@ -104,7 +124,7 @@ module ActiveRestClient
       if @explicit_parameters
         params = @explicit_parameters
       end
-      if @method[:method] == :get
+      if http_method == :get
         @get_params = default_params.merge(params || {})
         @post_params = nil
       else
@@ -132,8 +152,8 @@ module ActiveRestClient
       end
     end
 
-    def prepare_request_body
-      @body ||= (@post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
+    def prepare_request_body(params = nil)
+      @body ||= (params || @post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
     end
 
     def do_request(etag)
@@ -171,7 +191,7 @@ module ActiveRestClient
         ActiveRestClient::Logger.debug "  > #{@body}"
       end
 
-      case @method[:method]
+      case http_method
       when :get
         response = connection.get(@url, http_headers)
       when :put
@@ -181,7 +201,7 @@ module ActiveRestClient
       when :delete
         response = connection.delete(@url, http_headers)
       else
-        raise InvalidRequestException.new("Invalid method #{@method[:method]}")
+        raise InvalidRequestException.new("Invalid method #{http_method}")
       end
 
       if verbose?
@@ -216,7 +236,11 @@ module ActiveRestClient
 
       @response = response
 
-      body = Oj.load(response.body) || {}
+      if response.body.is_a?(Array) || response.body.is_a?(Hash)
+        body = response.body
+      else
+        body = Oj.load(response.body) || {}
+      end
       body = begin
         @method[:name].nil? ? body : translator.send(@method[:name], body)
       rescue NoMethodError

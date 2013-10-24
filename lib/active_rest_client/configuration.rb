@@ -44,7 +44,12 @@ module ActiveRestClient
       end
 
       def translator(value = nil)
+        ActiveRestClient::Logger.warn("DEPRECATION: The translator functionality of ActiveRestClient has been replaced with proxy functionality, see https://github.com/whichdigital/active-rest-client#proxying-apis for more information") unless value.nil?
         value ? @translator = value : @translator || nil
+      end
+
+      def proxy(value = nil)
+        value ? @proxy = value : @proxy || nil
       end
 
       def _reset_configuration!

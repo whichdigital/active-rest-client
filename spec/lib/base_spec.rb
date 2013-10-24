@@ -12,7 +12,7 @@ class TranslatorExample
   end
 end
 
-class TranslatorClientExample < ActiveRestClient::Base
+class AlteringClientExample < ActiveRestClient::Base
   translator TranslatorExample
   base_url "http://www.example.com"
 
@@ -122,14 +122,14 @@ describe ActiveRestClient::Base do
 
   it "should be able to lazy instantiate an object from a prefixed lazy_ method call" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
-    example = TranslatorClientExample.lazy_find(1)
+    example = AlteringClientExample.lazy_find(1)
     expect(example).to be_an_instance_of(ActiveRestClient::LazyLoader)
     expect(example.first_name).to eq("Billy")
   end
 
   it "should be able to lazy instantiate an object from a prefixed lazy_ method call from an instance" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
-    example = TranslatorClientExample.new.lazy_find(1)
+    example = AlteringClientExample.new.lazy_find(1)
     expect(example).to be_an_instance_of(ActiveRestClient::LazyLoader)
     expect(example.first_name).to eq("Billy")
   end
@@ -137,25 +137,24 @@ describe ActiveRestClient::Base do
   context "accepts a Translator to reformat JSON" do
     it "should call Translator#method when calling the mapped method if it responds to it" do
       TranslatorExample.should_receive(:all).with(an_instance_of(Hash)).and_return({})
-      TranslatorClientExample.all
+      AlteringClientExample.all
     end
 
     it "should not raise errors when calling Translator#method if it does not respond to it" do
-      expect {TranslatorClientExample.list}.to_not raise_error
+      expect {AlteringClientExample.list}.to_not raise_error
     end
 
     it "should translate JSON returned through the Translator" do
-      ret = TranslatorClientExample.all
+      ret = AlteringClientExample.all
       expect(ret.first_name).to eq("Billy")
       expect(ret.name).to be_nil
     end
 
     it "should return original JSON for items that aren't handled by the Translator" do
-      ret = TranslatorClientExample.list
+      ret = AlteringClientExample.list
       expect(ret.name).to eq("Billy")
       expect(ret.first_name).to be_nil
     end
-
   end
 
   context "directly call a URL, rather than via a mapped method" do
@@ -195,8 +194,8 @@ describe ActiveRestClient::Base do
 
     it "should be able to use mapped methods to create a request to pass in to _lazy_request" do
       ActiveRestClient::Connection.any_instance.should_receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
-      request = TranslatorClientExample._request_for(:find, :id => 1)
-      example = TranslatorClientExample._lazy_request(request)
+      request = AlteringClientExample._request_for(:find, :id => 1)
+      example = AlteringClientExample._lazy_request(request)
       expect(example.first_name).to eq("Billy")
     end
 

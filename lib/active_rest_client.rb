@@ -14,6 +14,7 @@ require "active_rest_client/lazy_association_loader"
 require "active_rest_client/request"
 require "active_rest_client/validation"
 require "active_rest_client/request_filtering"
+require "active_rest_client/proxy_base"
 require "active_rest_client/base"
 
 module ActiveRestClient
