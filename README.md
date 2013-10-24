@@ -434,7 +434,13 @@ end
 
 This example takes the `post_params["id"]` and converts the body from being a normal form-encoded body in to being a JSON body.
 
-The proxy block expects one of three things to be the return value of the block.  The first options is that the call to `passthrough` is the last thing and it calls down to the connection layer and returns the actual response from the server in to the "API->Object" mapping layer ready for use in your application.  The second option is to save the response from `passthrough` and use `translate` on it to alter the structure.  The third option is to use `render` if you want to completely fake an API and return the JSON yourself:
+The proxy block expects one of three things to be the return value of the block.
+
+1. The first options is that the call to `passthrough` is the last thing and it calls down to the connection layer and returns the actual response from the server in to the "API->Object" mapping layer ready for use in your application
+2. The second option is to save the response from `passthrough` and use `translate` on it to alter the structure.
+3. The third option is to use `render` if you want to completely fake an API and return the JSON yourself
+
+To completely fake the API, you can do the following.  Note, this is also achievable using the `fake` setting when mapping a method, however by doing it in a Proxy block means you can dynamically generate the JSON rather than just a hard coded string.
 
 ```ruby
 put "/fake" do
