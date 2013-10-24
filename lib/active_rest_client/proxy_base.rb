@@ -38,7 +38,7 @@ module ActiveRestClient
         @original_handler.call(@request)
       end
 
-      def translate_body(result)
+      def translate(result)
         obj = Oj.load(result.body)
         yield obj
         result.body = obj

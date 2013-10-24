@@ -135,6 +135,17 @@ describe ActiveRestClient::Base do
   end
 
   context "accepts a Translator to reformat JSON" do
+    it "should log a deprecation warning when using a translator" do
+      ActiveRestClient::Logger.should_receive(:warn) do |message|
+        expect(message).to start_with("DEPRECATION")
+      end
+      Proc.new do
+        class DummyExample < ActiveRestClient::Base
+          translator TranslatorExample
+        end
+      end.call
+    end
+
     it "should call Translator#method when calling the mapped method if it responds to it" do
       TranslatorExample.should_receive(:all).with(an_instance_of(Hash)).and_return({})
       AlteringClientExample.all

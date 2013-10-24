@@ -33,8 +33,8 @@ class ProxyExample < ActiveRestClient::ProxyBase
 
   put "/change-format" do
     response = passthrough
-    translate_body(response) do |body_object|
-      body_object["first_name"] = body_object.delete("fname")
+    translate(response) do |body|
+      body["first_name"] = body.delete("fname")
     end
   end
 

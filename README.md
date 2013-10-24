@@ -379,7 +379,72 @@ This initially creates an ActiveRestClient::Request object as if you'd called `P
 
 Doing this will try to find a literally mapped method called "lazy_find" and if it fails, it will try to use "find" but instantiate the object lazily.
 
+### Proxying APIs
+
+Sometimes you may be working with an old API that returns JSON in a less than ideal format or the URL or parameters required have changed.  In this case you can define a descendent of `ActiveRestClient::ProxyBase`, pass it to your model as the proxy and have it rework URLs/parameters on the way out and the response on the way back in (already converted to a Ruby hash/array). By default any non-proxied URLs are just passed through to the underlying connection layer. For example:
+
+```ruby
+class ArticleProxy
+  get "/all" do
+    url "/all_people" # Equiv to url.gsub!("/all", "/all_people") if you wanted to keep params
+    response = passthrough
+    translate(response) do |body|
+      body["first_name"] = body.delete("fname")
+    end
+  end
+end
+
+class Article < ActiveRestClient::Base
+  proxy ArticleProxy
+  base_url "http://www.example.com"
+
+  get :all, "/all", fake:"{\"name\":\"Billy\"}"
+  get :list, "/list", fake:"[{\"name\":\"Billy\"}, {\"name\":\"John\"}]"
+end
+
+Article.all.first_name == "Billy"
+```
+
+This example does two things:
+
+1. It rewrites the incoming URL for any requests matching "*/all*" to "/all_people"
+2. It uses the `translate` method to move the "fname" attribute from the response body to be called "first_name"
+
+As the comment shows, you can use `url value` to set the request URL to a particular value, or you can call `gsub!` on the url to replace parts of it using more complicated regular expressions.
+
+You can use the `get_params` or `post_params` methods within your proxy block to amend/create/delete items from those request parameters, like this:
+
+```ruby
+get "/list" do
+  get_params["id"] = get_params.delete("identifier")
+  passthrough
+end
+```
+
+This example renames the get_parameter for the request from `identifier` to `id` (the same would have worked with post_params if it was a POST/PUT request).  The `passthrough` method will take care of automatically recombining them in to the URL or encoding them in to the body as appropriate.
+
+If you want to manually set the body for the API yourself you can use the `body` method
+
+```ruby
+put "/update" do
+  body "{\"id\":#{post_params["id"]}}"
+  passthrough
+end
+```
+
+This example takes the `post_params["id"]` and converts the body from being a normal form-encoded body in to being a JSON body.
+
+The proxy block expects one of three things to be the return value of the block.  The first options is that the call to `passthrough` is the last thing and it calls down to the connection layer and returns the actual response from the server in to the "API->Object" mapping layer ready for use in your application.  The second option is to save the response from `passthrough` and use `translate` on it to alter the structure.  The third option is to use `render` if you want to completely fake an API and return the JSON yourself:
+
+```ruby
+put "/fake" do
+  render "{\"id\":1234}"
+end
+```
+
 ### Translating APIs
+
+**IMPORTANT: This functionality has been deprecated in favour of the "Proxying APIs" functionality above.  You should aim to remove this from your code as soon as possible.**
 
 Sometimes you may be working with an API that returns JSON in a less than ideal format.  In this case you can define a barebones class and pass it to your model.  The Translator class must have class methods that are passed the JSON object and should return an object in the correct format.  It doesn't need to have a method unless it's going to translate that mapping though (so in the example below there's no list method). For example:
 
@@ -400,7 +465,7 @@ class Article < ActiveRestClient::Base
   get :list, "/list", fake:"[{\"name\":\"Billy\"}, {\"name\":\"John\"}]"
 end
 
-TranslatorClientExample.all.first_name == "Billy"
+Article.all.first_name == "Billy"
 ```
 
 ### Default Parameters
