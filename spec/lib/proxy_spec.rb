@@ -2,43 +2,43 @@ require 'spec_helper'
 require 'active_support/core_ext/hash'
 
 class ProxyExample < ActiveRestClient::ProxyBase
-  get %r{/all} do
+  get "/all" do
     url.gsub!("/all", "/getAll")
     passthrough
   end
 
-  get %r{/old} do
+  get "/old" do
     url "/new"
     passthrough
   end
 
-  get %r{/list} do
+  get "/list" do
     get_params[:first_name] = get_params.delete(:fname)
     get_params[:age] = 12
     get_params.delete(:lname)
     passthrough
   end
 
-  post %r{/create} do
+  post "/create" do
     post_params[:first_name] = post_params.delete(:fname)
     post_params[:age] = 12
     post_params.delete(:lname)
     passthrough
   end
 
-  put %r{/update} do
+  put "/update" do
     body "MY-BODY-CONTENT"
     passthrough
   end
 
-  put %r{/change-format} do
+  put "/change-format" do
     response = passthrough
     translate_body(response) do |body_object|
       body_object["first_name"] = body_object.delete("fname")
     end
   end
 
-  put %r{/fake} do
+  put "/fake" do
     render "{\"id\":1234}"
   end
 end
