@@ -384,7 +384,7 @@ Doing this will try to find a literally mapped method called "lazy_find" and if 
 Sometimes you may be working with an old API that returns JSON in a less than ideal format or the URL or parameters required have changed.  In this case you can define a descendent of `ActiveRestClient::ProxyBase`, pass it to your model as the proxy and have it rework URLs/parameters on the way out and the response on the way back in (already converted to a Ruby hash/array). By default any non-proxied URLs are just passed through to the underlying connection layer. For example:
 
 ```ruby
-class ArticleProxy
+class ArticleProxy < ActiveRestClient::ProxyBase
   get "/all" do
     url "/all_people" # Equiv to url.gsub!("/all", "/all_people") if you wanted to keep params
     response = passthrough
