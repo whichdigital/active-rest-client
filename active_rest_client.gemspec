@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec"
   spec.add_development_dependency 'terminal-notifier-guard'
 
-  spec.add_runtime_dependency "oj"
+  spec.add_runtime_dependency "oj", "=2.1.4" # 2.1.7 breaks under linux 
   spec.add_runtime_dependency "activesupport"
   spec.add_runtime_dependency "patron", '=0.4.9' # 0.4.18 breaks against Curl v0.7.15
 end
