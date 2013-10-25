@@ -35,6 +35,7 @@ class ProxyExample < ActiveRestClient::ProxyBase
     response = passthrough
     translate(response) do |body|
       body["first_name"] = body.delete("fname")
+      body
     end
   end
 

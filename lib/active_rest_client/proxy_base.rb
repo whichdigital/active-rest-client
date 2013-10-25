@@ -40,8 +40,7 @@ module ActiveRestClient
 
       def translate(result)
         obj = Oj.load(result.body)
-        yield obj
-        result.body = obj
+        result.body = yield obj
         result
       end
 

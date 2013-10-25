@@ -390,6 +390,7 @@ class ArticleProxy < ActiveRestClient::ProxyBase
     response = passthrough
     translate(response) do |body|
       body["first_name"] = body.delete("fname")
+      body
     end
   end
 end
@@ -408,7 +409,7 @@ Article.all.first_name == "Billy"
 This example does two things:
 
 1. It rewrites the incoming URL for any requests matching "*/all*" to "/all_people"
-2. It uses the `translate` method to move the "fname" attribute from the response body to be called "first_name"
+2. It uses the `translate` method to move the "fname" attribute from the response body to be called "first_name".  The translate method must return the new object at the end (either the existing object alterered, or a new object to replace it with)
 
 As the comment shows, you can use `url value` to set the request URL to a particular value, or you can call `gsub!` on the url to replace parts of it using more complicated regular expressions.
 
