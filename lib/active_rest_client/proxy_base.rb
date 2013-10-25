@@ -1,16 +1,28 @@
 module ActiveRestClient
   class ProxyBase
-
     cattr_accessor :mappings, :request, :original_handler
     cattr_accessor :original_body, :original_get_params, :original_post_params, :original_url
 
-    self.mappings = []
+    module ClassMethods
+      def get(match, &block)
+        self.add_mapping(:get, match, block)
+      end
 
-    class << self
-      %i{get post put delete}.each do |method_type|
-        define_method(method_type) do |match, &block|
-          self.mappings << OpenStruct.new(method:method_type, match:match, block:block)
-        end
+      def post(match, &block)
+        self.add_mapping(:post, match, block)
+      end
+
+      def put(match, &block)
+        self.add_mapping(:put, match, block)
+      end
+
+      def delete(match, &block)
+        self.add_mapping(:delete, match, block)
+      end
+
+      def add_mapping(method_type, match, block)
+        @mappings ||= []
+        @mappings << OpenStruct.new(method:method_type, match:match, block:block)
       end
 
       def body(value = nil)
@@ -87,7 +99,8 @@ module ActiveRestClient
 
       def find_mapping_for_current_request
         uri = URI.parse(@original_url)
-        self.mappings.each do |mapping|
+        @mappings ||= []
+        @mappings.each do |mapping|
           if uri.path.match(mapping.match) #&& @request.http_method.to_sym == mapping.method
             return mapping
           end
@@ -99,6 +112,10 @@ module ActiveRestClient
         headers["Content-type"] = content_type
         OpenStruct.new(body:body, status:status, headers:headers)
       end
+    end
+
+    def self.inherited(base)
+      base.extend(ClassMethods)
     end
   end
 end
