@@ -31,7 +31,11 @@ class ProxyExample < ActiveRestClient::ProxyBase
     passthrough
   end
 
-  put "/change-format" do
+  delete '/remove' do
+    passthrough
+  end
+
+  get "/change-format" do
     response = passthrough
     translate(response) do |body|
       body["first_name"] = body.delete("fname")
@@ -39,7 +43,11 @@ class ProxyExample < ActiveRestClient::ProxyBase
     end
   end
 
-  put "/fake" do
+  get "/param/:id/:name" do
+    render "{\"id\":\"#{params[:id]}\", \"name\":\"#{params[:name]}\"}"
+  end
+
+  get "/fake" do
     render "{\"id\":1234}"
   end
 end
@@ -52,10 +60,12 @@ class ProxyClientExample < ActiveRestClient::Base
   get :old, "/old"
   get :list, "/list"
   get :fake, "/fake"
+  get :param, "/param/:id/:name"
   get :change_format, "/change-format"
   post :create, "/create"
   put :update, "/update"
   get :not_proxied, "/not_proxied"
+  delete :remove, "/remove"
 end
 
 describe ActiveRestClient::Base do
@@ -84,6 +94,11 @@ describe ActiveRestClient::Base do
     ProxyClientExample.update(fname:"John", lname:"Smith")
   end
 
+  it "handles DELETE requests" do
+    ActiveRestClient::Connection.any_instance.should_receive(:delete).with("/remove", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    ProxyClientExample.remove
+  end
+
   it "can return fake JSON data and have this parsed in the normal way" do
     ActiveRestClient::Connection.any_instance.should_not_receive(:get).with("/fake", instance_of(Hash))
     ret = ProxyClientExample.fake
@@ -99,5 +114,11 @@ describe ActiveRestClient::Base do
   it "can continue with the request in the normal way, passing it on to the server" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/not_proxied?id=1", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     ProxyClientExample.not_proxied(id:1)
+  end
+
+  it "can hava parameters in the URL" do
+    ret = ProxyClientExample.param(id:1234, name:"Johnny")
+    expect(ret.id).to eq("1234")
+    expect(ret.name).to eq("Johnny")
   end
 end

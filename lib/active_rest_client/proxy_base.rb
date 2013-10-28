@@ -5,24 +5,33 @@ module ActiveRestClient
 
     module ClassMethods
       def get(match, &block)
-        self.add_mapping(:get, match, block)
+        add_mapping(:get, match, block)
       end
 
       def post(match, &block)
-        self.add_mapping(:post, match, block)
+        add_mapping(:post, match, block)
       end
 
       def put(match, &block)
-        self.add_mapping(:put, match, block)
+        add_mapping(:put, match, block)
       end
 
       def delete(match, &block)
-        self.add_mapping(:delete, match, block)
+        add_mapping(:delete, match, block)
       end
 
       def add_mapping(method_type, match, block)
         @mappings ||= []
-        @mappings << OpenStruct.new(method:method_type, match:match, block:block)
+
+        if match.is_a?(String) && (param_keys = match.scan(/:\w+/)) && param_keys.any?
+          param_keys.each do |key|
+            match.gsub!(key, "([^/]+)")
+          end
+          param_keys = param_keys.map {|k| k.gsub(":", "").to_sym}
+          match = Regexp.new(match)
+        end
+
+        @mappings << OpenStruct.new(http_method:method_type, match:match, block:block, param_keys:param_keys)
       end
 
       def body(value = nil)
@@ -43,6 +52,11 @@ module ActiveRestClient
       def post_params(value = nil)
         @post_params = value if value
         @post_params
+      end
+
+      def params(value = nil)
+        @params = value if value
+        @params
       end
 
       def passthrough
@@ -100,8 +114,15 @@ module ActiveRestClient
       def find_mapping_for_current_request
         uri = URI.parse(@original_url)
         @mappings ||= []
+        @params = {}
         @mappings.each do |mapping|
-          if uri.path.match(mapping.match) #&& @request.http_method.to_sym == mapping.method
+          match = mapping.match
+          if (match_data = uri.path.match(match)) && @request.http_method.to_sym == mapping.http_method
+            matches = match_data.to_a
+            matches.shift
+            matches.each_with_index do |value, index|
+              @params[mapping.param_keys[index]] = value
+            end
             return mapping
           end
         end
