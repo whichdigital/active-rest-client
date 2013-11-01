@@ -267,7 +267,7 @@ describe ActiveRestClient::Request do
     end
     expect(e).to be_instance_of(ActiveRestClient::HTTPNotFoundClientException)
     expect(e.status).to eq(404)
-  expect(e.result.first_name).to eq("John")
+    expect(e.result.first_name).to eq("John")
   end
 
   it "should raise a client exceptions for 4xx errors" do

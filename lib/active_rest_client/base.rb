@@ -77,6 +77,12 @@ module ActiveRestClient
       @dirty_attributes << key
     end
 
+    def each
+      @attributes.each do |key, value|
+        yield key, value
+      end
+    end
+
     def method_missing(name, *args)
       if name.to_s[-1,1] == "="
         name = name.to_s.chop.to_sym

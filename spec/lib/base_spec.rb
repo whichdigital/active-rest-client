@@ -17,7 +17,8 @@ class AlteringClientExample < ActiveRestClient::Base
   base_url "http://www.example.com"
 
   get :all, "/all", fake:"{\"name\":\"Billy\"}"
-  get :list, "/list", fake:"{\"name\":\"Billy\"}"
+  get :list, "/list", fake:"{\"name\":\"Billy\", \"country\":\"United Kingdom\"}"
+  get :iterate, "/iterate", fake:"{\"name\":\"Billy\", \"country\":\"United Kingdom\"}"
   get :find, "/find/:id"
 end
 
@@ -43,6 +44,18 @@ describe ActiveRestClient::Base do
   it "should allow attribute reading using [] array notation" do
     client = EmptyExample.new(:test => "Something")
     expect(client["test"]).to eq("Something")
+  end
+
+  it "allows iteration over attributes using each" do
+    client = AlteringClientExample.iterate
+    expect(client).to be_respond_to(:each)
+    keys = []
+    values = []
+    client.each do |key, value|
+      keys << key ; values << value
+    end
+    expect(keys).to eq(%i{name country})
+    expect(values).to eq(["Billy", "United Kingdom"])
   end
 
   it "should automatically parse ISO 8601 format dates" do
