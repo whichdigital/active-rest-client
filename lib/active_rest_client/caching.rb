@@ -50,6 +50,9 @@ module ActiveRestClient
       end
 
       def write_cached_response(request, response, result)
+        response.headers.keys.select{|h| h.is_a? String}.each do |key|
+          response.headers[key.downcase.to_sym] = response.headers[key]
+        end
         if cache_store && (response.headers[:etag] || response.headers[:expires])
           key = "#{request.class_name}:#{request.url}"
           cached_response = CachedResponse.new(status:response.status, result:result)

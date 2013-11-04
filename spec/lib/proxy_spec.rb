@@ -116,7 +116,22 @@ describe ActiveRestClient::Base do
     ProxyClientExample.not_proxied(id:1)
   end
 
-  it "can hava parameters in the URL" do
+  it "caches responses in the standard way" do
+    cache_store = double("CacheStore")
+    cache_store.stub(:read).with(any_args).and_return(nil)
+    ActiveRestClient::Base.stub(:cache_store).and_return(cache_store)
+    expiry = 10.minutes.from_now.rfc2822
+    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/update", "MY-BODY-CONTENT", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{"Expires" => expiry, "ETag" => "123456"}))
+    ActiveRestClient::Base.cache_store.should_receive(:write) do |key, object, options|
+      expect(key).to eq("ProxyClientExample:/update")
+      expect(object.etag).to eq("123456")
+      expect(options[:expires_in]).to be > 0
+      expect(options[:expires_in]).to be < (10.minutes)
+    end
+    ProxyClientExample.update(id:1)
+  end
+
+  it "can have parameters in the URL" do
     ret = ProxyClientExample.param(id:1234, name:"Johnny")
     expect(ret.id).to eq("1234")
     expect(ret.name).to eq("Johnny")
