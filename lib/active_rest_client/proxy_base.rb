@@ -65,6 +65,7 @@ module ActiveRestClient
       end
 
       def translate(result)
+        result.headers["content-type"] = "application/hal+json"
         result = OpenStruct.new(status:result.status, headers:result.headers, body:result.body)
         obj = Oj.load(result.body)
         result.body = yield obj

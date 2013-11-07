@@ -329,10 +329,11 @@ module ActiveRestClient
       if content_type && content_type.respond_to?(:each)
         content_type.each do |ct|
           return true if ct[%r{application\/hal\+json}i]
+          return true if ct[%r{application\/json}i]
         end
         faked_response
       else
-        content_type && content_type[%r{application\/hal\+json}i] || faked_response
+        content_type && (content_type[%r{application\/hal\+json}i] || content_type[%r{application\/json}i]) || faked_response
       end
     end
 

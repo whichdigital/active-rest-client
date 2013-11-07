@@ -11,10 +11,10 @@ module ActiveRestClient
       @options = options
       if value.is_a? Array
         @subloaders = value.map {|url| LazyAssociationLoader.new(name, url, request, options)}
-      elsif value.is_a?(Hash) && value.has_key?("url")
-        @url = value["url"]
-      elsif value.is_a?(Hash) && value.has_key?("href") # HAL
-        @url = value["href"]
+      elsif value.is_a?(Hash) && (value.has_key?("url") || value.has_key?(:url))
+        @url = (value["url"] || value[:url])
+      elsif value.is_a?(Hash) && (value.has_key?("href") || value.has_key?(:href)) # HAL
+        @url = (value["href"] || value[:href])
         @_hal_attributes = HashWithIndifferentAccess.new(value)
       elsif value.is_a?(Hash)
         mapped = {}
