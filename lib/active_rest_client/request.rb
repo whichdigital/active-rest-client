@@ -280,6 +280,7 @@ module ActiveRestClient
 
     def new_object(attributes, name = nil)
       @method[:options][:has_many] ||= {}
+      name = name.to_sym rescue nil
       if @method[:options][:has_many][name]
         overriden_name = name
         object = @method[:options][:has_many][name].new
