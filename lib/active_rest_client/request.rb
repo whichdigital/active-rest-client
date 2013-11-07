@@ -332,8 +332,10 @@ module ActiveRestClient
           return true if ct[%r{application\/json}i]
         end
         faked_response
+      elsif content_type && (content_type[%r{application\/hal\+json}i] || content_type[%r{application\/json}i]) || faked_response
+        true
       else
-        content_type && (content_type[%r{application\/hal\+json}i] || content_type[%r{application\/json}i]) || faked_response
+        false
       end
     end
 
