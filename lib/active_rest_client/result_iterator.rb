@@ -17,6 +17,10 @@ module ActiveRestClient
       @items.size
     end
 
+    def index(value)
+      @items.index(value)
+    end
+
     def empty?
       size == 0
     end

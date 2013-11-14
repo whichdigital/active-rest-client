@@ -42,6 +42,13 @@ describe ActiveRestClient::ResultIterator do
     expect(result.size).to eq(2)
   end
 
+  it "should implement index" do
+    result = ActiveRestClient::ResultIterator.new
+    result << "a"
+    result << "z"
+    expect(result.index("z")).to eq(1)
+  end
+
   it "should implement empty?" do
     result = ActiveRestClient::ResultIterator.new
     expect(result.empty?).to be_true
