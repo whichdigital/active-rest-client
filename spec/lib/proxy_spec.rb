@@ -43,6 +43,14 @@ class ProxyExample < ActiveRestClient::ProxyBase
     end
   end
 
+  get "/hal_test/:id" do
+    response = passthrough
+    translate(response) do |body|
+      body["_links"] = {"test" => {href:"/this/is/a/test"}}
+      body
+    end
+  end
+
   get "/param/:id/:name" do
     render "{\"id\":\"#{params[:id]}\", \"name\":\"#{params[:name]}\"}"
   end
@@ -66,6 +74,7 @@ class ProxyClientExample < ActiveRestClient::Base
   put :update, "/update"
   get :not_proxied, "/not_proxied"
   delete :remove, "/remove"
+  get :hal_test, "/hal_test/:id"
 end
 
 describe ActiveRestClient::Base do
@@ -136,4 +145,11 @@ describe ActiveRestClient::Base do
     expect(ret.id).to eq("1234")
     expect(ret.name).to eq("Johnny")
   end
+
+  it "can force the URL from a filter without it being passed through URL replacement" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/hal_test/1", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/this/is/a/test", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect(ProxyClientExample.hal_test(id:1).test.result).to eq(true)
+  end
+
 end

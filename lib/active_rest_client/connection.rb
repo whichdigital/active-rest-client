@@ -12,6 +12,7 @@ module ActiveRestClient
       @base_url                      = base_url
       @session                       = Patron::Session.new
       @session.timeout               = 10
+      @session.connect_timeout       = 10
       @session.base_url              = base_url
       @session.insecure              = true
       @session.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"

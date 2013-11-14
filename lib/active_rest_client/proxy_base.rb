@@ -100,7 +100,7 @@ module ActiveRestClient
         @get_params = @original_get_params.dup
 
         @original_post_params = request.post_params
-        @post_params = @original_post_params.dup
+        @post_params = (@original_post_params || {}).dup
 
         @original_url = request.url
         @url = @original_url.dup

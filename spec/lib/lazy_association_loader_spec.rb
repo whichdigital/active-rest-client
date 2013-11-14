@@ -83,7 +83,7 @@ describe ActiveRestClient::LazyAssociationLoader do
 
   it "should make the request for a URL if it's accessed" do
     method_data = {options:{url:"foo"}}
-    request = double("Request")
+    request = double("Request").as_null_object
     request.stub(:method).and_return(method_data)
     request.should_receive(:object).with(any_args).and_return(Array.new)
     request.should_receive(:call).with(any_args).and_return("")

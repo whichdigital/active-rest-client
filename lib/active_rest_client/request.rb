@@ -4,7 +4,7 @@ require "oj"
 module ActiveRestClient
 
   class Request
-    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object, :body
+    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object, :body, :hal_url
 
     def initialize(method, object, params = {})
       @method                  = method
@@ -134,14 +134,18 @@ module ActiveRestClient
     end
 
     def prepare_url
-      @url = @method[:url].dup
-      matches = @url.scan(/(:[a-z_-]+)/)
-      @get_params ||= {}
-      @post_params ||= {}
-      matches.each do |token|
-        token = token.first[1,999]
-        target = @get_params.delete(token.to_sym) || @post_params.delete(token.to_sym) || ""
-        @url.gsub!(":#{token}", target.to_s)
+      if @hal_url.present?
+        @url = @hal_url
+      else
+        @url = @method[:url].dup
+        matches = @url.scan(/(:[a-z_-]+)/)
+        @get_params ||= {}
+        @post_params ||= {}
+        matches.each do |token|
+          token = token.first[1,999]
+          target = @get_params.delete(token.to_sym) || @post_params.delete(token.to_sym) || ""
+          @url.gsub!(":#{token}", target.to_s)
+        end
       end
     end
 
