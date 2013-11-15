@@ -236,8 +236,11 @@ module ActiveRestClient
         ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag copy is the same as the server"
         return :not_modified
       end
-      ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response received #{response.body.size} bytes"
-
+      if response.try(:proxied)
+        ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response was proxied, unable to determine size"
+      else
+        ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response received #{response.body.size} bytes"
+      end
       @response = response
 
       if response.body.is_a?(Array) || response.body.is_a?(Hash)

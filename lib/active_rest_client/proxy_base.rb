@@ -132,7 +132,7 @@ module ActiveRestClient
 
       def render(body, status=200, content_type="application/javascript", headers={})
         headers["Content-type"] = content_type
-        OpenStruct.new(body:body, status:status, headers:headers)
+        OpenStruct.new(body:body, status:status, headers:headers, proxied:true)
       end
     end
 
