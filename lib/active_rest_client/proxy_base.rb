@@ -74,7 +74,7 @@ module ActiveRestClient
 
       def rebuild_request
         if @url != @original_url
-          @request.url = @url
+          @request.hal_url = @request.url = @url
         end
         if @body != @original_body
           @request.body = @body
