@@ -44,5 +44,22 @@ module ActiveRestClient
       self
     end
 
+    def parallelise(method=nil)
+      collected_responses = []
+      threads = []
+      @items.each do |item|
+        threads << Thread.new do
+          ret = item.send(method) if method
+          ret = yield(item) if block_given?
+          Thread.current[:response] = ret
+        end
+      end
+      threads.each do |t|
+        t.join
+        collected_responses << t[:response]
+      end
+      collected_responses
+    end
+
   end
 end

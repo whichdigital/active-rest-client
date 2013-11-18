@@ -20,11 +20,17 @@ describe ActiveRestClient::ResultIterator do
     end
   end
 
-  it "should implement first/any?" do
+  it "should implement first" do
     result = ActiveRestClient::ResultIterator.new
     result << "a"
     result << "z"
     expect(result.first).to eq("a")
+  end
+
+  it "should implement any?" do
+    result = ActiveRestClient::ResultIterator.new
+    expect(result.any?).to be_false
+    result << "a"
     expect(result.any?).to be_true
   end
 
@@ -71,5 +77,21 @@ describe ActiveRestClient::ResultIterator do
       result << n
     end
     expect(result.shuffle.first == result.shuffle.first && result.shuffle.first == result.shuffle.first).to_not be_true
+  end
+
+  it "can parallelise calls to each item" do
+    result = ActiveRestClient::ResultIterator.new
+    result << 3
+    result << 2
+    result << 1
+    delay = 0.05
+    start_time = Time.now
+    response = result.parallelise do |item|
+      sleep(delay * item)
+      item*2
+    end
+    end_time = Time.now
+    expect(end_time-start_time).to be < (4*delay)
+    expect(response).to eq([6,4,2])
   end
 end

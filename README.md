@@ -328,6 +328,21 @@ class Article < ActiveRestClient::Base
 end
 ```
 
+If you have a ResultIterator that has multiple objects, each being lazy loaded or HAL linked resources that isn't loaded until it's used, you can actually parallelise the fetching of the items using code like this:
+
+```ruby
+items.parallelise(:id)
+
+# or
+
+items.parallelise do |item|
+  item.id
+end
+```
+
+This will return an array of the named method for each object or the response from the block and will have loaded the objects in to the resource.
+
+
 ### Authentication
 
 You can authenticate with Basic authentication by putting the username and password in to the `base_url` or by setting them within the specific model:
