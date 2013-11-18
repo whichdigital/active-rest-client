@@ -84,7 +84,7 @@ module ActiveRestClient
         @request.method[:options][:url] = @url
         @request.method[:options][:overriden_name] = @options[:overriden_name]
         request = ActiveRestClient::Request.new(@request.method, @request.object)
-        request.url = request.hal_url = @url
+        request.url = request.forced_url = @url
         @object = request.call
       end
     end

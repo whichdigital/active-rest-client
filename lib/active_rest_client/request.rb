@@ -4,7 +4,7 @@ require "oj"
 module ActiveRestClient
 
   class Request
-    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object, :body, :hal_url
+    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object, :body, :forced_url
 
     def initialize(method, object, params = {})
       @method                  = method
@@ -134,8 +134,8 @@ module ActiveRestClient
     end
 
     def prepare_url
-      if @hal_url.present?
-        @url = @hal_url
+      if @forced_url.present?
+        @url = @forced_url
       else
         @url = @method[:url].dup
         matches = @url.scan(/(:[a-z_-]+)/)
@@ -168,8 +168,9 @@ module ActiveRestClient
         value = value.join(",") if value.is_a?(Array)
         http_headers[key] = value
       end
-      if @method[:options][:url]
+      if @method[:options][:url] || @forced_url
         @url = @method[:options][:url]
+        @url = @forced_url if @forced_url
         if connection = ActiveRestClient::ConnectionManager.find_connection_for_url(@url)
           @url = @url.slice(connection.base_url.length, 255)
         else
