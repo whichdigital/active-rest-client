@@ -64,8 +64,10 @@ module ActiveRestClient
         @original_handler.call(@request)
       end
 
-      def translate(result)
+      def translate(result, options = {})
         result.headers["content-type"] = "application/hal+json"
+        result.headers[:etag] = Digest::SHA512.hexdigest(result.body) if options[:force_etag]
+        result.headers[:expires] = options[:expires].from_now.rfc822 if options[:expires]
         result = OpenStruct.new(status:result.status, headers:result.headers, body:result.body)
         obj = Oj.load(result.body)
         result.body = yield obj

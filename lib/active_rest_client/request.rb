@@ -92,7 +92,7 @@ module ActiveRestClient
             ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Absolutely cached copy found"
             return handle_cached_response(cached)
           elsif cached.etag.present?
-            ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag cached copy found"
+            ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag cached copy found with etag #{cached.etag}"
             etag = cached.etag
           end
         end
