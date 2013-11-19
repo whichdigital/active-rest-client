@@ -59,10 +59,9 @@ module ActiveRestClient
         @params
       end
 
-      def passthrough(options = {})
+      def passthrough
         rebuild_request
-        result = @original_handler.call(@request)
-        result
+        @original_handler.call(@request)
       end
 
       def translate(result, options = {})
