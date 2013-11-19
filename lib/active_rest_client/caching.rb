@@ -1,7 +1,7 @@
 module ActiveRestClient
   module Caching
     module ClassMethods
-      @@perform_caching = false
+      @@perform_caching = true
 
       def perform_caching(value = nil)
         if value.nil?
@@ -58,10 +58,7 @@ module ActiveRestClient
           cached_response = CachedResponse.new(status:response.status, result:result)
           cached_response.etag = response.headers[:etag] if response.headers[:etag]
           cached_response.expires = Time.parse(response.headers[:expires]) if response.headers[:expires]
-
-          options = {}
-          options[:expires_in] = cached_response.expires - Time.now if cached_response.expires
-          cache_store.write(key, cached_response, options)
+          cache_store.write(key, cached_response, {})
         end
       end
     end

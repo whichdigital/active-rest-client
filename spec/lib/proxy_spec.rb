@@ -134,8 +134,7 @@ describe ActiveRestClient::Base do
     ActiveRestClient::Base.cache_store.should_receive(:write) do |key, object, options|
       expect(key).to eq("ProxyClientExample:/update")
       expect(object.etag).to eq("123456")
-      expect(options[:expires_in]).to be > 0
-      expect(options[:expires_in]).to be < (10.minutes)
+      expect(object.expires).to eq(expiry)
     end
     ProxyClientExample.update(id:1)
   end
