@@ -53,6 +53,7 @@ module ActiveRestClient
         response.headers.keys.select{|h| h.is_a? String}.each do |key|
           response.headers[key.downcase.to_sym] = response.headers[key]
         end
+
         if cache_store && (response.headers[:etag] || response.headers[:expires])
           key = "#{request.class_name}:#{request.url}"
           ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{key} - Writing to cache"

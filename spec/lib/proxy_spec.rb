@@ -43,14 +43,6 @@ class ProxyExample < ActiveRestClient::ProxyBase
     end
   end
 
-  get "/caching-headers" do
-    response = passthrough
-    translate(response, force_etag:true, expires:10.minutes) do |body|
-      body["first_name"] = body.delete("fname")
-      body
-    end
-  end
-
   get "/hal_test/:id" do
     response = passthrough
     translate(response) do |body|
@@ -78,7 +70,6 @@ class ProxyClientExample < ActiveRestClient::Base
   get :fake, "/fake"
   get :param, "/param/:id/:name"
   get :change_format, "/change-format"
-  get :caching_headers, "/caching-headers"
   post :create, "/create"
   put :update, "/update"
   get :not_proxied, "/not_proxied"
@@ -146,21 +137,6 @@ describe ActiveRestClient::Base do
       expect(object.expires).to eq(expiry)
     end
     ProxyClientExample.update(id:1)
-  end
-
-  it "allows forcing of caching headers if the underlying API doesn't offer them" do
-    cache_store = double("CacheStore")
-    cache_store.stub(:read).with(any_args).and_return(nil)
-    ActiveRestClient::Base.stub(:cache_store).and_return(cache_store)
-    expiry = 10.minutes.from_now.rfc2822
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/caching-headers", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
-    ActiveRestClient::Base.cache_store.should_receive(:write) do |key, object, options|
-      expect(key).to eq("ProxyClientExample:/caching-headers")
-      expect(object.etag).to eq("3ab984daea42f0ec08007aa656bb0c89c4dfdaf9a769bf6a50e87f78baca2e6eb220d9a667fee602614c72d533a9daa9f0af41a06f17f7a80bb597138051478d")
-      expect(object.expires).to be < 10.minutes.from_now
-      expect(object.expires).to be > 5.minutes.from_now
-    end
-    ProxyClientExample.caching_headers
   end
 
   it "can have parameters in the URL" do
