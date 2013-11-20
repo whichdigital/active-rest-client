@@ -190,6 +190,7 @@ module ActiveRestClient
 
       if verbose?
         ActiveRestClient::Logger.debug "ActiveRestClient Verbose Log:"
+        ActiveRestClient::Logger.debug "  > GET #{@url} HTTP/1.1"
         http_headers.each do |k,v|
           ActiveRestClient::Logger.debug "  > #{k} : #{v}"
         end
