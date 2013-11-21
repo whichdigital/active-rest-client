@@ -239,17 +239,17 @@ puts @image.nice_size
 
 ### Caching
 
-You can enable Expires and ETag based caching with a simple line in the application.rb/production.rb:
+Expires and ETag based caching is enabled by default, but with a simple line in the application.rb/production.rb you can disable it:
 
 ```ruby
-ActiveRestClient::Base.perform_caching = true
+ActiveRestClient::Base.perform_caching = false
 ```
 
-or you can enable it per classes with:
+or you can disable it per classes with:
 
 ```ruby
 class Person < ActiveRestClient::Base
-  perform_caching true
+  perform_caching false
 end
 ```
 
