@@ -104,11 +104,10 @@ module ActiveRestClient
           do_request(etag)
         end
         result = handle_response(response)
+        if result == :not_modified && cached
+          result = cached.result
+        end
         ActiveRestClient::Base.write_cached_response(self, response, result)
-      end
-      if result == :not_modified && cached
-        cached.result
-      else
         result
       end
     end
