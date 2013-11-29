@@ -3,6 +3,7 @@ module ActiveRestClient
     include Enumerable
 
     attr_accessor :_status
+    attr_reader :items
 
     def initialize(status = nil)
       @_status = status

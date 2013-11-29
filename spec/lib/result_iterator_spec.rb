@@ -34,6 +34,13 @@ describe ActiveRestClient::ResultIterator do
     expect(result.any?).to be_true
   end
 
+  it "should implement items" do
+    result = ActiveRestClient::ResultIterator.new
+    result << "a"
+    result << "ab"
+    expect(result.items).to eq(["a","ab"])
+  end
+
   it "should implement last" do
     result = ActiveRestClient::ResultIterator.new
     result << "a"
