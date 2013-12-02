@@ -24,6 +24,7 @@ module ActiveRestClient
       session          = Patron::Session.new
       session.timeout  = @session.timeout
       session.base_url = @session.base_url
+      session.insecure              = true
       @session.headers.each do |k,v|
         session.headers[k] = v
       end
