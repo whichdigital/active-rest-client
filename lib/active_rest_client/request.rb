@@ -4,7 +4,7 @@ require "oj"
 module ActiveRestClient
 
   class Request
-    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object, :body, :forced_url
+    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object, :body, :forced_url, :original_url
 
     def initialize(method, object, params = {})
       @method                  = method
@@ -86,6 +86,7 @@ module ActiveRestClient
         end
         append_get_parameters
         prepare_request_body
+        self.original_url = self.url
         cached = ActiveRestClient::Base.read_cached_response(self)
         if cached
           if cached.expires && cached.expires > Time.now
