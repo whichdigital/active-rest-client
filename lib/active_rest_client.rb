@@ -15,6 +15,7 @@ require "active_rest_client/request"
 require "active_rest_client/validation"
 require "active_rest_client/request_filtering"
 require "active_rest_client/proxy_base"
+require "active_rest_client/recording"
 require "active_rest_client/base"
 
 module ActiveRestClient

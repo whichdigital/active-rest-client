@@ -104,6 +104,9 @@ module ActiveRestClient
         else
           do_request(etag)
         end
+        if object_is_class? && @object.record_response?
+          @object.record_response(self.url, response)
+        end
         result = handle_response(response)
         if result == :not_modified && cached
           result = cached.result
@@ -134,7 +137,7 @@ module ActiveRestClient
     end
 
     def prepare_url
-      if @forced_url.present?
+      if @forced_url && @forced_url.present?
         @url = @forced_url
       else
         @url = @method[:url].dup

@@ -22,6 +22,16 @@ class AlteringClientExample < ActiveRestClient::Base
   get :find, "/find/:id"
 end
 
+class RecordResponseExample < ActiveRestClient::Base
+  base_url "http://www.example.com"
+
+  record_response do |url, response|
+    raise Exception.new("#{url}|#{response.body}")
+  end
+
+  get :all, "/all"
+end
+
 describe ActiveRestClient::Base do
   it 'should instantiate a new descendant' do
     expect{EmptyExample.new}.to_not raise_error(Exception)
@@ -222,7 +232,14 @@ describe ActiveRestClient::Base do
       example = AlteringClientExample._lazy_request(request)
       expect(example.first_name).to eq("Billy")
     end
+  end
 
+  context "Recording a response" do
+    it "calls back to the record_response callback with the url and response body" do
+      ActiveRestClient::Connection.any_instance.should_receive(:get).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"Hello world"))
+      expect{RecordResponseExample.all}.to raise_error(Exception, "/all|Hello world")
+
+    end
   end
 
 end

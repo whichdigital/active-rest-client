@@ -5,6 +5,7 @@ module ActiveRestClient
     include RequestFiltering
     include Validation
     include Caching
+    include Recording
 
     attr_accessor :_status
 
