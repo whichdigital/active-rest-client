@@ -9,11 +9,16 @@ module ActiveRestClient
 
     attr_accessor :_status
 
-    def initialize(attrs={})
-      raise Exception.new("Cannot instantiate Base class") if self.class.name == "ActiveRestClient::Base"
+    instance_methods.each do |m|
+      next unless %i{display errors presence load require hash untrust trust freeze method enable_warnings with_warnings suppress capture silence quietly debugger breakpoint}.include? m
+      undef_method m
+    end
 
+    def initialize(attrs={})
       @attributes = {}
       @dirty_attributes = Set.new
+
+      raise Exception.new("Cannot instantiate Base class") if self.class.name == "ActiveRestClient::Base"
 
       attrs.each do |attribute_name, attribute_value|
         attribute_name = attribute_name.to_sym
