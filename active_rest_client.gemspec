@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["swlicensing@which.co.uk", "andy@andyjeffries.co.uk"]
   spec.description   = %q{Accessing REST services in an ActiveRecord style}
   spec.summary       = %q{This gem is for accessing REST services in an ActiveRecord style.  ActiveResource already exists for this, but it doesn't work where the resource naming doesn't follow Rails conventions, it doesn't have in-built caching and it's not as flexible in general.}
-  spec.homepage      = "http://www.which.co.uk/"
+  spec.homepage      = "http://whichdigital.github.io/"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
