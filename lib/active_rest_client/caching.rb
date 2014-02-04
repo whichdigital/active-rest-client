@@ -50,6 +50,8 @@ module ActiveRestClient
       end
 
       def write_cached_response(request, response, result)
+        return if result.is_a? Symbol
+
         response.headers.keys.select{|h| h.is_a? String}.each do |key|
           response.headers[key.downcase.to_sym] = response.headers[key]
         end

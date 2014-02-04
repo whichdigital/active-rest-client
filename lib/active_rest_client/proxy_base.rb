@@ -1,3 +1,5 @@
+require "uri"
+
 module ActiveRestClient
   class ProxyBase
     cattr_accessor :mappings, :request, :original_handler
