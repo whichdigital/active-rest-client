@@ -63,7 +63,8 @@ module ActiveRestClient
     def self.prepare_direct_request(request, method, options={})
       unless request.is_a? ActiveRestClient::Request
         options[:plain] ||= false
-        mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:request, plain:options[:plain]}}
+        mapped = {url:"DIRECT-CALLED-#{request}", method:method, options:{url:request, plain:options[:plain]}}
+
         request = Request.new(mapped, self)
       end
       request

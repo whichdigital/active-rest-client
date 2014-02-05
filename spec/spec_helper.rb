@@ -20,3 +20,25 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 end
+
+class TestCacheStore
+  def initialize
+    @items = {}
+  end
+
+  def read(key)
+    @items[key]
+  end
+
+  def write(key, value, options={})
+    @items[key] = value
+  end
+
+  def fetch(key, &block)
+    read(key) || begin
+      value = block.call
+      write(value)
+      value
+    end
+  end
+end

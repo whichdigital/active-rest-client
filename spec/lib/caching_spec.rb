@@ -78,6 +78,10 @@ describe ActiveRestClient::Caching do
       expect{ ActiveRestClient::Base.cache_store = CachingExampleCacheStore3.new }.to raise_error
       expect{ ActiveRestClient::Base.cache_store = CachingExampleCacheStore4.new }.to raise_error
     end
+
+    it "should allow you to remove the custom cache store" do
+      expect{ ActiveRestClient::Base.cache_store = nil }.to_not raise_error
+    end
   end
 
   context "Reading/writing to the cache" do

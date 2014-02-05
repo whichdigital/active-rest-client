@@ -21,6 +21,7 @@ module ActiveRestClient
       end
 
       def cache_store=(value)
+        @@cache_store = nil if value.nil? and return
         raise InvalidCacheStoreException.new("Cache store does not implement #read") unless value.respond_to?(:read)
         raise InvalidCacheStoreException.new("Cache store does not implement #write") unless value.respond_to?(:write)
         raise InvalidCacheStoreException.new("Cache store does not implement #fetch") unless value.respond_to?(:fetch)
@@ -45,7 +46,7 @@ module ActiveRestClient
       def read_cached_response(request)
         if cache_store && perform_caching
           key = "#{request.class_name}:#{request.original_url}"
-          cache_store.read(key)
+          value = cache_store.read(key)
         end
       end
 

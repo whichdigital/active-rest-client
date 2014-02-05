@@ -220,6 +220,29 @@ describe ActiveRestClient::Base do
       expect(EmptyExample._plain_request("http://api.example.com/", :post, {id:1234})).to eq(response)
     end
 
+    it "should cache plain requests separately" do
+      perform_caching = EmptyExample.perform_caching
+      cache_store = EmptyExample.cache_store
+      begin
+        response = "This is a non-JSON string"
+        other_response = "This is another non-JSON string"
+        allow_any_instance_of(ActiveRestClient::Connection).to receive(:get) do |url, others|
+          if url == "/?test=1"
+            OpenStruct.new(status:200, headers:{}, body:response)
+          else
+            OpenStruct.new(status:200, headers:{}, body:other_response)
+          end
+        end
+        EmptyExample.perform_caching = true
+        EmptyExample.cache_store = TestCacheStore.new
+        expect(EmptyExample._plain_request("http://api.example.com/?test=1")).to eq(response)
+        expect(EmptyExample._plain_request("http://api.example.com/?test=2")).to eq(other_response)
+      ensure
+        EmptyExample.perform_caching = perform_caching
+        EmptyExample.cache_store = cache_store
+      end
+    end
+
     it "should be able to lazy load a direct URL request" do
       ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       example = EmptyExample._lazy_request("http://api.example.com/")
