@@ -52,13 +52,18 @@ module ActiveRestClient
       prepare_direct_request(request, method).call(params)
     end
 
+    def self._plain_request(request, method = :get, params = nil)
+      prepare_direct_request(request, method, plain:true).call(params)
+    end
+
     def self._lazy_request(request, method = :get, params = nil)
       ActiveRestClient::LazyLoader.new(prepare_direct_request(request, method), params)
     end
 
-    def self.prepare_direct_request(request, method)
+    def self.prepare_direct_request(request, method, options={})
       unless request.is_a? ActiveRestClient::Request
-        mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:request}}
+        options[:plain] ||= false
+        mapped = {url:"DIRECT-CALLED-URL", method:method, options:{url:request, plain:options[:plain]}}
         request = Request.new(mapped, self)
       end
       request

@@ -214,6 +214,12 @@ describe ActiveRestClient::Base do
       expect(example.first_name).to eq("Billy")
     end
 
+    it "should be able to pass the plain response from the directly called URL bypassing JSON loading" do
+      response = "This is a non-JSON string"
+      ActiveRestClient::Connection.any_instance.should_receive(:post).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:response))
+      expect(EmptyExample._plain_request("http://api.example.com/", :post, {id:1234})).to eq(response)
+    end
+
     it "should be able to lazy load a direct URL request" do
       ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       example = EmptyExample._lazy_request("http://api.example.com/")

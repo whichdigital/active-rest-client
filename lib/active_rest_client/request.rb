@@ -246,6 +246,11 @@ module ActiveRestClient
       else
         ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response received #{response.body.size} bytes"
       end
+
+      if @method[:options][:plain]
+        return @response = response.body
+      end
+
       @response = response
 
       if response.body.is_a?(Array) || response.body.is_a?(Hash)
