@@ -28,6 +28,14 @@ module ActiveRestClient
       end
     end
 
+    def original_object_class
+      if object_is_class?
+        @object
+      else
+        @object.class
+      end
+    end
+
     def base_url
       if object_is_class?
         @object.base_url
@@ -87,12 +95,12 @@ module ActiveRestClient
         append_get_parameters
         prepare_request_body
         self.original_url = self.url
-        cached = ActiveRestClient::Base.read_cached_response(self)
+        cached = original_object_class.read_cached_response(self)
         if cached
           if cached.expires && cached.expires > Time.now
             ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Absolutely cached copy found"
             return handle_cached_response(cached)
-          elsif cached.etag.present?
+          elsif cached.etag.to_s != "" #present? isn't working for some reason
             ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag cached copy found with etag #{cached.etag}"
             etag = cached.etag
           end
@@ -111,7 +119,7 @@ module ActiveRestClient
         if result == :not_modified && cached
           result = cached.result
         end
-        ActiveRestClient::Base.write_cached_response(self, response, result)
+        original_object_class.write_cached_response(self, response, result)
         result
       end
     end

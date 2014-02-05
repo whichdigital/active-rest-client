@@ -128,10 +128,11 @@ describe ActiveRestClient::Base do
   it "caches responses in the standard way" do
     cache_store = double("CacheStore")
     cache_store.stub(:read).with(any_args).and_return(nil)
-    ActiveRestClient::Base.stub(:cache_store).and_return(cache_store)
+    ProxyClientExample.perform_caching true
+    ProxyClientExample.stub(:cache_store).and_return(cache_store)
     expiry = 10.minutes.from_now.rfc2822
     ActiveRestClient::Connection.any_instance.should_receive(:put).with("/update", "MY-BODY-CONTENT", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{"Expires" => expiry, "ETag" => "123456"}))
-    ActiveRestClient::Base.cache_store.should_receive(:write) do |key, object, options|
+    ProxyClientExample.cache_store.should_receive(:write) do |key, object, options|
       expect(key).to eq("ProxyClientExample:/update")
       expect(object.etag).to eq("123456")
       expect(object.expires).to eq(expiry)

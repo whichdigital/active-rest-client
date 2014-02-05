@@ -30,7 +30,7 @@ describe ActiveRestClient::Connection do
 
   it "should pass a PUT request through to Patron" do
     @connection.session = double(Patron::Session)
-    @connection.session.stub(:put).with("/foo", "body", {}).and_return(OpenStruct.new(body:"{result:true}"))
+    allow(@connection.session).to receive(:put).with("/foo", "body", {}).and_return(OpenStruct.new(body:"{result:true}"))
     result = @connection.put("/foo", "body")
     expect(result.body).to eq("{result:true}")
   end

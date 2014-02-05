@@ -164,6 +164,7 @@ describe ActiveRestClient::Caching do
       CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(nil)
       CachingExampleCacheStore5.any_instance.should_receive(:write).once.with("Person:/", an_instance_of(ActiveRestClient::CachedResponse), {})
       ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(status:200, body:"{\"result\":true}", headers:{etag:"1234567890"}))
+      Person.perform_caching true
       ret = Person.all
     end
 
@@ -171,6 +172,7 @@ describe ActiveRestClient::Caching do
       CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(nil)
       CachingExampleCacheStore5.any_instance.should_receive(:write).once.with("Person:/", an_instance_of(ActiveRestClient::CachedResponse), an_instance_of(Hash))
       ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(status:200, body:"{\"result\":true}", headers:{expires:(Time.now + 30).rfc822}))
+      Person.perform_caching = true
       ret = Person.all
     end
 

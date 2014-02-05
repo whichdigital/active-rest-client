@@ -335,6 +335,7 @@ describe ActiveRestClient::Request do
     end
     fake_object = RequestFakeObject.new
     request = ActiveRestClient::Request.new(method, fake_object, {})
+    allow(fake_object).to receive(:read_cached_response).and_return(nil)
     expect{request.call}.to raise_error(ActiveRestClient::InvalidRequestException)
   end
 

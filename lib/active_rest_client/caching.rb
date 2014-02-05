@@ -43,7 +43,7 @@ module ActiveRestClient
       end
 
       def read_cached_response(request)
-        if cache_store
+        if cache_store && perform_caching
           key = "#{request.class_name}:#{request.original_url}"
           cache_store.read(key)
         end
@@ -51,6 +51,7 @@ module ActiveRestClient
 
       def write_cached_response(request, response, result)
         return if result.is_a? Symbol
+        return unless perform_caching
 
         response.headers.keys.select{|h| h.is_a? String}.each do |key|
           response.headers[key.downcase.to_sym] = response.headers[key]
