@@ -188,7 +188,7 @@ describe ActiveRestClient::Request do
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
     ActiveRestClient::Logger.should_receive(:info).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
-    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/Response received \d+ bytes/]}
+    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times.with {|*args| args.first[/Response received \d+ bytes/] || args.first["Reading from cache"]}
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     object.create
@@ -202,7 +202,7 @@ describe ActiveRestClient::Request do
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
     ActiveRestClient::Logger.should_receive(:info).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
-    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first[/Response received \d+ bytes/]}
+    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times.with {|*args| args.first[/Response received \d+ bytes/] || args.first["Reading from cache"]}
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     object.create
