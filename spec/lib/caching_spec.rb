@@ -110,7 +110,7 @@ describe ActiveRestClient::Caching do
         status:200,
         result:@cached_object,
         etag:@etag)
-      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(cached_response)
+      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(Marshal.dump(cached_response))
       ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", hash_including("If-None-Match" => @etag)).and_return(OpenStruct.new(status:304, headers:{}))
       ret = Person.all
       expect(ret.first_name).to eq("Johnny")
@@ -121,7 +121,7 @@ describe ActiveRestClient::Caching do
         status:200,
         result:@cached_object,
         expires:Time.now + 30)
-      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(cached_response)
+      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(Marshal.dump(cached_response))
       ActiveRestClient::Connection.any_instance.should_not_receive(:get)
       ret = Person.all
       expect(ret.first_name).to eq("Johnny")
@@ -132,7 +132,7 @@ describe ActiveRestClient::Caching do
         status:200,
         result:@cached_object,
         expires:Time.now + 30)
-      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(cached_response)
+      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(Marshal.dump(cached_response))
       ActiveRestClient::Connection.any_instance.should_not_receive(:get)
       p = Person.new(first_name:"Billy")
       ret = p.all({})
@@ -150,7 +150,7 @@ describe ActiveRestClient::Caching do
         result:object,
         etag:@etag,
         expires:Time.now + 30)
-      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(cached_response)
+      CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(Marshal.dump(cached_response))
       ActiveRestClient::Connection.any_instance.should_not_receive(:get)
       ret = Person.all
       expect(ret.first.first_name).to eq("Johnny")
@@ -166,7 +166,7 @@ describe ActiveRestClient::Caching do
 
     it "should write the response to the cache if there's an etag" do
       CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(nil)
-      CachingExampleCacheStore5.any_instance.should_receive(:write).once.with("Person:/", an_instance_of(ActiveRestClient::CachedResponse), {})
+      CachingExampleCacheStore5.any_instance.should_receive(:write).once.with("Person:/", an_instance_of(String), {})
       ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(status:200, body:"{\"result\":true}", headers:{etag:"1234567890"}))
       Person.perform_caching true
       ret = Person.all
@@ -174,7 +174,7 @@ describe ActiveRestClient::Caching do
 
     it "should write the response to the cache if there's a hard expiry" do
       CachingExampleCacheStore5.any_instance.should_receive(:read).once.with("Person:/").and_return(nil)
-      CachingExampleCacheStore5.any_instance.should_receive(:write).once.with("Person:/", an_instance_of(ActiveRestClient::CachedResponse), an_instance_of(Hash))
+      CachingExampleCacheStore5.any_instance.should_receive(:write).once.with("Person:/", an_instance_of(String), an_instance_of(Hash))
       ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(status:200, body:"{\"result\":true}", headers:{expires:(Time.now + 30).rfc822}))
       Person.perform_caching = true
       ret = Person.all

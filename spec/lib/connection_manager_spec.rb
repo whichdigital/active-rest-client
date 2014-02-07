@@ -24,7 +24,7 @@ describe ActiveRestClient::ConnectionManager do
     other_base_url = "http://other.example.com"
     expect(ActiveRestClient::ConnectionManager.get_connection(base_url).base_url).to eq(base_url)
     expect(ActiveRestClient::ConnectionManager.get_connection(other_base_url).base_url).to eq(other_base_url)
-    expect(ActiveRestClient::ConnectionManager.instance_variable_get(:@_connections).size).to eq(2)
+    expect(Thread.current[:_connections].size).to eq(2)
   end
 
   it "should find a connection if you pass in URLs containing an existing connection's base_url" do

@@ -48,6 +48,9 @@ module ActiveRestClient
           key = "#{request.class_name}:#{request.original_url}"
           ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{key} - Reading from cache"
           value = cache_store.read(key)
+          if value
+            Marshal.load(value)
+          end
         end
       end
 
@@ -66,7 +69,7 @@ module ActiveRestClient
           cached_response = CachedResponse.new(status:response.status, result:result)
           cached_response.etag = response.headers[:etag] if response.headers[:etag]
           cached_response.expires = Time.parse(response.headers[:expires]) if response.headers[:expires]
-          cache_store.write(key, cached_response, {})
+          cache_store.write(key, Marshal.dump(cached_response), {})
         end
       end
     end

@@ -80,10 +80,11 @@ module ActiveRestClient
 
     def ensure_lazy_loaded
       if @object.nil?
-        @request.method[:method] = :get
-        @request.method[:options][:url] = @url
-        @request.method[:options][:overriden_name] = @options[:overriden_name]
-        request = ActiveRestClient::Request.new(@request.method, @request.object)
+        method=@request.method.dup
+        method[:method] = :get
+        method[:options][:url] = @url
+        method[:options][:overriden_name] = @options[:overriden_name]
+        request = ActiveRestClient::Request.new(method, @request.object)
         request.url = request.forced_url = @url
         @object = request.call
       end

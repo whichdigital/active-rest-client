@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe ActiveRestClient::Connection do
-  before(:each) do
+  before do
     @connection = ActiveRestClient::Connection.new("http://www.example.com")
   end
 
