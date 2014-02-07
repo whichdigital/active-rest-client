@@ -215,7 +215,7 @@ describe ActiveRestClient::Base do
     end
 
     it "should be able to pass the plain response from the directly called URL bypassing JSON loading" do
-      response = "This is a non-JSON string"
+      response = OpenStruct.new(_status:200, body:"This is another non-JSON string")
       ActiveRestClient::Connection.any_instance.should_receive(:post).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:response))
       expect(EmptyExample._plain_request("http://api.example.com/", :post, {id:1234})).to eq(response)
     end
@@ -224,8 +224,8 @@ describe ActiveRestClient::Base do
       perform_caching = EmptyExample.perform_caching
       cache_store = EmptyExample.cache_store
       begin
-        response = "This is a non-JSON string"
-        other_response = "This is another non-JSON string"
+        response = OpenStruct.new(_status:200, body:"This is a non-JSON string")
+        other_response = OpenStruct.new(_status:200, body:"This is another non-JSON string")
         allow_any_instance_of(ActiveRestClient::Connection).to receive(:get) do |url, others|
           if url == "/?test=1"
             OpenStruct.new(status:200, headers:{}, body:response)
