@@ -48,9 +48,7 @@ module ActiveRestClient
           key = "#{request.class_name}:#{request.original_url}"
           ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{key} - Reading from cache"
           value = cache_store.read(key)
-          if value
-            Marshal.load(value)
-          end
+          value = Marshal.load(value) rescue value
         end
       end
 
