@@ -1,4 +1,4 @@
-require 'active_support'
+require 'active_support/all'
 require "active_rest_client/version"
 require "active_rest_client/mapping"
 require "active_rest_client/caching"
