@@ -1,4 +1,4 @@
-require 'patron'
+require 'faraday'
 
 module ActiveRestClient
 
@@ -10,25 +10,11 @@ module ActiveRestClient
 
     def initialize(base_url)
       @base_url                      = base_url
-      @session                       = Patron::Session.new
-      @session.timeout               = 10
-      @session.connect_timeout       = 10
-      @session.base_url              = base_url
-      @session.insecure              = true
-      @session.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"
-      @session.headers['Connection'] = "Keep-Alive"
-      @session.headers['Accept']     = "application/json"
+      @session                       = new_session
     end
 
     def reconnect
-      session          = Patron::Session.new
-      session.timeout  = @session.timeout
-      session.base_url = @session.base_url
-      session.insecure              = true
-      @session.headers.each do |k,v|
-        session.headers[k] = v
-      end
-      @session         = session
+      @session         = new_session
     end
 
     def headers
@@ -37,39 +23,55 @@ module ActiveRestClient
 
     def make_safe_request(path, &block)
       block.call
-    rescue Patron::TimeoutError
+    rescue Faraday::TimeoutError
       raise ActiveRestClient::TimeoutException.new("Timed out getting #{@base_url}#{path}")
-    rescue Patron::ConnectionFailed
+    rescue Faraday::ConnectionFailed
       begin
         reconnect
         block.call
-      rescue Patron::ConnectionFailed
+      rescue Faraday::ConnectionFailed
         raise ActiveRestClient::ConnectionFailedException.new("Unable to connect to #{@base_url}#{path}")
       end
     end
 
     def get(path, headers={})
       make_safe_request(path) do
-        @session.get(path, headers)
+        @session.get(path) do |req|
+          req.headers = headers
+        end
       end
     end
 
     def put(path, data, headers={})
       make_safe_request(path) do
-        @session.put(path, data, headers)
+        @session.put(path) do |req|
+          req.headers = headers
+          req.body = data
+        end
       end
     end
 
     def post(path, data, headers={})
       make_safe_request(path) do
-        @session.post(path, data, headers)
+        @session.post(path) do |req|
+          req.headers = headers
+          req.body = data
+        end
       end
     end
 
     def delete(path, headers={})
       make_safe_request(path) do
-        @session.delete(path, headers)
+        @session.delete(path) do |req|
+          req.headers = headers
+        end
       end
+    end
+
+    private
+
+    def new_session
+      Faraday.new({url: @base_url}, &ActiveRestClient::Base.faraday_config)
     end
 
   end

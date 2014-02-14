@@ -2,6 +2,7 @@ require 'rspec'
 require 'simplecov'
 require 'active_rest_client'
 require "ostruct"
+require 'webmock/rspec'
 
 if ENV["JENKINS"]
   require 'simplecov-rcov'
