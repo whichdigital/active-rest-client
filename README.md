@@ -113,7 +113,7 @@ ActiveRestClient::Base.adapter = :net_http
 If you want more control you can pass a complete configuration block. For available config variables look into the Faraday documentation.
 
 ```ruby
-ActiveRestClient::Base.faraday_config do
+ActiveRestClient::Base.faraday_config do |faraday|
   faraday.adapter(:net_http)
   faraday.options.timeout       = 10
   faraday.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"
