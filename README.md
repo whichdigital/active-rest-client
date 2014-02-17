@@ -104,7 +104,7 @@ puts @tv.properties["3d"]
 
 ### Configuration
 
-ActiveRestClient uses Faraday to allow switching HTTP backends, the default is Patron. To change the used backend just set it in the class by passing as Faraday supported adapter symbol.
+ActiveRestClient uses Faraday to allow switching HTTP backends, the default is Patron. To change the used backend just set it in the class by setting `adapter` to a Faraday supported adapter symbol.
 
 ```ruby
 ActiveRestClient::Base.adapter = :net_http
