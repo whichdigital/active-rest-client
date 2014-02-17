@@ -80,7 +80,7 @@ module ActiveRestClient
 
     def ensure_lazy_loaded
       if @object.nil?
-        method=@request.method.dup
+        method = Oj.load(Oj.dump(@request.method))
         method[:method] = :get
         method[:options][:url] = @url
         method[:options][:overriden_name] = @options[:overriden_name]
