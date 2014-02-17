@@ -27,7 +27,7 @@ describe ActiveRestClient::Request do
     class LazyLoadedExampleClient < ExampleClient
       lazy_load!
       get :fake, "/fake", fake:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"child\":{\"grandchild\":{\"test\":true}}}"
-      get :lazy_test, "/does-not-matter", fake:"{\"people\":[\"http://www.example.com/some/url\"]}", :lazy => %i{people}
+      get :lazy_test, "/does-not-matter", fake:"{\"people\":[\"http://www.example.com/some/url\"]}", :lazy => [:people]
     end
 
     class VerboseExampleClient < ExampleClient
