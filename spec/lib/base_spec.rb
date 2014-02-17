@@ -64,7 +64,7 @@ describe ActiveRestClient::Base do
     client.each do |key, value|
       keys << key ; values << value
     end
-    expect(keys).to eq(%i{name country})
+    expect(keys).to eq(%w{name country}.map(&:to_sym))
     expect(values).to eq(["Billy", "United Kingdom"])
   end
 
