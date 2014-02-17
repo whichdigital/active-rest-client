@@ -9,6 +9,9 @@ if ENV["JENKINS"]
   SimpleCov.formatter = SimpleCov::Formatter::RcovFormatter
 end
 
+require 'coveralls'
+Coveralls.wear!
+
 RSpec.configure do |config|
   config.color_enabled = true
   # config.formatter     = 'documentation'
