@@ -101,5 +101,30 @@ describe ActiveRestClient::Configuration do
     expect{ ConfigurationExample.proxy.respond_to?(:length) }.to be_true
   end
 
+  describe "faraday_config" do
+    let(:faraday_double){double(:faraday).as_null_object}
+
+    it "should use default adapter if no other block set" do
+      faraday_double.should_receive(:adapter).with(:patron)
+      ConfigurationExample.faraday_config.call(faraday_double)
+    end
+
+    it "should us set adapter if no other block set" do
+      ConfigurationExample.adapter = :net_http
+
+      faraday_double.should_receive(:adapter).with(:net_http)
+
+      ConfigurationExample.faraday_config.call(faraday_double)
+    end
+
+    it "should use the adapter of the passed in faraday_config block" do
+      ConfigurationExample.faraday_config {|faraday| faraday.adapter(:rack)}
+
+      faraday_double.should_receive(:adapter).with(:rack)
+
+      ConfigurationExample.faraday_config.call(faraday_double)
+    end
+
+  end
 
 end

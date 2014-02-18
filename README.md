@@ -104,6 +104,23 @@ puts @tv.properties["3d"]
 
 ## Advanced Features
 
+### Configuration
+
+ActiveRestClient uses Faraday to allow switching HTTP backends, the default is Patron. To change the used backend just set it in the class by setting `adapter` to a Faraday supported adapter symbol.
+
+```ruby
+ActiveRestClient::Base.adapter = :net_http
+```
+
+If you want more control you can pass a complete configuration block. For available config variables look into the Faraday documentation.
+
+```ruby
+ActiveRestClient::Base.faraday_config do |faraday|
+  faraday.adapter(:net_http)
+  faraday.options.timeout       = 10
+  faraday.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"
+end
+````
 ### Associations
 
 There are two types of association.  One assumes when you call a method you actually want it to call the method on a separate class (as that class has other methods that are useful).  The other is lazy loading related classes from a separate URL.

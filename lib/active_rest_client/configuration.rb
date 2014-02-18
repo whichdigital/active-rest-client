@@ -23,6 +23,23 @@ module ActiveRestClient
         @@base_url = value
       end
 
+      def adapter=(adapter)
+        ActiveRestClient::Logger.info "\033[1;4;32m#{name}\033[0m Adapter set to be #{adapter}"
+        @adapter = adapter
+      end
+
+      def adapter
+        @adapter ||= :patron
+      end
+
+      def faraday_config(&block)
+        if block
+          @faraday_config = block
+        else
+          @faraday_config ||= default_faraday_config
+        end
+      end
+
       def lazy_load!
         @lazy_load = true
       end
@@ -57,6 +74,21 @@ module ActiveRestClient
         @@base_url        = nil
         @whiny_missing    = nil
         @lazy_load        = false
+        @faraday_config   = default_faraday_config
+        @adapter          = :patron
+      end
+
+      private
+
+      def default_faraday_config
+        Proc.new do |faraday|
+          faraday.adapter(adapter)
+          faraday.options.timeout       = 10
+          faraday.options.open_timeout  = 10
+          faraday.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"
+          faraday.headers['Connection'] = "Keep-Alive"
+          faraday.headers['Accept']     = "application/json"
+        end
       end
     end
 
