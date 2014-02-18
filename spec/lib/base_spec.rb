@@ -267,8 +267,42 @@ describe ActiveRestClient::Base do
     it "calls back to the record_response callback with the url and response body" do
       ActiveRestClient::Connection.any_instance.should_receive(:get).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"Hello world"))
       expect{RecordResponseExample.all}.to raise_error(Exception, "/all|Hello world")
-
     end
+  end
+
+  context "JSON output" do
+    let(:student1) { EmptyExample.new(name:"John Smith", age:31) }
+    let(:student2) { EmptyExample.new(name:"Bob Brown", age:29) }
+    let(:location) { EmptyExample.new(place:"Room 1408") }
+    let(:lazy) { Laz }
+    let(:object) { EmptyExample.new(name:"Programming 101", location:location, students:[student1, student2]) }
+    let(:json_parsed_object) { Oj.load(object.to_json) }
+
+    it "should be able to export to valid json" do
+      expect(object.to_json).to_not be_blank
+      expect{Oj.load(object.to_json)}.to_not raise_error
+    end
+
+    it "should not be using Object's #to_json method" do
+      expect(json_parsed_object["dirty_attributes"]).to be_nil
+    end
+
+    it "should recursively convert nested objects" do
+      expect(json_parsed_object["location"]["place"]).to eq(location.place)
+    end
+
+    it "should include arrayed objects" do
+      expect(json_parsed_object["students"]).to be_an_instance_of(Array)
+      expect(json_parsed_object["students"].size).to eq(2)
+      expect(json_parsed_object["students"].first["name"]).to eq(student1.name)
+      expect(json_parsed_object["students"].second["name"]).to eq(student2.name)
+    end
+
+    it "should set integers as a native JSON type" do
+      expect(json_parsed_object["students"].first["age"]).to eq(student1.age)
+      expect(json_parsed_object["students"].second["age"]).to eq(student2.age)
+    end
+
   end
 
 end

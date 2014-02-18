@@ -7,10 +7,10 @@ require 'webmock/rspec'
 if ENV["JENKINS"]
   require 'simplecov-rcov'
   SimpleCov.formatter = SimpleCov::Formatter::RcovFormatter
+elsif ENV["TRAVIS"]
+  require 'coveralls'
+  Coveralls.wear!
 end
-
-require 'coveralls'
-Coveralls.wear!
 
 RSpec.configure do |config|
   config.color_enabled = true

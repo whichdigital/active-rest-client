@@ -102,9 +102,16 @@ puts @tv.properties["3d"]
 @tv.properties["3d"] = true
 ```
 
+If you want to debug the response, using inspect on the response object may well be useful.  However, if you want a simpler output, then you can call `#to_json` on the response object:
+
+```ruby
+@person = Person.find(email:"something@example.com")
+puts @person.to_json
+```
+
 ## Advanced Features
 
-### Configuration
+### Faraday Configuration
 
 ActiveRestClient uses Faraday to allow switching HTTP backends, the default is Patron. To change the used backend just set it in the class by setting `adapter` to a Faraday supported adapter symbol.
 
