@@ -127,6 +127,25 @@ module ActiveRestClient
     def respond_to_missing?(method_name, include_private = false)
       @attributes.has_key? method_name.to_sym
     end
+
+    def to_hash
+      output = {}
+      @attributes.each do |key, value|
+        if value.is_a? ActiveRestClient::Base
+          output[key.to_s] = value.to_hash
+        elsif value.is_a? Array
+          output[key.to_s] = value.map(&:to_hash)
+        else
+          output[key.to_s] = value
+        end
+      end
+      output
+    end
+
+    def to_json
+      output = to_hash
+      output.to_json
+    end
   end
 
   class NoAttributeException < StandardError ; end
