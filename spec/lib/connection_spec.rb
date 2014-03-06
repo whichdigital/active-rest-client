@@ -5,6 +5,11 @@ describe ActiveRestClient::Connection do
     @connection = ActiveRestClient::Connection.new("http://www.example.com")
   end
 
+  after do
+    ActiveRestClient::Base._reset_configuration!
+    @connection.reconnect
+  end
+
   it "should contain a Farday connection" do
     expect(@connection.session).to be_a_kind_of(Faraday::Connection)
   end
@@ -43,6 +48,54 @@ describe ActiveRestClient::Connection do
     stub_request(:delete, "www.example.com/foo").to_return(body: "{result:true}")
     result = @connection.delete("/foo")
     expect(result.body).to eq("{result:true}")
+  end
+
+  describe "with default Faraday headers" do
+    before do
+      @default_headers = { "User-Agent" => "Custom" }
+
+      ActiveRestClient::Base.faraday_config do |faraday|
+        faraday.adapter ActiveRestClient::Base.adapter
+        faraday.headers.update(@default_headers)
+      end
+      @connection.reconnect
+    end
+
+    it "should pass a GET request through to Faraday preserving headers" do
+      stub_request(:get, "www.example.com/foo").
+        with(:headers => @default_headers).
+        to_return(body: "{result:true}")
+
+      result = @connection.get("/foo")
+      expect(result.body).to eq("{result:true}")
+    end
+
+    it "should pass a PUT request through to Faraday" do
+      stub_request(:put, "www.example.com/foo").
+        with(body: "body").
+        to_return(body: "{result:true}", :headers => @default_headers)
+
+      result = @connection.put("/foo", "body")
+      expect(result.body).to eq("{result:true}")
+    end
+
+    it "should pass a POST request through to Faraday" do
+      stub_request(:post, "www.example.com/foo").
+        with(body: "body", :headers => @default_headers).
+        to_return(body: "{result:true}")
+
+      result = @connection.post("/foo", "body")
+      expect(result.body).to eq("{result:true}")
+    end
+
+    it "should pass a DELETE request through to Faraday" do
+      stub_request(:delete, "www.example.com/foo").
+        with(:headers => @default_headers).
+        to_return(body: "{result:true}")
+
+      result = @connection.delete("/foo")
+      expect(result.body).to eq("{result:true}")
+    end
   end
 
   it "should retry once in the event of a connection failed" do
