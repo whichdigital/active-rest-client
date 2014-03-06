@@ -1,5 +1,5 @@
 require "cgi"
-require "oj"
+require "multi_json"
 
 module ActiveRestClient
 
@@ -279,7 +279,7 @@ module ActiveRestClient
       if response.body.is_a?(Array) || response.body.is_a?(Hash)
         body = response.body
       else
-        body = Oj.load(response.body) || {}
+        body = MultiJson.load(response.body) || {}
       end
       body = begin
         @method[:name].nil? ? body : translator.send(@method[:name], body)
@@ -301,7 +301,7 @@ module ActiveRestClient
       end
 
       result
-    rescue Oj::ParseError
+    rescue MultiJson::ParseError
       raise ResponseParseException.new(status:response.status, body:response.body)
     end
 

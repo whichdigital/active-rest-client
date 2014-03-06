@@ -39,7 +39,7 @@ describe ActiveRestClient::Request do
     class FilteredBodyExampleClient < ExampleClient
       base_url "http://www.example.com"
       before_request do |name, request|
-        request.body = Oj.dump(request.post_params)
+        request.body = MultiJson.dump(request.post_params)
       end
 
       post :save, "/save"
