@@ -55,4 +55,13 @@ describe ActiveRestClient::Connection do
     expect { @connection.get("/foo") }.to raise_error(ActiveRestClient::TimeoutException)
   end
 
+  it "should raise an exception on timeout" do
+    stub_request(:get, "www.example.com/foo").to_timeout
+    begin
+      @connection.get("foo")
+      fail
+    rescue ActiveRestClient::TimeoutException => timeout
+      expect(timeout.message).to eq("Timed out getting http://www.example.com/foo")
+    end
+  end
 end
