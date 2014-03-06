@@ -37,7 +37,7 @@ module ActiveRestClient
     def get(path, headers={})
       make_safe_request(path) do
         @session.get(path) do |req|
-          req.headers = headers
+          req.headers = req.headers.merge(headers)
         end
       end
     end
@@ -45,7 +45,7 @@ module ActiveRestClient
     def put(path, data, headers={})
       make_safe_request(path) do
         @session.put(path) do |req|
-          req.headers = headers
+          req.headers = req.headers.merge(headers)
           req.body = data
         end
       end
@@ -54,7 +54,7 @@ module ActiveRestClient
     def post(path, data, headers={})
       make_safe_request(path) do
         @session.post(path) do |req|
-          req.headers = headers
+          req.headers = req.headers.merge(headers)
           req.body = data
         end
       end
@@ -63,7 +63,7 @@ module ActiveRestClient
     def delete(path, headers={})
       make_safe_request(path) do
         @session.delete(path) do |req|
-          req.headers = headers
+          req.headers = req.headers.merge(headers)
         end
       end
     end
