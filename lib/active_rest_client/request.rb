@@ -79,14 +79,17 @@ module ActiveRestClient
       result = nil
       cached = nil
       ActiveSupport::Notifications.instrument("request_call.active_rest_client", :name => @instrumentation_name) do
-        if @method[:options][:fake]
-          ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Faked response found"
-          return handle_response(OpenStruct.new(status:200, body:@method[:options][:fake], headers:{"X-ARC-Faked-Response" => "true"}))
-        end
         @explicit_parameters = explicit_parameters
         @body = nil
         prepare_params
         prepare_url
+        if fake = @method[:options][:fake]
+          if fake.respond_to?(:call)
+            fake = fake.call(self)
+          end
+          ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Faked response found"
+          return handle_response(OpenStruct.new(status:200, body:fake, headers:{"X-ARC-Faked-Response" => "true"}))
+        end
         if object_is_class?
           @object.send(:_filter_request, @method[:name], self)
         else
