@@ -276,11 +276,11 @@ describe ActiveRestClient::Base do
     let(:location) { EmptyExample.new(place:"Room 1408") }
     let(:lazy) { Laz }
     let(:object) { EmptyExample.new(name:"Programming 101", location:location, students:[student1, student2]) }
-    let(:json_parsed_object) { Oj.load(object.to_json) }
+    let(:json_parsed_object) { MultiJson.load(object.to_json) }
 
     it "should be able to export to valid json" do
       expect(object.to_json).to_not be_blank
-      expect{Oj.load(object.to_json)}.to_not raise_error
+      expect{MultiJson.load(object.to_json)}.to_not raise_error
     end
 
     it "should not be using Object's #to_json method" do
