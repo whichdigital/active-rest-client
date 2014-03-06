@@ -24,13 +24,13 @@ module ActiveRestClient
     def make_safe_request(path, &block)
       block.call
     rescue Faraday::TimeoutError
-      raise ActiveRestClient::TimeoutException.new("Timed out getting #{@base_url}#{path}")
+      raise ActiveRestClient::TimeoutException.new("Timed out getting #{full_url(path)}")
     rescue Faraday::ConnectionFailed
       begin
         reconnect
         block.call
       rescue Faraday::ConnectionFailed
-        raise ActiveRestClient::ConnectionFailedException.new("Unable to connect to #{@base_url}#{path}")
+        raise ActiveRestClient::ConnectionFailedException.new("Unable to connect to #{full_url(path)}")
       end
     end
 
@@ -74,5 +74,9 @@ module ActiveRestClient
       Faraday.new({url: @base_url}, &ActiveRestClient::Base.faraday_config)
     end
 
+
+    def full_url(path)
+      @session.build_url(path).to_s
+    end
   end
 end
