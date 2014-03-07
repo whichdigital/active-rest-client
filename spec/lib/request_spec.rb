@@ -39,7 +39,7 @@ describe ActiveRestClient::Request do
     class FilteredBodyExampleClient < ExampleClient
       base_url "http://www.example.com"
       before_request do |name, request|
-        request.body = Oj.dump(request.post_params)
+        request.body = MultiJson.dump(request.post_params)
       end
 
       post :save, "/save"
@@ -472,7 +472,7 @@ describe ActiveRestClient::Request do
   end
 
   it "replaces the body completely in a filter" do
-    ActiveRestClient::Connection.any_instance.should_receive(:post).with("/save", "{\":id\":1234,\":name\":\"john\"}", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{}", headers:{}))
+    ActiveRestClient::Connection.any_instance.should_receive(:post).with("/save", "{\"id\":1234,\"name\":\"john\"}", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{}", headers:{}))
     FilteredBodyExampleClient.save id:1234, name:'john'
   end
 end

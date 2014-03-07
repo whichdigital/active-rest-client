@@ -21,3 +21,7 @@ require "active_rest_client/base"
 module ActiveRestClient
   NAME = "ActiveRestClient"
 end
+
+unless defined?(Oj)
+  puts "WARNING: No JSON implementation chosen, falling back to the slowest default. SUGGESTION: add gem 'oj' to your Gemfile"
+end
