@@ -2,6 +2,7 @@ module ActiveRestClient
   module Configuration
     module ClassMethods
       @@base_url = nil
+      @@request_body_type = :form_encoded
       @lazy_load = false
 
       def base_url(value = nil)
@@ -21,6 +22,23 @@ module ActiveRestClient
         ActiveRestClient::Logger.info "\033[1;4;32m#{name}\033[0m Base URL set to be #{value}"
         value = value.gsub(/\/+$/, '')
         @@base_url = value
+      end
+
+      def request_body_type(value = nil)
+        if value.nil?
+          if @request_body_type.nil?
+            @@request_body_type
+          else
+            @request_body_type
+          end
+        else
+          @request_body_type = value
+        end
+      end
+
+      def request_body_type=(value)
+        ActiveRestClient::Logger.info "\033[1;4;32m#{name}\033[0m Request Body Type set to be #{value}"
+        @@request_body_type = value
       end
 
       def adapter=(adapter)
@@ -70,12 +88,14 @@ module ActiveRestClient
       end
 
       def _reset_configuration!
-        @base_url         = nil
-        @@base_url        = nil
-        @whiny_missing    = nil
-        @lazy_load        = false
-        @faraday_config   = default_faraday_config
-        @adapter          = :patron
+        @base_url           = nil
+        @@base_url          = nil
+        @request_body_type  = nil
+        @@request_body_type = :form_encoded
+        @whiny_missing      = nil
+        @lazy_load          = false
+        @faraday_config     = default_faraday_config
+        @adapter            = :patron
       end
 
       private

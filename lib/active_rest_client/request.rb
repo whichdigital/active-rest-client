@@ -44,6 +44,14 @@ module ActiveRestClient
       end
     end
 
+    def request_body_type
+      if object_is_class?
+        @object.request_body_type
+      else
+        @object.class.request_body_type
+      end
+    end
+
     def verbose?
       if object_is_class?
         @object.verbose
@@ -171,7 +179,11 @@ module ActiveRestClient
     end
 
     def prepare_request_body(params = nil)
-      @body ||= (params || @post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
+      if request_body_type == :form_encoded
+        @body ||= (params || @post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
+      elsif request_body_type == :json
+        @body ||= (params || @post_params || {}).to_json
+      end
     end
 
     def do_request(etag)

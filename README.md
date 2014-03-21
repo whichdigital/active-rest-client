@@ -382,6 +382,23 @@ class Person < ActiveRestClient::Base
 end
 ```
 
+### Body Types
+
+By default ActiveRestClient puts the body in to normal CGI parameters in K=V&K2=V2 format.  However, if you want to use JSON for your PUT/POST requests, you can use either (the other option, the default, is `:form_encoded`):
+
+```ruby
+class Person < ActiveRestClient::Base
+  request_body_type :json
+  # ...
+end
+```
+
+or
+
+```ruby
+ActiveRestClient::Base.request_body_type = :json
+```
+
 ### Faking Calls
 
 There are times when an API hasn't been developed yet, so you want to fake the API call response.  To do this, you can simply pass a `fake` option when mapping the call containing the response.
