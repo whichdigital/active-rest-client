@@ -32,6 +32,11 @@ class RecordResponseExample < ActiveRestClient::Base
   get :all, "/all"
 end
 
+class NonHostnameBaseUrlExample < ActiveRestClient::Base
+  base_url "http://www.example.com/v1/"
+  get :all, "/all"
+end
+
 describe ActiveRestClient::Base do
   it 'should instantiate a new descendant' do
     expect{EmptyExample.new}.to_not raise_error(Exception)
@@ -206,6 +211,11 @@ describe ActiveRestClient::Base do
     it "should make an HTTP request" do
       ActiveRestClient::Connection.any_instance.should_receive(:get).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       EmptyExample._request("http://api.example.com/")
+    end
+
+    it "should make an HTTP request including the path in the base_url" do
+      ActiveRestClient::Connection.any_instance.should_receive(:get).with('/v1/all', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      NonHostnameBaseUrlExample.all
     end
 
     it "should map the response from the directly called URL in the normal way" do

@@ -183,7 +183,7 @@ module ActiveRestClient
         http_headers[key] = value
       end
       if @method[:options][:url] || @forced_url
-        @url = @method[:options][:url]
+        @url = @method[:options][:url] || @method[:url]
         @url = @forced_url if @forced_url
         if connection = ActiveRestClient::ConnectionManager.find_connection_for_url(@url)
           @url = @url.slice(connection.base_url.length, 255)
@@ -192,12 +192,20 @@ module ActiveRestClient
           if (parts.empty?) # Not a full URL, so use hostname/protocol from existing base_url
             uri = URI.parse(base_url)
             @base_url = "#{uri.scheme}://#{uri.host}#{":#{uri.port}" if uri.port != 80 && uri.port != 443}"
+            @url = "#{base_url}#{@url}".gsub(@base_url, "")
           else
             _, @base_url, @url = parts
           end
           connection = ActiveRestClient::ConnectionManager.get_connection(@base_url)
         end
       else
+        parts = @url.match(%r{^(https?://[a-z\d\.:-]+?)(/.*)}).to_a
+        if (parts.empty?) # Not a full URL, so use hostname/protocol from existing base_url
+          uri = URI.parse(base_url)
+          @base_url = "#{uri.scheme}://#{uri.host}#{":#{uri.port}" if uri.port != 80 && uri.port != 443}"
+          @url = "#{base_url}#{@url}".gsub(@base_url, "")
+          base_url = @base_url
+        end
         connection = ActiveRestClient::ConnectionManager.get_connection(base_url)
       end
       ActiveRestClient::Logger.info "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Requesting #{connection.base_url}#{@url}"
