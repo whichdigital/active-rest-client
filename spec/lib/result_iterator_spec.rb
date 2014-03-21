@@ -98,7 +98,7 @@ describe ActiveRestClient::ResultIterator do
       item*2
     end
     end_time = Time.now
-    expect(end_time-start_time).to be < (4*delay)
+    expect(end_time-start_time).to be < (6*delay)
     expect(response).to eq([6,4,2])
   end
 end

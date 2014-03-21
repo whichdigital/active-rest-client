@@ -5,6 +5,7 @@ describe ActiveRestClient::Request do
     class ExampleOtherClient < ActiveRestClient::Base ; end
     class ExampleClient < ActiveRestClient::Base
       base_url "http://www.example.com"
+      request_body_type :form_encoded
 
       before_request do |name, request|
         if request.method[:name] == :headers
@@ -100,6 +101,17 @@ describe ActiveRestClient::Request do
   it "should pass through url parameters and put parameters" do
     ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
     ExampleClient.update id:1234, debug:true
+  end
+
+  it "should encode the body in a form-encoded format by default" do
+    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true&test=foo", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    ExampleClient.update id:1234, debug:true, test:'foo'
+  end
+
+  it "should encode the body in a JSON format if specified" do
+    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", %q({"debug":true,"test":"foo"}), an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    ExampleClient.request_body_type :json
+    ExampleClient.update id:1234, debug:true, test:'foo'
   end
 
   it "should pass through custom headers" do
@@ -333,6 +345,10 @@ describe ActiveRestClient::Request do
   it "should raise an exception if you try to pass in an unsupport method" do
     method = {:method => :wiggle, url:"/"}
     class RequestFakeObject
+      def request_body_type
+        :form_encoded
+      end
+      
       def base_url
         "http://www.example.com/"
       end

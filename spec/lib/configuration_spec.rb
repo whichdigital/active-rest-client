@@ -8,6 +8,7 @@ describe ActiveRestClient::Configuration do
     class ConfigurationExample
       include ActiveRestClient::Configuration
       base_url "http://www.example.com"
+      request_body_type :json
     end
 
     class ConfigurationExampleBare
@@ -52,6 +53,20 @@ describe ActiveRestClient::Configuration do
       base_url "http://specific.example.com/"
     end
     expect(ConfigurationExample2.base_url).to eq("http://specific.example.com")
+  end
+
+  it "should default to a form_encoded request_body_type" do
+    expect(ActiveRestClient::Base.request_body_type).to eq(:form_encoded)
+  end
+
+  it "should remember the request_body_type" do
+    expect(ConfigurationExample.request_body_type).to eq(:json)
+  end
+
+  it "should remember the set base_url on a class, overriding a general one" do
+    ActiveRestClient::Base.request_body_type = :unknown
+    expect(ActiveRestClient::Base.request_body_type).to eq(:unknown)
+    expect(ConfigurationExample.request_body_type).to eq(:json)
   end
 
   it "should default to non-lazy loading" do
