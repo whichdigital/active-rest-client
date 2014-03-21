@@ -26,12 +26,14 @@ describe ActiveRestClient::Request do
     end
 
     class LazyLoadedExampleClient < ExampleClient
+      base_url "http://www.example.com"
       lazy_load!
       get :fake, "/fake", fake:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"child\":{\"grandchild\":{\"test\":true}}}"
       get :lazy_test, "/does-not-matter", fake:"{\"people\":[\"http://www.example.com/some/url\"]}", :lazy => [:people]
     end
 
     class VerboseExampleClient < ExampleClient
+      base_url "http://www.example.com"
       verbose!
       get :all, "/all"
     end
@@ -397,11 +399,12 @@ describe ActiveRestClient::Request do
 
     it "should allow requests to partial URLs using the current base_url" do
       ActiveRestClient::ConnectionManager.reset!
-      connection = double("Connection").as_null_object
+      connection = double("Connection")
+      allow(connection).to receive(:base_url).and_return("http://www.example.com")
       ActiveRestClient::ConnectionManager.should_receive(:get_connection).with("http://www.example.com").and_return(connection)
       connection.
         should_receive(:get).
-        with("/people", an_instance_of(Hash)).
+        with("/v1/people", an_instance_of(Hash)).
         and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
       @obj = SameServerExampleClient._request('/people')
     end
