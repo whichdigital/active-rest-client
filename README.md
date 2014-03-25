@@ -42,7 +42,7 @@ class Person < ActiveRestClient::Base
 end
 ```
 
-Note I've specified the base_url in the class above.  This is useful where you want to be explicit or use different APIs for some classes and be explicit. If you have one server that's generally used, you can set it once with a simple line in the application.rb/production.rb:
+Note I've specified the base_url in the class above.  This is useful where you want to be explicit or use different APIs for some classes and be explicit. If you have one server that's generally used, you can set it once with a simple line in a `config/initializer/{something}.rb` file:
 
 ```ruby
 ActiveRestClient::Base.base_url = "https://www.example.com/api/v1"
