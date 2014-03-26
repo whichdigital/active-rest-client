@@ -248,12 +248,11 @@ describe ActiveRestClient::Request do
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
-    rescue ActiveRestClient::HTTPUnauthorisedClientException => e
+    rescue => e
       e
     end
     expect(e).to be_instance_of(ActiveRestClient::HTTPUnauthorisedClientException)
     expect(e.status).to eq(401)
-    expect(e.result.first_name).to eq("John")
   end
 
   it "should raise a forbidden client exception for 403 errors" do
@@ -265,12 +264,11 @@ describe ActiveRestClient::Request do
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
-    rescue ActiveRestClient::HTTPForbiddenClientException => e
+    rescue => e
       e
     end
     expect(e).to be_instance_of(ActiveRestClient::HTTPForbiddenClientException)
     expect(e.status).to eq(403)
-  expect(e.result.first_name).to eq("John")
   end
 
   it "should raise a not found client exception for 404 errors" do
@@ -282,12 +280,11 @@ describe ActiveRestClient::Request do
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
-    rescue ActiveRestClient::HTTPNotFoundClientException => e
+    rescue => e
       e
     end
     expect(e).to be_instance_of(ActiveRestClient::HTTPNotFoundClientException)
     expect(e.status).to eq(404)
-    expect(e.result.first_name).to eq("John")
   end
 
   it "should raise a client exceptions for 4xx errors" do
@@ -299,12 +296,11 @@ describe ActiveRestClient::Request do
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
-    rescue ActiveRestClient::HTTPClientException => e
+    rescue => e
       e
     end
     expect(e).to be_instance_of(ActiveRestClient::HTTPClientException)
     expect(e.status).to eq(409)
-  expect(e.result.first_name).to eq("John")
   end
 
   it "should raise a server exception for 5xx errors" do
@@ -316,29 +312,28 @@ describe ActiveRestClient::Request do
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
-    rescue ActiveRestClient::HTTPServerException => e
+    rescue => e
       e
     end
     expect(e).to be_instance_of(ActiveRestClient::HTTPServerException)
     expect(e.status).to eq(500)
-    expect(e.result.first_name).to eq("John")
   end
 
   it "should raise a parse exception for invalid JSON returns" do
-    error_content = "<h1>500 Server Error</h1>"
+    error_content = "<h1>invalid json content</h1>"
     ActiveRestClient::Connection.
       any_instance.
       should_receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:error_content, headers:{}, status:500))
+      and_return(OpenStruct.new(body:error_content, headers:{}, status:200))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
-    rescue ActiveRestClient::ResponseParseException => e
+    rescue => e
       e
     end
     expect(e).to be_instance_of(ActiveRestClient::ResponseParseException)
-    expect(e.status).to eq(500)
+    expect(e.status).to eq(200)
     expect(e.body).to eq(error_content)
   end
 
