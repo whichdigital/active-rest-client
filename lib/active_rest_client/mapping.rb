@@ -17,6 +17,10 @@ module ActiveRestClient
         _map_call(name, url:url, method: :delete, options:options)
       end
 
+      def patch(name, url, options = {})
+        _map_call(name, url:url, method: :patch, options:options)
+      end
+
       def _map_call(name, details)
         _calls[name] = {name:name}.merge(details)
         _calls["lazy_#{name}".to_sym] = {name:name}.merge(details)
