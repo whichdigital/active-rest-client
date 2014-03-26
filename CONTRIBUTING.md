@@ -4,7 +4,7 @@
 
 This project was built at Which? Ltd in the UK, but was released as open source in 2014 under the MIT Licence.
 
-We're happy to receive contributions from the community for fixes and bugfixes and hopefully this guide helps new developers to the project to understand how to get started with the internals of ActiveRestClient.
+We're happy to receive contributions from the community for features and bugfixes and hopefully this guide helps new developers to the project to understand how to get started with the internals of ActiveRestClient.
 
 ## Overview
 
