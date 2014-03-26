@@ -245,10 +245,22 @@ module ActiveRestClient
     end
 
     def handle_response(response)
+      response.status ||= 200
       if response.status == 304
         ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag copy is the same as the server"
         return :not_modified
+      elsif response.status == 401
+        raise HTTPUnauthorisedClientException.new(status:response.status, url:@url)
+      elsif response.status == 403
+        raise HTTPForbiddenClientException.new(status:response.status, url:@url)
+      elsif response.status == 404
+        raise HTTPNotFoundClientException.new(status:response.status, url:@url)
+      elsif (400..499).include? response.status
+        raise HTTPClientException.new(status:response.status, url:@url)
+      elsif (500..599).include? response.status
+        raise HTTPServerException.new(status:response.status, url:@url)
       end
+
       if response.respond_to?(:proxied) && response.proxied
         ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response was proxied, unable to determine size"
       else
@@ -283,19 +295,6 @@ module ActiveRestClient
           @object._copy_from(result)
           result = @object
         end
-      end
-
-      response.status ||= 200
-      if response.status == 401
-        raise HTTPUnauthorisedClientException.new(status:response.status, result:result, url:@url)
-      elsif response.status == 403
-        raise HTTPForbiddenClientException.new(status:response.status, result:result, url:@url)
-      elsif response.status == 404
-        raise HTTPNotFoundClientException.new(status:response.status, result:result, url:@url)
-      elsif (400..499).include? response.status
-        raise HTTPClientException.new(status:response.status, result:result, url:@url)
-      elsif (500..599).include? response.status
-        raise HTTPServerException.new(status:response.status, result:result, url:@url)
       end
 
       result
