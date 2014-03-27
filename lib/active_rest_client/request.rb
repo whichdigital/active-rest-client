@@ -268,62 +268,49 @@ module ActiveRestClient
     end
 
     def handle_response(response)
-      if response.status == 304
-        ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag copy is the same as the server"
-        return :not_modified
-      end
-      if response.respond_to?(:proxied) && response.proxied
-        ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response was proxied, unable to determine size"
-      else
-        ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response received #{response.body.size} bytes"
-      end
-
-      if @method[:options][:plain]
-        return @response = response.body
-      end
-
       @response = response
+      @response.status ||= 200
 
-      if response.body.is_a?(Array) || response.body.is_a?(Hash)
-        body = response.body
-      else
-        body = MultiJson.load(response.body) || {}
-      end
-      body = begin
-        @method[:name].nil? ? body : translator.send(@method[:name], body)
-      rescue NoMethodError
-        body
-      end
-      if body.is_a? Array
-        result = ActiveRestClient::ResultIterator.new(response.status)
-        body.each do |json_object|
-          result << new_object(json_object, @overriden_name)
+      if (200..399).include? @response.status
+        if response.status == 304
+          ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag copy is the same as the server"
+          return :not_modified
+        end
+        if @method[:options][:plain]
+          return @response = response.body
+        elsif is_json_response?
+          if @response.respond_to?(:proxied) && @response.proxied
+            ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response was proxied, unable to determine size"
+          else
+            ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response received #{@response.body.size} bytes"
+          end
+          result = generate_new_object
+        else
+          raise ResponseParseException.new(status:@response.status, body:@response.body)
         end
       else
-        result = new_object(body, @overriden_name)
-        result._status = response.status
-        unless object_is_class?
-          @object._copy_from(result)
-          result = @object
+        if is_json_response?
+          error_response = generate_new_object(mutable: false)
+        else
+          error_response = @response.body
+        end
+        if @response.status == 400
+          raise HTTPBadRequestClientException.new(status:@response.status, result:error_response, url:@url)
+        elsif @response.status == 401
+          raise HTTPUnauthorisedClientException.new(status:@response.status, result:error_response, url:@url)
+        elsif @response.status == 403
+          raise HTTPForbiddenClientException.new(status:@response.status, result:error_response, url:@url)
+        elsif @response.status == 404
+          raise HTTPNotFoundClientException.new(status:@response.status, result:error_response, url:@url)
+        elsif (400..499).include? @response.status
+          raise HTTPClientException.new(status:@response.status, result:error_response, url:@url)
+        elsif (500..599).include? @response.status
+          raise HTTPServerException.new(status:@response.status, result:error_response, url:@url)
         end
       end
 
-      response.status ||= 200
-      if response.status == 401
-        raise HTTPUnauthorisedClientException.new(status:response.status, result:result, url:@url)
-      elsif response.status == 403
-        raise HTTPForbiddenClientException.new(status:response.status, result:result, url:@url)
-      elsif response.status == 404
-        raise HTTPNotFoundClientException.new(status:response.status, result:result, url:@url)
-      elsif (400..499).include? response.status
-        raise HTTPClientException.new(status:response.status, result:result, url:@url)
-      elsif (500..599).include? response.status
-        raise HTTPServerException.new(status:response.status, result:result, url:@url)
-      end
 
       result
-    rescue MultiJson::ParseError
-      raise ResponseParseException.new(status:response.status, body:response.body)
     end
 
     def new_object(attributes, name = nil)
@@ -418,6 +405,39 @@ module ActiveRestClient
 
       attributes
     end
+
+    private
+
+    def is_json_response?
+      @response.headers['Content-Type'].nil? || @response.headers['Content-Type'].include?('json')
+    end
+
+    def generate_new_object(options={})
+      if @response.body.is_a?(Array) || @response.body.is_a?(Hash)
+        body = @response.body
+      else
+        body = MultiJson.load(@response.body) || {}
+      end
+      body = begin
+        @method[:name].nil? ? body : translator.send(@method[:name], body)
+      rescue NoMethodError
+        body
+      end
+      if body.is_a? Array
+        result = ActiveRestClient::ResultIterator.new(@response.status)
+        body.each do |json_object|
+          result << new_object(json_object, @overriden_name)
+        end
+      else
+        result = new_object(body, @overriden_name)
+        result._status = @response.status
+        if !object_is_class? && options[:mutable] != false
+          @object._copy_from(result)
+          result = @object
+        end
+      end
+      result
+    end
   end
 
   class RequestException < StandardError ; end
@@ -441,6 +461,7 @@ module ActiveRestClient
   end
   class HTTPClientException < HTTPException ; end
   class HTTPUnauthorisedClientException < HTTPClientException ; end
+  class HTTPBadRequestClientException < HTTPClientException ; end
   class HTTPForbiddenClientException < HTTPClientException ; end
   class HTTPNotFoundClientException < HTTPClientException ; end
   class HTTPServerException < HTTPException ; end

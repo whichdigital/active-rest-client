@@ -270,7 +270,7 @@ describe ActiveRestClient::Request do
     end
     expect(e).to be_instance_of(ActiveRestClient::HTTPForbiddenClientException)
     expect(e.status).to eq(403)
-  expect(e.result.first_name).to eq("John")
+    expect(e.result.first_name).to eq("John")
   end
 
   it "should raise a not found client exception for 404 errors" do
@@ -304,7 +304,7 @@ describe ActiveRestClient::Request do
     end
     expect(e).to be_instance_of(ActiveRestClient::HTTPClientException)
     expect(e.status).to eq(409)
-  expect(e.result.first_name).to eq("John")
+    expect(e.result.first_name).to eq("John")
   end
 
   it "should raise a server exception for 5xx errors" do
@@ -330,16 +330,70 @@ describe ActiveRestClient::Request do
       any_instance.
       should_receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:error_content, headers:{}, status:500))
+      and_return(OpenStruct.new(body:error_content, headers:{'Content-Type' => 'text/html'}, status:500))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
-    rescue ActiveRestClient::ResponseParseException => e
+    rescue => e
+      e
+    end
+    expect(e).to be_instance_of(ActiveRestClient::HTTPServerException)
+    expect(e.status).to eq(500)
+    expect(e.result).to eq(error_content)
+  end
+
+  it "should raise a bad request exception for 400 response status" do
+    error_content = "<h1>400 Bad Request</h1>"
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
+      and_return(OpenStruct.new(body:error_content, headers:{'Content-Type' => 'text/html'}, status:400))
+    object = ExampleClient.new(first_name:"John", should_disappear:true)
+    begin
+      object.create
+    rescue => e
+      e
+    end
+    expect(e).to be_instance_of(ActiveRestClient::HTTPBadRequestClientException)
+    expect(e.status).to eq(400)
+    expect(e.result).to eq(error_content)
+  end
+
+  it "should raise response parse exception for 200 response status and non json content type" do
+    error_content = "<h1>malformed json</h1>"
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
+      and_return(OpenStruct.new(body:error_content, headers:{'Content-Type' => 'text/html'}, status:200))
+    object = ExampleClient.new(first_name:"John", should_disappear:true)
+    begin
+      object.create
+    rescue => e
       e
     end
     expect(e).to be_instance_of(ActiveRestClient::ResponseParseException)
-    expect(e.status).to eq(500)
+    expect(e.status).to eq(200)
     expect(e.body).to eq(error_content)
+  end
+
+  it "should not override the attributes of the existing object on error response status" do
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
+      and_return(OpenStruct.new(body:'{"errors": ["validation": "error in validation"]}', headers:{'Content-Type' => 'text/html'}, status:400))
+    object = ExampleClient.new(first_name:"John", should_disappear:true)
+    begin
+      object.create
+    rescue => e
+      e
+    end
+    expect(e).to be_instance_of(ActiveRestClient::HTTPBadRequestClientException)
+    expect(e.status).to eq(400)
+    expect(object.first_name).to eq 'John'
+    expect(object.errors).to be_nil
   end
 
   it "should raise an exception if you try to pass in an unsupport method" do
@@ -348,7 +402,7 @@ describe ActiveRestClient::Request do
       def request_body_type
         :form_encoded
       end
-      
+
       def base_url
         "http://www.example.com/"
       end
