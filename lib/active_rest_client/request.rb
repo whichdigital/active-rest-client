@@ -224,11 +224,12 @@ module ActiveRestClient
 
       if verbose?
         ActiveRestClient::Logger.debug "ActiveRestClient Verbose Log:"
-        ActiveRestClient::Logger.debug "  > GET #{@url} HTTP/1.1"
+        ActiveRestClient::Logger.debug "  Request"
+        ActiveRestClient::Logger.debug "  >> GET #{@url} HTTP/1.1"
         http_headers.each do |k,v|
-          ActiveRestClient::Logger.debug "  > #{k} : #{v}"
+          ActiveRestClient::Logger.debug "  >> #{k} : #{v}"
         end
-        ActiveRestClient::Logger.debug "  > #{@body}"
+        ActiveRestClient::Logger.debug "  >> Body:\n#{@body}"
       end
 
       case http_method
@@ -245,10 +246,12 @@ module ActiveRestClient
       end
 
       if verbose?
+        ActiveRestClient::Logger.debug "  Response"
+        ActiveRestClient::Logger.debug "  << Status : #{response.status}"
         response.headers.each do |k,v|
-          ActiveRestClient::Logger.debug "  < #{k} : #{v}"
+          ActiveRestClient::Logger.debug "  << #{k} : #{v}"
         end
-        ActiveRestClient::Logger.debug "  < #{response.body}"
+        ActiveRestClient::Logger.debug "  << Body:\n#{response.body}"
       end
 
       response
