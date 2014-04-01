@@ -233,8 +233,8 @@ describe ActiveRestClient::Request do
     ActiveRestClient::ConnectionManager.should_receive(:get_connection).and_return(connection)
     connection.should_receive(:get).with("/all", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{"Content-Type" => "application/json", "Connection" => "close"}))
     ActiveRestClient::Logger.should_receive(:debug).with("ActiveRestClient Verbose Log:")
-    ActiveRestClient::Logger.should_receive(:debug).with(/ > /).at_least(:twice)
-    ActiveRestClient::Logger.should_receive(:debug).with(/ < /).at_least(:twice)
+    ActiveRestClient::Logger.should_receive(:debug).with(/ >> /).at_least(:twice)
+    ActiveRestClient::Logger.should_receive(:debug).with(/ << /).at_least(:twice)
     ActiveRestClient::Logger.stub(:debug).with(any_args)
     VerboseExampleClient.all
   end

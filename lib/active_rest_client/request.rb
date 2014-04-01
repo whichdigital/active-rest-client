@@ -114,6 +114,11 @@ module ActiveRestClient
           elsif cached.etag.to_s != "" #present? isn't working for some reason
             ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag cached copy found with etag #{cached.etag}"
             etag = cached.etag
+            response = do_request(etag)
+            if response.status == 304
+              ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response status 304. Copy is still fresh"
+              return handle_cached_response(cached)
+            end
           end
         end
         response = if proxy
@@ -224,11 +229,12 @@ module ActiveRestClient
 
       if verbose?
         ActiveRestClient::Logger.debug "ActiveRestClient Verbose Log:"
-        ActiveRestClient::Logger.debug "  > GET #{@url} HTTP/1.1"
+        ActiveRestClient::Logger.debug "  Request"
+        ActiveRestClient::Logger.debug "  >> GET #{@url} HTTP/1.1"
         http_headers.each do |k,v|
-          ActiveRestClient::Logger.debug "  > #{k} : #{v}"
+          ActiveRestClient::Logger.debug "  >> #{k} : #{v}"
         end
-        ActiveRestClient::Logger.debug "  > #{@body}"
+        ActiveRestClient::Logger.debug "  >> Body:\n#{@body}"
       end
 
       case http_method
@@ -245,10 +251,12 @@ module ActiveRestClient
       end
 
       if verbose?
+        ActiveRestClient::Logger.debug "  Response"
+        ActiveRestClient::Logger.debug "  << Status : #{response.status}"
         response.headers.each do |k,v|
-          ActiveRestClient::Logger.debug "  < #{k} : #{v}"
+          ActiveRestClient::Logger.debug "  << #{k} : #{v}"
         end
-        ActiveRestClient::Logger.debug "  < #{response.body}"
+        ActiveRestClient::Logger.debug "  << Body:\n#{response.body}"
       end
 
       response
