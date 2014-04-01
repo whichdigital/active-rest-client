@@ -114,6 +114,11 @@ module ActiveRestClient
           elsif cached.etag.to_s != "" #present? isn't working for some reason
             ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag cached copy found with etag #{cached.etag}"
             etag = cached.etag
+            response = do_request(etag)
+            if response.status == 304
+              ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response status 304. Copy is still fresh"
+              return handle_cached_response(cached)
+            end
           end
         end
         response = if proxy

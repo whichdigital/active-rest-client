@@ -46,7 +46,7 @@ module ActiveRestClient
       def read_cached_response(request)
         if cache_store && perform_caching
           key = "#{request.class_name}:#{request.original_url}"
-          ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{key} - Reading from cache"
+          ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{key} - Trying to read from cache"
           value = cache_store.read(key)
           value = Marshal.load(value) rescue value
         end
