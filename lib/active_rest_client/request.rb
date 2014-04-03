@@ -226,7 +226,6 @@ module ActiveRestClient
 
       if verbose?
         ActiveRestClient::Logger.debug "ActiveRestClient Verbose Log:"
-        ActiveRestClient::Logger.debug "helloooo"
         ActiveRestClient::Logger.debug "  Request"
         ActiveRestClient::Logger.debug "  >> #{http_method.upcase} #{@url} HTTP/1.1"
         http_headers.each do |k,v|
