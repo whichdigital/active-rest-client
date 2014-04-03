@@ -37,6 +37,7 @@ describe ActiveRestClient::Request do
       base_url "http://www.example.com"
       verbose!
       get :all, "/all"
+      post :create, "/create"
     end
 
     class FilteredBodyExampleClient < ExampleClient
@@ -225,6 +226,19 @@ describe ActiveRestClient::Request do
     ActiveRestClient::Logger.should_receive(:debug).at_least(1).times.with {|*args| args.first[/Response received \d+ bytes/] || args.first["Trying to read from cache"]}
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
+    object.create
+  end
+
+  it "should verbose debug the with the right http verb" do
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
+      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+    ActiveRestClient::Logger.should_receive(:debug).with(/ POST /)
+    ActiveRestClient::Logger.stub(:debug).with(any_args)
+
+    object = VerboseExampleClient.new(first_name:"John", should_disappear:true)
     object.create
   end
 
