@@ -116,7 +116,7 @@ module ActiveRestClient
             etag = cached.etag
             response = do_request(etag)
             if response.status == 304
-              ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response status 304. Copy is still fresh"
+              ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag copy is the same as the server"
               return handle_cached_response(cached)
             end
           end
@@ -132,9 +132,6 @@ module ActiveRestClient
           @object.record_response(self.url, response)
         end
         result = handle_response(response)
-        if result == :not_modified && cached
-          result = cached.result
-        end
         original_object_class.write_cached_response(self, response, result)
         result
       end
@@ -230,7 +227,7 @@ module ActiveRestClient
       if verbose?
         ActiveRestClient::Logger.debug "ActiveRestClient Verbose Log:"
         ActiveRestClient::Logger.debug "  Request"
-        ActiveRestClient::Logger.debug "  >> GET #{@url} HTTP/1.1"
+        ActiveRestClient::Logger.debug "  >> #{http_method.upcase} #{@url} HTTP/1.1"
         http_headers.each do |k,v|
           ActiveRestClient::Logger.debug "  >> #{k} : #{v}"
         end
@@ -280,10 +277,6 @@ module ActiveRestClient
       @response.status ||= 200
 
       if (200..399).include? @response.status
-        if response.status == 304
-          ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag copy is the same as the server"
-          return :not_modified
-        end
         if @method[:options][:plain]
           return @response = response.body
         elsif is_json_response?

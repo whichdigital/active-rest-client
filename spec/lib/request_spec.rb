@@ -37,6 +37,7 @@ describe ActiveRestClient::Request do
       base_url "http://www.example.com"
       verbose!
       get :all, "/all"
+      post :create, "/create"
     end
 
     class FilteredBodyExampleClient < ExampleClient
@@ -164,7 +165,7 @@ describe ActiveRestClient::Request do
   it "should log faked responses" do
     ActiveRestClient::Logger.stub(:debug)
     ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first["Faked response found"]}
-    object = ExampleClient.fake id:1234, debug:true
+    ExampleClient.fake id:1234, debug:true
   end
 
   it "should parse an array within JSON to be a result iterator" do
@@ -208,7 +209,7 @@ describe ActiveRestClient::Request do
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
     ActiveRestClient::Logger.should_receive(:info).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
-    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times.with {|*args| args.first[/Response received \d+ bytes/] || args.first["Reading from cache"]}
+    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times.with {|*args| args.first[/Response received \d+ bytes/] || args.first["Trying to read from cache"]}
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     object.create
@@ -222,9 +223,22 @@ describe ActiveRestClient::Request do
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
     ActiveRestClient::Logger.should_receive(:info).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
-    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times.with {|*args| args.first[/Response received \d+ bytes/] || args.first["Reading from cache"]}
+    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times.with {|*args| args.first[/Response received \d+ bytes/] || args.first["Trying to read from cache"]}
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
+    object.create
+  end
+
+  it "should verbose debug the with the right http verb" do
+    ActiveRestClient::Connection.
+      any_instance.
+      should_receive(:post).
+      with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
+      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+    ActiveRestClient::Logger.should_receive(:debug).with(/ POST /)
+    ActiveRestClient::Logger.stub(:debug).with(any_args)
+
+    object = VerboseExampleClient.new(first_name:"John", should_disappear:true)
     object.create
   end
 
@@ -459,7 +473,7 @@ describe ActiveRestClient::Request do
       connection.
         should_receive(:get).
         with("/some/url", an_instance_of(Hash)).
-        and_return(OpenStruct.new(body:"", headers:{}, status:304))
+        and_return(OpenStruct.new(body:"{}", headers:{}, status:304))
       connection.
         stub(:base_url).
         and_return("http://other.example.com")
