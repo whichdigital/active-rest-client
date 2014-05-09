@@ -29,9 +29,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec"
   spec.add_development_dependency 'terminal-notifier-guard'
   spec.add_development_dependency 'coveralls'
-  spec.add_development_dependency "patron", ">= 0.4.9" # 0.4.18 breaks against Curl v0.7.15 but works with webmock
 
   spec.add_runtime_dependency "multi_json"
   spec.add_runtime_dependency "activesupport"
   spec.add_runtime_dependency "faraday", "~> 0.9"
+  spec.add_development_dependency "patron", ">= 0.4.9" # 0.4.18 breaks against Curl v0.7.15 but works with webmock
 end
