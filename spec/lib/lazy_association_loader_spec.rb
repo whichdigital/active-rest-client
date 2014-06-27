@@ -1,5 +1,17 @@
 require 'spec_helper'
 
+class MonthExample < ActiveRestClient::Base
+  base_url "http://www.example.com"
+
+  get :find, "/month/:id", fake:"{\"name\":\"january\"}"
+end
+
+class YearExample < ActiveRestClient::Base
+  base_url "http://www.example.com"
+
+  get :find, "/year/:id", lazy: { months: MonthExample }, fake: "{\"months\": [\"http://www.example.com/months/1\"] }"
+end
+
 describe ActiveRestClient::LazyAssociationLoader do
   let(:url1) { "http://www.example.com/some/url" }
   let(:url2) { "http://www.example.com/some/other" }
@@ -114,5 +126,10 @@ describe ActiveRestClient::LazyAssociationLoader do
     loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, request)
     ActiveRestClient::Request.any_instance.should_receive(:call).with(any_args).and_return([1,2,3])
     expect(loader.size).to eq(3)
+  end
+
+  it "should use the class specified in the 'lazy' declaration to parse the response rather than the class of the object the lazy loader is attached to" do
+    association = YearExample.find(1)
+    expect(association.months.instance_variable_get('@request').instance_variable_get('@object').class).to eq(MonthExample)
   end
 end
