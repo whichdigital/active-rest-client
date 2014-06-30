@@ -6,7 +6,8 @@ module ActiveRestClient
 
     def initialize(name, value, request, options = {})
       @name = name
-      @request = request
+      class_to_map = request.method[:options][:lazy][name] rescue nil
+      @request = class_to_map.nil? ? request : ActiveRestClient::Request.new(class_to_map._mapped_method(:find), class_to_map.new, options)
       @object = nil
       @options = options
       if value.is_a? Array
