@@ -103,8 +103,15 @@ module ActiveRestClient
       def default_faraday_config
         Proc.new do |faraday|
           faraday.adapter(adapter)
-          faraday.options.timeout       = 10
-          faraday.options.open_timeout  = 10
+
+          if faraday.options.respond_to?(:timeout=)
+            faraday.options.timeout         = 10
+            faraday.options.open_timeout    = 10
+          else
+            faraday.options['timeout']      = 10
+            faraday.options['open_timeout'] = 10
+          end
+
           faraday.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"
           faraday.headers['Connection'] = "Keep-Alive"
           faraday.headers['Accept']     = "application/json"
