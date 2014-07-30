@@ -94,6 +94,17 @@ module ActiveRestClient
         yield key, value
       end
     end
+    
+    def inspect
+      inspection = if _attributes
+                     _attributes.collect { |key, value|
+                       "#{key}: #{value_for_inspect(value)}"
+                     }.compact.join(", ")
+                   else
+                     "not initialized"
+                   end
+      "#<#{self.class} #{inspection}>"
+    end
 
     def method_missing(name, *args)
       if name.to_s[-1,1] == "="
@@ -146,6 +157,19 @@ module ActiveRestClient
       output = to_hash
       output.to_json
     end
+   
+    private
+
+    def value_for_inspect(value)
+      if value.is_a?(String) && value.length > 50
+        "#{value[0..50]}...".inspect
+      elsif value.is_a?(Date) || value.is_a?(Time)
+        %("#{value.to_s(:db)}")
+      else
+        value.inspect
+      end
+    end
+    
   end
 
   class NoAttributeException < StandardError ; end
