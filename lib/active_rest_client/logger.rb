@@ -29,7 +29,7 @@ module ActiveRestClient
     end
 
     def self.info(message)
-      if defined?(Rails) && Rails.respond_to?(:logger)
+      if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
         Rails.logger.info(message)
       elsif @logfile
         File.open(@logfile, "a") do |f|
