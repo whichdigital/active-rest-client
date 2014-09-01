@@ -99,7 +99,7 @@ describe ActiveRestClient::Connection do
   end
 
   it "should retry once in the event of a connection failed" do
-    stub_request(:get, "www.example.com/foo").to_raise(Faraday::ConnectionFailed.new("Foo"))
+    stub_request(:get, "www.example.com/foo").to_raise(Faraday::Error::ConnectionFailed.new("Foo"))
     expect { @connection.get("/foo") }.to raise_error(ActiveRestClient::ConnectionFailedException)
   end
 

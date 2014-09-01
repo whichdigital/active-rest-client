@@ -23,13 +23,13 @@ module ActiveRestClient
 
     def make_safe_request(path, &block)
       block.call
-    rescue Faraday::TimeoutError
+    rescue Faraday::Error::TimeoutError
       raise ActiveRestClient::TimeoutException.new("Timed out getting #{full_url(path)}")
-    rescue Faraday::ConnectionFailed
+    rescue Faraday::Error::ConnectionFailed
       begin
         reconnect
         block.call
-      rescue Faraday::ConnectionFailed
+      rescue Faraday::Error::ConnectionFailed
         raise ActiveRestClient::ConnectionFailedException.new("Unable to connect to #{full_url(path)}")
       end
     end

@@ -198,6 +198,31 @@ If you need to, you can access properties of the HAL association.  By default ju
 @person.students[0]._hal_attributes("title")
 ```
 
+#### Association Type 4 - Nested Resources
+
+It's common to have resources that are logically children of other resources. For example, suppose that your API includes these endpoints:
+
+| HTTP Verb | Path                        |                                          |
+|-----------|-----------------------------|------------------------------------------|
+| POST      | /magazines/:magazine_id/ads | create a new ad belonging to a magazine  |
+| GET       | /magazines/:magazine_id/ads | display a list of all ads for a magazine |
+
+In these cases, your child class will contain the following:
+
+```ruby
+class Ad < ActiveRestClient::Base
+  post :create, "/magazines/:magazine_id/ads"
+  get :all, "/magazines/:magazine_id/ads"
+end
+```
+
+You can then access Ads by specifying their magazine IDs:
+
+```ruby
+Add.all(magazine_id: 1)
+Add.create(magazine_id: 1, title: "My Add Title")
+```
+
 #### Combined Example
 
 OK, so let's say you have an API for getting articles.  Each article has a property called `title` (which is a string) and a property `images` which includes a list of URIs.  Following this URI would take you to a image API that returns the image's `filename` and `filesize`.  We'll also assume this is a HAL compliant API. We would declare our two models (one for articles and one for images) like the following:
