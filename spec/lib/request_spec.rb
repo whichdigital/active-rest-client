@@ -69,6 +69,13 @@ describe ActiveRestClient::Request do
     ExampleClient.remove(id:1)
   end
 
+  it "should work with faraday response objects" do
+    response = Faraday::Response.new
+    response.stub(:body).and_return({}.to_json)
+    ActiveRestClient::Connection.any_instance.should_receive(:get).and_return(response)
+    expect { ExampleClient.all }.to_not raise_error
+  end
+
   it "should pass through get parameters" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/?debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.all debug:true

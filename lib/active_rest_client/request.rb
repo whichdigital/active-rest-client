@@ -274,9 +274,9 @@ module ActiveRestClient
 
     def handle_response(response)
       @response = response
-      @response.status ||= 200
+      status = @response.status || 200
 
-      if (200..399).include? @response.status
+      if (200..399).include?(status)
         if @method[:options][:plain]
           return @response = response.body
         elsif is_json_response?
@@ -287,7 +287,7 @@ module ActiveRestClient
           end
           result = generate_new_object
         else
-          raise ResponseParseException.new(status:@response.status, body:@response.body)
+          raise ResponseParseException.new(status:status, body:@response.body)
         end
       else
         if is_json_response?
@@ -295,21 +295,20 @@ module ActiveRestClient
         else
           error_response = @response.body
         end
-        if @response.status == 400
-          raise HTTPBadRequestClientException.new(status:@response.status, result:error_response, url:@url)
-        elsif @response.status == 401
-          raise HTTPUnauthorisedClientException.new(status:@response.status, result:error_response, url:@url)
-        elsif @response.status == 403
-          raise HTTPForbiddenClientException.new(status:@response.status, result:error_response, url:@url)
-        elsif @response.status == 404
-          raise HTTPNotFoundClientException.new(status:@response.status, result:error_response, url:@url)
-        elsif (400..499).include? @response.status
-          raise HTTPClientException.new(status:@response.status, result:error_response, url:@url)
-        elsif (500..599).include? @response.status
-          raise HTTPServerException.new(status:@response.status, result:error_response, url:@url)
+        if status == 400
+          raise HTTPBadRequestClientException.new(status:status, result:error_response, url:@url)
+        elsif status == 401
+          raise HTTPUnauthorisedClientException.new(status:status, result:error_response, url:@url)
+        elsif status == 403
+          raise HTTPForbiddenClientException.new(status:status, result:error_response, url:@url)
+        elsif status == 404
+          raise HTTPNotFoundClientException.new(status:status, result:error_response, url:@url)
+        elsif (400..499).include? status
+          raise HTTPClientException.new(status:status, result:error_response, url:@url)
+        elsif (500..599).include? status
+          raise HTTPServerException.new(status:status, result:error_response, url:@url)
         end
       end
-
 
       result
     end
