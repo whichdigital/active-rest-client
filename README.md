@@ -200,14 +200,15 @@ If you need to, you can access properties of the HAL association.  By default ju
 
 #### Association Type 4 - Nested Resources
 
-It's common to have resources that are logically children of other resources. For example, suppose that your API includes this endpoints:
+It's common to have resources that are logically children of other resources. For example, suppose that your API includes these endpoints:
 
-| HTTP Verb | Path                        |                                                  |
-|-----------|-----------------------------|--------------------------------------------------|
-| POST      | /magazines/:magazine_id/ads | create a new ad belonging to a specific magazine |
-| GET       | /magazines/:magazine_id/ads | display a list of all ads for a specific magazin |
+| HTTP Verb | Path                        |                                          |
+|-----------|-----------------------------|------------------------------------------|
+| POST      | /magazines/:magazine_id/ads | create a new ad belonging to a magazine  |
+| GET       | /magazines/:magazine_id/ads | display a list of all ads for a magazine |
 
-For this case your Children class will looks like:
+In these cases, your child class will contain the following:
+
 ```ruby
 class Ad < ActiveRestClient::Base
   post :create, "/magazines/:magazine_id/ads"
@@ -215,13 +216,12 @@ class Ad < ActiveRestClient::Base
 end
 ```
 
-Then you'll be able to access to the magazine's adds
+You can then access Ads by specifying their magazine IDs:
 
 ```ruby
 Add.all(magazine_id: 1)
 Add.create(magazine_id: 1, title: "My Add Title")
 ```
-
 
 #### Combined Example
 
