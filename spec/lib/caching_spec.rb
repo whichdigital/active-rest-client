@@ -30,7 +30,7 @@ describe ActiveRestClient::Caching do
 
       ActiveRestClient::Base.perform_caching = true
       expect(ActiveRestClient::Base.perform_caching).to be_true
-      expect(EmptyExample.perform_caching).to be_true
+      expect(CachingExample3.perform_caching).to be_true
 
       ActiveRestClient::Base._reset_caching!
     end
