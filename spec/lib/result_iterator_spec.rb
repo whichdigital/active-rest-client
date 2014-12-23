@@ -29,9 +29,9 @@ describe ActiveRestClient::ResultIterator do
 
   it "should implement any?" do
     result = ActiveRestClient::ResultIterator.new
-    expect(result.any?).to be_false
+    expect(result.any?).to be_falsy
     result << "a"
-    expect(result.any?).to be_true
+    expect(result.any?).to be_truthy
   end
 
   it "should implement items" do
@@ -64,10 +64,10 @@ describe ActiveRestClient::ResultIterator do
 
   it "should implement empty?" do
     result = ActiveRestClient::ResultIterator.new
-    expect(result.empty?).to be_true
+    expect(result.empty?).to be_truthy
     result << "a"
     result << "z"
-    expect(result.empty?).to be_false
+    expect(result.empty?).to be_falsy
   end
 
   it "should implement direct index access" do
@@ -83,7 +83,7 @@ describe ActiveRestClient::ResultIterator do
     100.times do |n|
       result << n
     end
-    expect(result.shuffle.first == result.shuffle.first && result.shuffle.first == result.shuffle.first).to_not be_true
+    expect(result.shuffle.first == result.shuffle.first && result.shuffle.first == result.shuffle.first).to be_falsy
   end
 
   it "can parallelise calls to each item" do
