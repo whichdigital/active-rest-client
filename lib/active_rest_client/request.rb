@@ -114,11 +114,6 @@ module ActiveRestClient
           elsif cached.etag.to_s != "" #present? isn't working for some reason
             ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag cached copy found with etag #{cached.etag}"
             etag = cached.etag
-            response = do_request(etag)
-            if response.status == 304
-              ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Etag copy is the same as the server"
-              return handle_cached_response(cached)
-            end
           end
         end
         response = if proxy
@@ -131,7 +126,7 @@ module ActiveRestClient
         if object_is_class? && @object.record_response?
           @object.record_response(self.url, response)
         end
-        result = handle_response(response)
+        result = handle_response(response, cached)
         original_object_class.write_cached_response(self, response, result)
         result
       end
@@ -272,9 +267,15 @@ module ActiveRestClient
       end
     end
 
-    def handle_response(response)
+    def handle_response(response, cached = nil)
       @response = response
       status = @response.status || 200
+
+      if cached && response.status == 304
+        ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name}" +
+          ' - Etag copy is the same as the server'
+        return handle_cached_response(cached)
+      end
 
       if (200..399).include?(status)
         if @method[:options][:plain]
