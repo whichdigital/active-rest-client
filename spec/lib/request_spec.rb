@@ -13,10 +13,17 @@ describe ActiveRestClient::Request do
         end
       end
 
+      after_request do |name, response|
+        if name == :change
+          response.body = "{\"test\": 1}"
+        end
+      end
+
       get :all, "/", :has_many => {:expenses => ExampleOtherClient}
       get :babies, "/babies", :has_many => {:children => ExampleOtherClient}
       get :headers, "/headers"
       get :find, "/:id"
+      get :change, "/change"
       post :create, "/create"
       put :update, "/put/:id"
       delete :remove, "/remove/:id"
@@ -440,15 +447,21 @@ describe ActiveRestClient::Request do
 
   it "should send all class mapped methods through _filter_request" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
-    ExampleClient.should_receive(:_filter_request).with(any_args)
+    ExampleClient.should_receive(:_filter_request).with(any_args).exactly(2).times
     ExampleClient.all
   end
 
   it "should send all instance mapped methods through _filter_request" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
-    ExampleClient.should_receive(:_filter_request).with(any_args)
+    ExampleClient.should_receive(:_filter_request).with(any_args).exactly(2).times
     e = ExampleClient.new
     e.all
+  end
+
+  it "should change the generated object if an after_filter changes it" do
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/change", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    obj = ExampleClient.change
+    expect(obj.test).to eq(1)
   end
 
   context "Direct URL requests" do

@@ -315,9 +315,9 @@ ActiveRestClient::Base.cache_store = Redis::Store.new("redis://localhost:6379/0/
 
 ### Using filters
 
-You can use filters to alter get/post parameters, the URL or set the post body (doing so overrides normal parameter insertion in to the body) before a request.  This can either be a block or a named method (like ActionController's `before_filter`/`before_action` methods).
+You can use filters to alter get/post parameters, the URL or set the post body (doing so overrides normal parameter insertion in to the body) before a request or to adjust the response after a request.  This can either be a block or a named method (like ActionController's `before_filter`/`before_action` methods).
 
-The filter is passed the name of the method (e.g. `:save`) and a request object. The request object has four public attributes `post_params` (a Hash of the POST parameters), `get_params` (a Hash of the GET parameters), headers and `url` (a String containing the full URL without GET parameters appended)
+The filter is passed the name of the method (e.g. `:save`) and an object (a request object for `before_filter` and a response object for `after_filter`). The request object has four public attributes `post_params` (a Hash of the POST parameters), `get_params` (a Hash of the GET parameters), headers and `url` (a String containing the full URL without GET parameters appended)
 
 ```ruby
 require 'secure_random'
@@ -365,6 +365,22 @@ end
 
 class Person < MyProject::Base
   # No need to declare a before_request for :api_key, already defined by the parent
+end
+```
+
+After filters work in exactly the same way:
+
+```ruby
+class Person < ActiveRestClient::Base
+  after_filter :fix_empty_content
+
+  private
+
+  def fix_empty_content
+    if response.status == 204 && response.body.blank?
+      response.body = '{"empty": true}'
+    end
+  end
 end
 ```
 
