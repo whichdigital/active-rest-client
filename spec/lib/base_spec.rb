@@ -204,7 +204,7 @@ describe ActiveRestClient::Base do
 
     it "runs filters as usual" do
       ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
-      EmptyExample.should_receive(:_filter_request).with(any_args)
+      EmptyExample.should_receive(:_filter_request).with(any_args).exactly(2).times
       EmptyExample._request("http://api.example.com/")
     end
 

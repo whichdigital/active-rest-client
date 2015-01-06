@@ -99,9 +99,9 @@ module ActiveRestClient
           return handle_response(OpenStruct.new(status:200, body:fake, headers:{"X-ARC-Faked-Response" => "true"}))
         end
         if object_is_class?
-          @object.send(:_filter_request, @method[:name], self)
+          @object.send(:_filter_request, :before, @method[:name], self)
         else
-          @object.class.send(:_filter_request, @method[:name], self)
+          @object.class.send(:_filter_request, :before, @method[:name], self)
         end
         append_get_parameters
         prepare_request_body
@@ -125,6 +125,11 @@ module ActiveRestClient
         end
         if object_is_class? && @object.record_response?
           @object.record_response(self.url, response)
+        end
+        if object_is_class?
+          @object.send(:_filter_request, :after, @method[:name], response)
+        else
+          @object.class.send(:_filter_request, :after, @method[:name], response)
         end
         result = handle_response(response, cached)
         original_object_class.write_cached_response(self, response, result)
