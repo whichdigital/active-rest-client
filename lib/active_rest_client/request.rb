@@ -416,8 +416,10 @@ module ActiveRestClient
     def generate_new_object(options={})
       if @response.body.is_a?(Array) || @response.body.is_a?(Hash)
         body = @response.body
-      else
+      elsif @response.body.present?
         body = MultiJson.load(@response.body) || {}
+      else
+        body = {}
       end
       body = begin
         @method[:name].nil? ? body : translator.send(@method[:name], body)
