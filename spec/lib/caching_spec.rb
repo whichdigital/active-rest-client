@@ -30,7 +30,7 @@ describe ActiveRestClient::Caching do
 
       ActiveRestClient::Base.perform_caching = true
       expect(ActiveRestClient::Base.perform_caching).to be_true
-      expect(EmptyExample.perform_caching).to be_true
+      expect(CachingExample3.perform_caching).to be_true
 
       ActiveRestClient::Base._reset_caching!
     end
@@ -114,6 +114,24 @@ describe ActiveRestClient::Caching do
       ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", hash_including("If-None-Match" => @etag)).and_return(OpenStruct.new(status:304, headers:{}))
       ret = Person.all
       expect(ret.first_name).to eq("Johnny")
+    end
+
+    it 'queries the server when the cache has expired' do
+      cached_response = ActiveRestClient::CachedResponse.new(
+        status: 200,
+        result: @cached_object,
+        etag: @etag
+      )
+      allow_any_instance_of(CachingExampleCacheStore5).to receive(:read).and_return(Marshal.dump(cached_response))
+      new_name = 'Pete'
+      response_body = Person.new(first_name: new_name).to_json
+      response = double(status: 200, headers: {}, body: response_body)
+      allow_any_instance_of(ActiveRestClient::Connection).to(
+        receive(:get).with('/', hash_including('If-None-Match' => @etag)).and_return(response))
+
+      result = Person.all
+
+      expect(result.first_name).to eq new_name
     end
 
     it "should read from the cache store, and not call the server if there's a hard expiry" do
