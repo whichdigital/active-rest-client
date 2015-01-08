@@ -422,7 +422,7 @@ module ActiveRestClient
       if @response.body.is_a?(Array) || @response.body.is_a?(Hash)
         body = @response.body
       else
-        body = MultiJson.load(@response.body) || {}
+        body = @response.body.blank? ? {} : MultiJson.load(@response.body)
       end
       body = begin
         @method[:name].nil? ? body : translator.send(@method[:name], body)

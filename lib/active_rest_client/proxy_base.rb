@@ -69,8 +69,9 @@ module ActiveRestClient
       def translate(result, options = {})
         result.headers["content-type"] = "application/hal+json"
         result = OpenStruct.new(status:result.status, headers:result.headers, body:result.body)
-        obj = MultiJson.load(result.body)
-        result.body = yield obj
+        if result.body.present?
+          result.body = yield MultiJson.load(result.body)
+        end
         result
       end
 
