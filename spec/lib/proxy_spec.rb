@@ -120,6 +120,13 @@ describe ActiveRestClient::Base do
     expect(ret.first_name).to eq("Billy")
   end
 
+  it 'skips the altering of the response body when there is none' do
+    allow_any_instance_of(ActiveRestClient::Connection).to receive(:get).with('/change-format', instance_of(Hash))
+      .and_return(double(body: '', status: 200, headers: {}))
+    result = ProxyClientExample.change_format
+    expect(result._attributes).to be_empty
+  end
+
   it "can continue with the request in the normal way, passing it on to the server" do
     ActiveRestClient::Connection.any_instance.should_receive(:get).with("/not_proxied?id=1", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     ProxyClientExample.not_proxied(id:1)
