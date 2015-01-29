@@ -13,10 +13,10 @@ describe ActiveRestClient::Instrumentation do
     end
 
     Rails.logger = double("Logger")
-    Rails.logger.should_receive(:debug)
-    Rails.logger.should_receive(:info)
-    Rails.logger.should_receive(:warn)
-    Rails.logger.should_receive(:error)
+    expect(Rails.logger).to receive(:debug)
+    expect(Rails.logger).to receive(:info)
+    expect(Rails.logger).to receive(:warn)
+    expect(Rails.logger).to receive(:error)
     ActiveRestClient::Logger.debug("Hello world")
     ActiveRestClient::Logger.info("Hello world")
     ActiveRestClient::Logger.warn("Hello world")
@@ -27,28 +27,28 @@ describe ActiveRestClient::Instrumentation do
   it "should write to a logfile if one has been specified" do
     ActiveRestClient::Logger.logfile = "/dev/null"
     file = double('file')
-    File.should_receive(:open).with("/dev/null", "a").and_yield(file)
-    file.should_receive(:<<).with("Hello world")
+    expect(File).to receive(:open).with("/dev/null", "a").and_yield(file)
+    expect(file).to receive(:<<).with("Hello world")
     ActiveRestClient::Logger.debug("Hello world")
 
     file = double('file')
-    File.should_receive(:open).with("/dev/null", "a").and_yield(file)
-    file.should_receive(:<<).with("Hello info")
+    expect(File).to receive(:open).with("/dev/null", "a").and_yield(file)
+    expect(file).to receive(:<<).with("Hello info")
     ActiveRestClient::Logger.info("Hello info")
 
     file = double('file')
-    File.should_receive(:open).with("/dev/null", "a").and_yield(file)
-    file.should_receive(:<<).with("Hello error")
+    expect(File).to receive(:open).with("/dev/null", "a").and_yield(file)
+    expect(file).to receive(:<<).with("Hello error")
     ActiveRestClient::Logger.error("Hello error")
 
     file = double('file')
-    File.should_receive(:open).with("/dev/null", "a").and_yield(file)
-    file.should_receive(:<<).with("Hello warn")
+    expect(File).to receive(:open).with("/dev/null", "a").and_yield(file)
+    expect(file).to receive(:<<).with("Hello warn")
     ActiveRestClient::Logger.warn("Hello warn")
   end
 
   it "should append to its own messages list if neither Rails nor a logfile has been specified" do
-    File.should_not_receive(:open)
+    expect(File).not_to receive(:open)
     ActiveRestClient::Logger.debug("Hello world")
     ActiveRestClient::Logger.info("Hello info")
     ActiveRestClient::Logger.warn("Hello warn")

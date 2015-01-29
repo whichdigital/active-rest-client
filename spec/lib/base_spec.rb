@@ -39,7 +39,7 @@ end
 
 describe ActiveRestClient::Base do
   it 'should instantiate a new descendant' do
-    expect{EmptyExample.new}.to_not raise_error(Exception)
+    expect{EmptyExample.new}.to_not raise_error
   end
 
   it "should not instantiate a new base class" do
@@ -105,8 +105,8 @@ describe ActiveRestClient::Base do
 
   it 'should respond_to? attributes defined in the response' do
     client = EmptyExample.new(:hello => "World")
-    client.respond_to?(:hello).should be_true
-    client.respond_to?(:world).should be_false
+    expect(client.respond_to?(:hello)).to be_truthy
+    expect(client.respond_to?(:world)).to be_falsey
   end
 
   it "should save the base URL for the API server" do
@@ -149,14 +149,14 @@ describe ActiveRestClient::Base do
   end
 
   it "should be able to lazy instantiate an object from a prefixed lazy_ method call" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
     example = AlteringClientExample.lazy_find(1)
     expect(example).to be_an_instance_of(ActiveRestClient::LazyLoader)
     expect(example.first_name).to eq("Billy")
   end
 
   it "should be able to lazy instantiate an object from a prefixed lazy_ method call from an instance" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
     example = AlteringClientExample.new.lazy_find(1)
     expect(example).to be_an_instance_of(ActiveRestClient::LazyLoader)
     expect(example.first_name).to eq("Billy")
@@ -164,7 +164,7 @@ describe ActiveRestClient::Base do
 
   context "accepts a Translator to reformat JSON" do
     it "should log a deprecation warning when using a translator" do
-      ActiveRestClient::Logger.should_receive(:warn) do |message|
+      expect(ActiveRestClient::Logger).to receive(:warn) do |message|
         expect(message).to start_with("DEPRECATION")
       end
       Proc.new do
@@ -175,7 +175,7 @@ describe ActiveRestClient::Base do
     end
 
     it "should call Translator#method when calling the mapped method if it responds to it" do
-      TranslatorExample.should_receive(:all).with(an_instance_of(Hash)).and_return({})
+      expect(TranslatorExample).to receive(:all).with(an_instance_of(Hash)).and_return({})
       AlteringClientExample.all
     end
 
@@ -198,35 +198,35 @@ describe ActiveRestClient::Base do
 
   context "directly call a URL, rather than via a mapped method" do
     it "should be able to directly call a URL" do
-      ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      expect_any_instance_of(ActiveRestClient::Request).to receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       EmptyExample._request("http://api.example.com/")
     end
 
     it "runs filters as usual" do
-      ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
-      EmptyExample.should_receive(:_filter_request).with(any_args).exactly(2).times
+      expect_any_instance_of(ActiveRestClient::Request).to receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      expect(EmptyExample).to receive(:_filter_request).with(any_args).exactly(2).times
       EmptyExample._request("http://api.example.com/")
     end
 
     it "should make an HTTP request" do
-      ActiveRestClient::Connection.any_instance.should_receive(:get).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       EmptyExample._request("http://api.example.com/")
     end
 
     it "should make an HTTP request including the path in the base_url" do
-      ActiveRestClient::Connection.any_instance.should_receive(:get).with('/v1/all', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with('/v1/all', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       NonHostnameBaseUrlExample.all
     end
 
     it "should map the response from the directly called URL in the normal way" do
-      ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      expect_any_instance_of(ActiveRestClient::Request).to receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       example = EmptyExample._request("http://api.example.com/")
       expect(example.first_name).to eq("Billy")
     end
 
     it "should be able to pass the plain response from the directly called URL bypassing JSON loading" do
       response = OpenStruct.new(_status:200, body:"This is another non-JSON string")
-      ActiveRestClient::Connection.any_instance.should_receive(:post).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:response))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:post).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:response))
       expect(EmptyExample._plain_request("http://api.example.com/", :post, {id:1234})).to eq(response)
     end
 
@@ -236,7 +236,7 @@ describe ActiveRestClient::Base do
       begin
         response = OpenStruct.new(_status:200, body:"This is a non-JSON string")
         other_response = OpenStruct.new(_status:200, body:"This is another non-JSON string")
-        allow_any_instance_of(ActiveRestClient::Connection).to receive(:get) do |url, others|
+        allow_any_instance_of(ActiveRestClient::Connection).to receive(:get) do |instance, url, others|
           if url == "/?test=1"
             OpenStruct.new(status:200, headers:{}, body:response)
           else
@@ -254,19 +254,19 @@ describe ActiveRestClient::Base do
     end
 
     it "should be able to lazy load a direct URL request" do
-      ActiveRestClient::Request.any_instance.should_receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      expect_any_instance_of(ActiveRestClient::Request).to receive(:do_request).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       example = EmptyExample._lazy_request("http://api.example.com/")
       expect(example).to be_an_instance_of(ActiveRestClient::LazyLoader)
       expect(example.first_name).to eq("Billy")
     end
 
     it "should be able to specify a method and parameters for the call" do
-      ActiveRestClient::Connection.any_instance.should_receive(:post).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:post).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       EmptyExample._request("http://api.example.com/", :post, {id:1234})
     end
 
     it "should be able to use mapped methods to create a request to pass in to _lazy_request" do
-      ActiveRestClient::Connection.any_instance.should_receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with('/find/1', anything).and_return(OpenStruct.new(status:200, headers:{}, body:"{\"first_name\":\"Billy\"}"))
       request = AlteringClientExample._request_for(:find, :id => 1)
       example = AlteringClientExample._lazy_request(request)
       expect(example.first_name).to eq("Billy")
@@ -275,7 +275,7 @@ describe ActiveRestClient::Base do
 
   context "Recording a response" do
     it "calls back to the record_response callback with the url and response body" do
-      ActiveRestClient::Connection.any_instance.should_receive(:get).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"Hello world"))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with(any_args).and_return(OpenStruct.new(status:200, headers:{}, body:"Hello world"))
       expect{RecordResponseExample.all}.to raise_error(Exception, "/all|Hello world")
     end
   end
