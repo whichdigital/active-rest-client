@@ -106,7 +106,7 @@ describe "ActiveRestClient::Validation" do
       validates :name, presence:true
     end
 
-    ValidationExample3.any_instance.should_receive(:valid?)
+    expect_any_instance_of(ValidationExample3).to receive(:valid?)
     object = ValidationExample3.new
     expect { object.create }.to raise_exception(ActiveRestClient::ValidationFailedException)
   end

@@ -5,7 +5,7 @@ describe ActiveRestClient::Recording do
     class MyObject1
       include ActiveRestClient::Recording
     end
-    expect(MyObject1.record_response?).to be_falsy
+    expect(MyObject1.record_response?).to be_falsey
     MyObject1.record_response do
       puts "Hello world"
     end

@@ -20,7 +20,7 @@ describe ActiveRestClient::Configuration do
     class UnusuedConfigurationExample1
       include ActiveRestClient::Configuration
     end
-    expect(UnusuedConfigurationExample1.whiny_missing).to be_falsy
+    expect(UnusuedConfigurationExample1.whiny_missing).to be_falsey
   end
 
   it "should allow whiny missing methods to be enabled" do
@@ -73,7 +73,7 @@ describe ActiveRestClient::Configuration do
     class LazyLoadingConfigurationExample1
       include ActiveRestClient::Configuration
     end
-    expect(LazyLoadingConfigurationExample1.lazy_load?).to be_falsy
+    expect(LazyLoadingConfigurationExample1.lazy_load?).to be_falsey
   end
 
   it "should be able to switch on lazy loading" do
@@ -88,7 +88,7 @@ describe ActiveRestClient::Configuration do
     class VerboseConfigurationExample1
       include ActiveRestClient::Configuration
     end
-    expect(VerboseConfigurationExample1.verbose).to be_falsy
+    expect(VerboseConfigurationExample1.verbose).to be_falsey
   end
 
   it "should be able to switch on verbose logging" do
@@ -105,27 +105,29 @@ describe ActiveRestClient::Configuration do
   end
 
   it "should store a translator given" do
-    ConfigurationExample.translator(String)
-    expect(ConfigurationExample.translator).to eq String
+    expect{ ConfigurationExample.send(:translator) }.to_not raise_error
+    ConfigurationExample.send(:translator, String.new)
+    expect(ConfigurationExample.translator).to respond_to(:length)
   end
 
   it "should store a proxy given" do
-    ConfigurationExample.proxy(String)
-    expect(ConfigurationExample.proxy).to eq String
+    expect{ ConfigurationExample.send(:proxy) }.to_not raise_error
+    ConfigurationExample.send(:proxy, String.new)
+    expect(ConfigurationExample.proxy).to respond_to(:length)
   end
 
   describe "faraday_config" do
     let(:faraday_double){double(:faraday).as_null_object}
 
     it "should use default adapter if no other block set" do
-      faraday_double.should_receive(:adapter).with(:patron)
+      expect(faraday_double).to receive(:adapter).with(:patron)
       ConfigurationExample.faraday_config.call(faraday_double)
     end
 
     it "should us set adapter if no other block set" do
       ConfigurationExample.adapter = :net_http
 
-      faraday_double.should_receive(:adapter).with(:net_http)
+      expect(faraday_double).to receive(:adapter).with(:net_http)
 
       ConfigurationExample.faraday_config.call(faraday_double)
     end
@@ -133,7 +135,7 @@ describe ActiveRestClient::Configuration do
     it "should use the adapter of the passed in faraday_config block" do
       ConfigurationExample.faraday_config {|faraday| faraday.adapter(:rack)}
 
-      faraday_double.should_receive(:adapter).with(:rack)
+      expect(faraday_double).to receive(:adapter).with(:rack)
 
       ConfigurationExample.faraday_config.call(faraday_double)
     end

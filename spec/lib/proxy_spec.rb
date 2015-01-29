@@ -79,43 +79,43 @@ end
 
 describe ActiveRestClient::Base do
   it "allows the URL to be changed" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/getAll?id=1", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/getAll?id=1", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     ProxyClientExample.all(id:1)
   end
 
   it "allows the URL to be replaced" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/new", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/new", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     ProxyClientExample.old
   end
 
   it "has access to the GET params and allow them to be changed/removed/added" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/list?age=12&first_name=John", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/list?age=12&first_name=John", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     ProxyClientExample.list(fname:"John", lname:"Smith")
   end
 
   it "has access to the POST params and allow them to be changed/removed/added" do
-    ActiveRestClient::Connection.any_instance.should_receive(:post).with("/create", {age:12, first_name:"John"}.to_query, instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:post).with("/create", {age:12, first_name:"John"}.to_query, instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     ProxyClientExample.create(fname:"John", lname:"Smith")
   end
 
   it "has access to raw body content for requests" do
-    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/update", "MY-BODY-CONTENT", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/update", "MY-BODY-CONTENT", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     ProxyClientExample.update(fname:"John", lname:"Smith")
   end
 
   it "handles DELETE requests" do
-    ActiveRestClient::Connection.any_instance.should_receive(:delete).with("/remove", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:delete).with("/remove", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     ProxyClientExample.remove
   end
 
   it "can return fake JSON data and have this parsed in the normal way" do
-    ActiveRestClient::Connection.any_instance.should_not_receive(:get).with("/fake", instance_of(Hash))
+    expect_any_instance_of(ActiveRestClient::Connection).not_to receive(:get).with("/fake", instance_of(Hash))
     ret = ProxyClientExample.fake
     expect(ret.id).to eq(1234)
   end
 
   it "can intercept the response and parse the response, alter it and pass it on during the request" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/change-format", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"fname\":\"Billy\"}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/change-format", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"fname\":\"Billy\"}", status:200, headers:{}))
     ret = ProxyClientExample.change_format
     expect(ret.first_name).to eq("Billy")
   end
@@ -128,7 +128,7 @@ describe ActiveRestClient::Base do
   end
 
   it "can continue with the request in the normal way, passing it on to the server" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/not_proxied?id=1", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/not_proxied?id=1", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     ProxyClientExample.not_proxied(id:1)
   end
 
@@ -140,12 +140,12 @@ describe ActiveRestClient::Base do
         etag:@etag)
 
     cache_store = double("CacheStore")
-    cache_store.stub(:read).with(any_args).and_return(nil)
+    allow(cache_store).to receive(:read).with(any_args).and_return(nil)
     ProxyClientExample.perform_caching true
-    ProxyClientExample.stub(:cache_store).and_return(cache_store)
+    allow(ProxyClientExample).to receive(:cache_store).and_return(cache_store)
     expiry = 10.minutes.from_now.rfc2822
-    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/update", "MY-BODY-CONTENT", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{"Expires" => expiry, "ETag" => "123456"}))
-    ProxyClientExample.cache_store.should_receive(:write) do |key, object, options|
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/update", "MY-BODY-CONTENT", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{"Expires" => expiry, "ETag" => "123456"}))
+    expect(ProxyClientExample.cache_store).to receive(:write) do |key, object, options|
       expect(key).to eq("ProxyClientExample:/update")
       expect(object).to be_an_instance_of(String)
       unmarshalled = Marshal.load(object)
@@ -162,8 +162,8 @@ describe ActiveRestClient::Base do
   end
 
   it "can force the URL from a filter without it being passed through URL replacement" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/hal_test/1", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/this/is/a/test", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/hal_test/1", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/this/is/a/test", instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", status:200, headers:{}))
     expect(ProxyClientExample.hal_test(id:1).test.result).to eq(true)
   end
 

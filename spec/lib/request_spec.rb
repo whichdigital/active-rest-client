@@ -56,86 +56,86 @@ describe ActiveRestClient::Request do
       post :save, "/save"
     end
 
-    ActiveRestClient::Request.any_instance.stub(:read_cached_response)
+    allow_any_instance_of(ActiveRestClient::Request).to receive(:read_cached_response)
   end
 
   it "should get an HTTP connection when called" do
     connection = double(ActiveRestClient::Connection).as_null_object
-    ActiveRestClient::ConnectionManager.should_receive(:get_connection).and_return(connection)
-    connection.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect(ActiveRestClient::ConnectionManager).to receive(:get_connection).and_return(connection)
+    expect(connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.all
   end
 
   it "should get an HTTP connection when called and call get on it" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.all
   end
 
   it "should get an HTTP connection when called and call delete on it" do
-    ActiveRestClient::Connection.any_instance.should_receive(:delete).with("/remove/1", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:delete).with("/remove/1", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.remove(id:1)
   end
 
   it "should work with faraday response objects" do
     response = Faraday::Response.new
-    response.stub(:body).and_return({}.to_json)
-    ActiveRestClient::Connection.any_instance.should_receive(:get).and_return(response)
+    allow(response).to receive(:body).and_return({}.to_json)
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).and_return(response)
     expect { ExampleClient.all }.to_not raise_error
   end
 
   it "should pass through get parameters" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/?debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/?debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.all debug:true
   end
 
   it "should pass through get parameters, using defaults specified" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/defaults?overwrite=yes&persist=yes", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/defaults?overwrite=yes&persist=yes", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.defaults overwrite:"yes"
   end
 
   it "should pass through url parameters" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.find id:1234
   end
 
   it "should accept an integer as the only parameter and use it as id" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.find(1234)
   end
 
   it "should accept a string as the only parameter and use it as id" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.find("1234")
   end
 
   it "should pass through url parameters and get parameters" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/1234?debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234?debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
     ExampleClient.find id:1234, debug:true
   end
 
   it "should pass through url parameters and put parameters" do
-    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
     ExampleClient.update id:1234, debug:true
   end
 
   it "should encode the body in a form-encoded format by default" do
-    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true&test=foo", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true&test=foo", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
     ExampleClient.update id:1234, debug:true, test:'foo'
   end
 
   it "should encode the body in a JSON format if specified" do
-    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", %q({"debug":true,"test":"foo"}), an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", %q({"debug":true,"test":"foo"}), an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
     ExampleClient.request_body_type :json
     ExampleClient.update id:1234, debug:true, test:'foo'
   end
 
   it "should pass through custom headers" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/headers", hash_including("X-My-Header" => "myvalue")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/headers", hash_including("X-My-Header" => "myvalue")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.headers
   end
 
   it "should parse JSON to give a nice object" do
-    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"created_at\":\"2012-03-04T01:02:03Z\", \"child\":{\"grandchild\":{\"test\":true}}}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"created_at\":\"2012-03-04T01:02:03Z\", \"child\":{\"grandchild\":{\"test\":true}}}", headers:{}))
     object = ExampleClient.update id:1234, debug:true
     expect(object.result).to eq(true)
     expect(object.list.first).to eq(1)
@@ -177,13 +177,13 @@ describe ActiveRestClient::Request do
   end
 
   it "should log faked responses" do
-    ActiveRestClient::Logger.stub(:debug)
-    ActiveRestClient::Logger.should_receive(:debug) {|*args| args.first["Faked response found"]}
+    allow(ActiveRestClient::Logger).to receive(:debug)
+    expect(ActiveRestClient::Logger).to receive(:debug).with(/Faked response found/)
     ExampleClient.fake id:1234, debug:true
   end
 
   it "should parse an array within JSON to be a result iterator" do
-    ActiveRestClient::Connection.any_instance.should_receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, headers:{}))
     object = ExampleClient.update id:1234, debug:true
     expect(object).to be_instance_of(ActiveRestClient::ResultIterator)
     expect(object.first.first_name).to eq("Johnny")
@@ -192,21 +192,20 @@ describe ActiveRestClient::Request do
   end
 
   it "should instantiate other classes using has_many when required to do so" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
     object = ExampleClient.all
     expect(object.expenses.first).to be_instance_of(ExampleOtherClient)
   end
 
   it "should instantiate other classes using has_many even if nested off the root" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/babies", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"children\":{\"eldest\":[{\"name\":\"Billy\"}]}}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/babies", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"children\":{\"eldest\":[{\"name\":\"Billy\"}]}}", status:200, headers:{}))
     object = ExampleClient.babies
     expect(object.children.eldest.first).to be_instance_of(ExampleOtherClient)
   end
 
   it "should assign new attributes to the existing object if possible" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -224,15 +223,12 @@ describe ActiveRestClient::Request do
   end
 
   it "should clearly pass through 200 status responses" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
-    ActiveRestClient::Logger.should_receive(:info) {|*args| args.first[%r{Requesting http://www.example.com/create}]}
-    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times do |*args|
-      args.first[/Response received \d+ bytes/] || args.first["Trying to read from cache"]
-    end
+    expect(ActiveRestClient::Logger).to receive(:info).with(%r'Requesting http://www.example.com/create')
+    expect(ActiveRestClient::Logger).to receive(:debug).at_least(1).times.with(%r'(Response received \d+ bytes|Trying to read from cache)')
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     object.create
@@ -240,28 +236,24 @@ describe ActiveRestClient::Request do
   end
 
   it "should debug log 200 responses" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
-    ActiveRestClient::Logger.should_receive(:info) {|*args| args.first[%r{Requesting http://www.example.com/create}]}
-    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times do |*args|
-      args.first[/Response received \d+ bytes/] || args.first["Trying to read from cache"]
-    end
+    expect(ActiveRestClient::Logger).to receive(:info).with(%r'Requesting http://www.example.com/create')
+    expect(ActiveRestClient::Logger).to receive(:debug).at_least(1).times.with(%r'(Response received \d+ bytes|Trying to read from cache)')
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     object.create
   end
 
   it "should verbose debug the with the right http verb" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
-    ActiveRestClient::Logger.should_receive(:debug).with(/ POST /)
-    ActiveRestClient::Logger.stub(:debug).with(any_args)
+    expect(ActiveRestClient::Logger).to receive(:debug).with(/ POST /)
+    allow(ActiveRestClient::Logger).to receive(:debug).with(any_args)
 
     object = VerboseExampleClient.new(first_name:"John", should_disappear:true)
     object.create
@@ -269,19 +261,18 @@ describe ActiveRestClient::Request do
 
   it "should verbose log if enabled" do
     connection = double(ActiveRestClient::Connection).as_null_object
-    ActiveRestClient::ConnectionManager.should_receive(:get_connection).and_return(connection)
-    connection.should_receive(:get).with("/all", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{"Content-Type" => "application/json", "Connection" => "close"}))
-    ActiveRestClient::Logger.should_receive(:debug).with("ActiveRestClient Verbose Log:")
-    ActiveRestClient::Logger.should_receive(:debug).with(/ >> /).at_least(:twice)
-    ActiveRestClient::Logger.should_receive(:debug).with(/ << /).at_least(:twice)
-    ActiveRestClient::Logger.stub(:debug).with(any_args)
+    expect(ActiveRestClient::ConnectionManager).to receive(:get_connection).and_return(connection)
+    expect(connection).to receive(:get).with("/all", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{"Content-Type" => "application/json", "Connection" => "close"}))
+    expect(ActiveRestClient::Logger).to receive(:debug).with("ActiveRestClient Verbose Log:")
+    expect(ActiveRestClient::Logger).to receive(:debug).with(/ >> /).at_least(:twice)
+    expect(ActiveRestClient::Logger).to receive(:debug).with(/ << /).at_least(:twice)
+    allow(ActiveRestClient::Logger).to receive(:debug).with(any_args)
     VerboseExampleClient.all
   end
 
   it "should raise an unauthorised exception for 401 errors" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:401))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -296,9 +287,8 @@ describe ActiveRestClient::Request do
   end
 
   it "should raise a forbidden client exception for 403 errors" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:403))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -313,9 +303,8 @@ describe ActiveRestClient::Request do
   end
 
   it "should raise a not found client exception for 404 errors" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:404))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -330,9 +319,8 @@ describe ActiveRestClient::Request do
   end
 
   it "should raise a client exceptions for 4xx errors" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:409))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -347,9 +335,8 @@ describe ActiveRestClient::Request do
   end
 
   it "should raise a server exception for 5xx errors" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:500))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -365,9 +352,8 @@ describe ActiveRestClient::Request do
 
   it "should raise a parse exception for invalid JSON returns" do
     error_content = "<h1>500 Server Error</h1>"
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:error_content, headers:{'Content-Type' => 'text/html'}, status:500))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -383,9 +369,8 @@ describe ActiveRestClient::Request do
 
   it "should raise a bad request exception for 400 response status" do
     error_content = "<h1>400 Bad Request</h1>"
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:error_content, headers:{'Content-Type' => 'text/html'}, status:400))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -401,9 +386,8 @@ describe ActiveRestClient::Request do
 
   it "should raise response parse exception for 200 response status and non json content type" do
     error_content = "<h1>malformed json</h1>"
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:error_content, headers:{'Content-Type' => 'text/html'}, status:200))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -418,9 +402,8 @@ describe ActiveRestClient::Request do
   end
 
   it "should not override the attributes of the existing object on error response status" do
-    ActiveRestClient::Connection.
-      any_instance.
-      should_receive(:post).
+    expect_any_instance_of(ActiveRestClient::Connection).
+      to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:'{"errors": ["validation": "error in validation"]}', headers:{'Content-Type' => 'text/html'}, status:400))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
@@ -457,20 +440,20 @@ describe ActiveRestClient::Request do
   end
 
   it "should send all class mapped methods through _filter_request" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
-    ExampleClient.should_receive(:_filter_request).with(any_args).exactly(2).times
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    expect(ExampleClient).to receive(:_filter_request).with(any_args).exactly(2).times
     ExampleClient.all
   end
 
   it "should send all instance mapped methods through _filter_request" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
-    ExampleClient.should_receive(:_filter_request).with(any_args).exactly(2).times
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    expect(ExampleClient).to receive(:_filter_request).with(any_args).exactly(2).times
     e = ExampleClient.new
     e.all
   end
 
   it "should change the generated object if an after_filter changes it" do
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/change", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/change", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
     obj = ExampleClient.change
     expect(obj.test).to eq(1)
   end
@@ -490,9 +473,8 @@ describe ActiveRestClient::Request do
 
     it "should allow requests directly to URLs" do
       ActiveRestClient::ConnectionManager.reset!
-      ActiveRestClient::Connection.
-        any_instance.
-        should_receive(:get).
+      expect_any_instance_of(ActiveRestClient::Connection).
+        to receive(:get).
         with("/some/url", an_instance_of(Hash)).
         and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
       SameServerExampleClient.same_server
@@ -501,14 +483,14 @@ describe ActiveRestClient::Request do
     it "should allow requests directly to URLs even if to different URLs" do
       ActiveRestClient::ConnectionManager.reset!
       connection = double("Connection")
-      connection.
-        should_receive(:get).
+      expect(connection).
+        to receive(:get).
         with("/some/url", an_instance_of(Hash)).
         and_return(OpenStruct.new(body:"{}", headers:{}, status:304))
-      connection.
-        stub(:base_url).
+      allow(connection).
+        to receive(:base_url).
         and_return("http://other.example.com")
-      ActiveRestClient::ConnectionManager.should_receive(:find_connection_for_url).with(OtherServerExampleClient::URL).and_return(connection)
+      expect(ActiveRestClient::ConnectionManager).to receive(:find_connection_for_url).with(OtherServerExampleClient::URL).and_return(connection)
       OtherServerExampleClient.other_server
     end
 
@@ -516,9 +498,9 @@ describe ActiveRestClient::Request do
       ActiveRestClient::ConnectionManager.reset!
       connection = double("Connection")
       allow(connection).to receive(:base_url).and_return("http://www.example.com")
-      ActiveRestClient::ConnectionManager.should_receive(:get_connection).with("http://www.example.com").and_return(connection)
-      connection.
-        should_receive(:get).
+      expect(ActiveRestClient::ConnectionManager).to receive(:get_connection).with("http://www.example.com").and_return(connection)
+      expect(connection).
+        to receive(:get).
         with("/v1/people", an_instance_of(Hash)).
         and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
       @obj = SameServerExampleClient._request('/people')
@@ -530,7 +512,7 @@ describe ActiveRestClient::Request do
     let(:hal) { ExampleClient.hal }
 
     it "should request a HAL response or plain JSON" do
-      ActiveRestClient::Connection.any_instance.should_receive(:get).with("/headers", hash_including("Accept" => "application/hal+json, application/json;q=0.5")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/headers", hash_including("Accept" => "application/hal+json, application/json;q=0.5")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
       ExampleClient.headers
     end
 
@@ -551,13 +533,13 @@ describe ActiveRestClient::Request do
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "application/json"}))
       expect(request.hal_response?).to be_truthy
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "text/plain"}))
-      expect(request.hal_response?).to be_falsy
+      expect(request.hal_response?).to be_falsey
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain", "application/hal+json"]}))
       expect(request.hal_response?).to be_truthy
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain", "application/json"]}))
       expect(request.hal_response?).to be_truthy
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain"]}))
-      expect(request.hal_response?).to be_falsy
+      expect(request.hal_response?).to be_falsey
     end
 
     it "should map _links in to the normal attributes" do
@@ -590,7 +572,7 @@ describe ActiveRestClient::Request do
   end
 
   it "replaces the body completely in a filter" do
-    ActiveRestClient::Connection.any_instance.should_receive(:post).with("/save", "{\"id\":1234,\"name\":\"john\"}", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:post).with("/save", "{\"id\":1234,\"name\":\"john\"}", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{}", headers:{}))
     FilteredBodyExampleClient.save id:1234, name:'john'
   end
 end

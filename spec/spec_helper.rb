@@ -22,12 +22,15 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 
-  config.expect_with :rspec do |c|
-    c.syntax = [:should, :expect]
-  end
-
-  config.mock_with :rspec do |c|
-    c.syntax = [:should, :expect]
+  config.mock_with :rspec do |mocks|
+    # In RSpec 3, `any_instance` implementation blocks will be yielded the receiving
+    # instance as the first block argument to allow the implementation block to use
+    # the state of the receiver.
+    # In RSpec 2.99, to maintain compatibility with RSpec 3 you need to either set
+    # this config option to `false` OR set this to `true` and update your
+    # `any_instance` implementation blocks to account for the first block argument
+    # being the receiving instance.
+    mocks.yield_receiver_to_any_instance_implementation_blocks = true
   end
 end
 
