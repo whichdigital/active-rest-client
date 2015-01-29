@@ -96,10 +96,10 @@ describe ActiveRestClient::LazyAssociationLoader do
   it "should make the request for a URL if it's accessed" do
     method_data = {options:{url:"foo"}}
     request = double("Request").as_null_object
-    request.stub(:method).and_return(method_data)
-    request.should_receive(:object).with(any_args).and_return(Array.new)
-    request.should_receive(:call).with(any_args).and_return("")
-    ActiveRestClient::Request.should_receive(:new).with(any_args).and_return(request)
+    allow(request).to receive(:method).and_return(method_data)
+    expect(request).to receive(:object).with(any_args).and_return(Array.new)
+    expect(request).to receive(:call).with(any_args).and_return("")
+    expect(ActiveRestClient::Request).to receive(:new).with(any_args).and_return(request)
     loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, request)
     loader.length
   end
@@ -107,14 +107,14 @@ describe ActiveRestClient::LazyAssociationLoader do
   it "should proxy methods to the underlying object if the request has been made" do
     loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, request)
     object = double("Object")
-    object.should_receive(:length).and_return(1)
+    expect(object).to receive(:length).and_return(1)
     loader.instance_variable_set(:@object, object)
     expect(loader.length).to eq(1)
   end
 
   it "should be able to iterate underlying object if it's an array" do
     loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, request)
-    ActiveRestClient::Request.any_instance.should_receive(:call).with(any_args).and_return([1,2,3])
+    expect_any_instance_of(ActiveRestClient::Request).to receive(:call).with(any_args).and_return([1,2,3])
     test = []
     loader.each do |item|
       test << item
@@ -124,7 +124,7 @@ describe ActiveRestClient::LazyAssociationLoader do
 
   it "should be able to return the size of the underlying object if it's an array" do
     loader = ActiveRestClient::LazyAssociationLoader.new(:person, url1, request)
-    ActiveRestClient::Request.any_instance.should_receive(:call).with(any_args).and_return([1,2,3])
+    expect_any_instance_of(ActiveRestClient::Request).to receive(:call).with(any_args).and_return([1,2,3])
     expect(loader.size).to eq(3)
   end
 
