@@ -449,7 +449,7 @@ There are times when an API hasn't been developed yet, so you want to fake the A
 
 ```ruby
 class Person < ActiveRestClient::Base
-  get :all, '/people', :fake => "[{first_name:"Johnny"}, {first_name:"Bob"}]"
+  get :all, '/people', fake: [{first_name:"Johnny"}, {first_name:"Bob"}]
 end
 ```
 
@@ -457,7 +457,7 @@ You may want to run a proc when faking data (to put information from the paramet
 
 ```ruby
 class Person < ActiveRestClient::Base
-  get :all, '/people', :fake => ->(request) { "{\"result\":#{request.get_params[:id]}}" }
+  get :all, '/people', fake: ->(request) { {result: request.get_params[:id]} }
 end
 ```
 
