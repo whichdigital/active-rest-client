@@ -10,7 +10,7 @@ describe ActiveRestClient::Caching do
       class CachingExample1
         include ActiveRestClient::Caching
       end
-      expect(CachingExample1.perform_caching).to be_false
+      expect(CachingExample1.perform_caching).to be_falsy
     end
 
     it "should be able to have caching enabled without affecting ActiveRestClient::Base" do
@@ -18,19 +18,19 @@ describe ActiveRestClient::Caching do
         include ActiveRestClient::Caching
       end
       CachingExample2.perform_caching true
-      expect(CachingExample2.perform_caching).to be_true
-      expect(ActiveRestClient::Base.perform_caching).to be_false
+      expect(CachingExample2.perform_caching).to be_truthy
+      expect(ActiveRestClient::Base.perform_caching).to be_falsy
     end
 
     it "should be possible to enable caching for all objects" do
       class CachingExample3 < ActiveRestClient::Base ; end
       ActiveRestClient::Base._reset_caching!
 
-      expect(ActiveRestClient::Base.perform_caching).to be_false
+      expect(ActiveRestClient::Base.perform_caching).to be_falsy
 
       ActiveRestClient::Base.perform_caching = true
-      expect(ActiveRestClient::Base.perform_caching).to be_true
-      expect(CachingExample3.perform_caching).to be_true
+      expect(ActiveRestClient::Base.perform_caching).to be_truthy
+      expect(CachingExample3.perform_caching).to be_truthy
 
       ActiveRestClient::Base._reset_caching!
     end

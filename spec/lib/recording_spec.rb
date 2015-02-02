@@ -5,11 +5,11 @@ describe ActiveRestClient::Recording do
     class MyObject1
       include ActiveRestClient::Recording
     end
-    expect(MyObject1.record_response?).to be_false
+    expect(MyObject1.record_response?).to be_falsy
     MyObject1.record_response do
       puts "Hello world"
     end
-    expect(MyObject1.record_response?).to be_true
+    expect(MyObject1.record_response?).to be_truthy
   end
 
   it "remembers a block given to it to later be called back" do

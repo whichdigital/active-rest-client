@@ -178,7 +178,7 @@ describe ActiveRestClient::Request do
 
   it "should log faked responses" do
     ActiveRestClient::Logger.stub(:debug)
-    ActiveRestClient::Logger.should_receive(:debug).with {|*args| args.first["Faked response found"]}
+    ActiveRestClient::Logger.should_receive(:debug) {|*args| args.first["Faked response found"]}
     ExampleClient.fake id:1234, debug:true
   end
 
@@ -222,8 +222,10 @@ describe ActiveRestClient::Request do
       should_receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
-    ActiveRestClient::Logger.should_receive(:info).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
-    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times.with {|*args| args.first[/Response received \d+ bytes/] || args.first["Trying to read from cache"]}
+    ActiveRestClient::Logger.should_receive(:info) {|*args| args.first[%r{Requesting http://www.example.com/create}]}
+    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times do |*args|
+      args.first[/Response received \d+ bytes/] || args.first["Trying to read from cache"]
+    end
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     object.create
@@ -236,8 +238,10 @@ describe ActiveRestClient::Request do
       should_receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
       and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
-    ActiveRestClient::Logger.should_receive(:info).with {|*args| args.first[%r{Requesting http://www.example.com/create}]}
-    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times.with {|*args| args.first[/Response received \d+ bytes/] || args.first["Trying to read from cache"]}
+    ActiveRestClient::Logger.should_receive(:info) {|*args| args.first[%r{Requesting http://www.example.com/create}]}
+    ActiveRestClient::Logger.should_receive(:debug).at_least(1).times do |*args|
+      args.first[/Response received \d+ bytes/] || args.first["Trying to read from cache"]
+    end
 
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     object.create
@@ -536,17 +540,17 @@ describe ActiveRestClient::Request do
       fake_object = RequestFakeObject.new
       request = ActiveRestClient::Request.new(method, fake_object, {})
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "application/hal+json"}))
-      expect(request.hal_response?).to be_true
+      expect(request.hal_response?).to be_truthy
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "application/json"}))
-      expect(request.hal_response?).to be_true
+      expect(request.hal_response?).to be_truthy
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "text/plain"}))
-      expect(request.hal_response?).to be_false
+      expect(request.hal_response?).to be_falsy
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain", "application/hal+json"]}))
-      expect(request.hal_response?).to be_true
+      expect(request.hal_response?).to be_truthy
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain", "application/json"]}))
-      expect(request.hal_response?).to be_true
+      expect(request.hal_response?).to be_truthy
       request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain"]}))
-      expect(request.hal_response?).to be_false
+      expect(request.hal_response?).to be_falsy
     end
 
     it "should map _links in to the normal attributes" do

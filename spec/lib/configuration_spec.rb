@@ -20,12 +20,12 @@ describe ActiveRestClient::Configuration do
     class UnusuedConfigurationExample1
       include ActiveRestClient::Configuration
     end
-    expect(UnusuedConfigurationExample1.whiny_missing).to be_false
+    expect(UnusuedConfigurationExample1.whiny_missing).to be_falsy
   end
 
   it "should allow whiny missing methods to be enabled" do
     ConfigurationExample.whiny_missing true
-    expect(ConfigurationExample.whiny_missing).to be_true
+    expect(ConfigurationExample.whiny_missing).to be_truthy
   end
 
   it "should remember the set base_url" do
@@ -73,7 +73,7 @@ describe ActiveRestClient::Configuration do
     class LazyLoadingConfigurationExample1
       include ActiveRestClient::Configuration
     end
-    expect(LazyLoadingConfigurationExample1.lazy_load?).to be_false
+    expect(LazyLoadingConfigurationExample1.lazy_load?).to be_falsy
   end
 
   it "should be able to switch on lazy loading" do
@@ -81,14 +81,14 @@ describe ActiveRestClient::Configuration do
       include ActiveRestClient::Configuration
       lazy_load!
     end
-    expect(LazyLoadingConfigurationExample2.lazy_load?).to be_true
+    expect(LazyLoadingConfigurationExample2.lazy_load?).to be_truthy
   end
 
   it "should default to non-verbose loggingg" do
     class VerboseConfigurationExample1
       include ActiveRestClient::Configuration
     end
-    expect(VerboseConfigurationExample1.verbose).to be_false
+    expect(VerboseConfigurationExample1.verbose).to be_falsy
   end
 
   it "should be able to switch on verbose logging" do
@@ -100,20 +100,18 @@ describe ActiveRestClient::Configuration do
       include ActiveRestClient::Configuration
       verbose true
     end
-    expect(VerboseConfigurationExample2.verbose).to be_true
-    expect(VerboseConfigurationExample3.verbose).to be_true
+    expect(VerboseConfigurationExample2.verbose).to be_truthy
+    expect(VerboseConfigurationExample3.verbose).to be_truthy
   end
 
   it "should store a translator given" do
-    expect{ ConfigurationExample.send(:translator) }.to_not raise_error
-    ConfigurationExample.send(:translator, String)
-    expect{ ConfigurationExample.translator.respond_to?(:length) }.to be_true
+    ConfigurationExample.translator(String)
+    expect(ConfigurationExample.translator).to eq String
   end
 
   it "should store a proxy given" do
-    expect{ ConfigurationExample.send(:proxy) }.to_not raise_error
-    ConfigurationExample.send(:proxy, String)
-    expect{ ConfigurationExample.proxy.respond_to?(:length) }.to be_true
+    ConfigurationExample.proxy(String)
+    expect(ConfigurationExample.proxy).to eq String
   end
 
   describe "faraday_config" do

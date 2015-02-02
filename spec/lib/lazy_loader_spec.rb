@@ -19,7 +19,7 @@ describe ActiveRestClient::LazyLoader do
     request.should_receive(:call).and_return(response)
     response.should_receive(:valid).and_return(true)
     loader = ActiveRestClient::LazyLoader.new(request)
-    expect(loader.valid).to be_true
+    expect(loader.valid).to be_truthy
   end
 
 end

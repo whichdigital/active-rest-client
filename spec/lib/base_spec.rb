@@ -105,8 +105,8 @@ describe ActiveRestClient::Base do
 
   it 'should respond_to? attributes defined in the response' do
     client = EmptyExample.new(:hello => "World")
-    client.respond_to?(:hello).should be_true
-    client.respond_to?(:world).should be_false
+    client.respond_to?(:hello).should be_truthy
+    client.respond_to?(:world).should be_falsy
   end
 
   it "should save the base URL for the API server" do
@@ -236,7 +236,7 @@ describe ActiveRestClient::Base do
       begin
         response = OpenStruct.new(_status:200, body:"This is a non-JSON string")
         other_response = OpenStruct.new(_status:200, body:"This is another non-JSON string")
-        allow_any_instance_of(ActiveRestClient::Connection).to receive(:get) do |url, others|
+        allow_any_instance_of(ActiveRestClient::Connection).to receive(:get) do |connection, url, others|
           if url == "/?test=1"
             OpenStruct.new(status:200, headers:{}, body:response)
           else
