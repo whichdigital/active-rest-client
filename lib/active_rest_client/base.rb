@@ -24,6 +24,8 @@ module ActiveRestClient
         attribute_name = attribute_name.to_sym
         if attribute_value.to_s[/\d{4}\-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})/]
           @attributes[attribute_name] = DateTime.parse(attribute_value)
+        elsif attribute_value.to_s =~ /^\d{4}\-\d{2}-\d{2}$/
+          @attributes[attribute_name] = Date.parse(attribute_value)
         else
           @attributes[attribute_name] = attribute_value
         end
