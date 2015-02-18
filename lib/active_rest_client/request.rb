@@ -437,6 +437,7 @@ module ActiveRestClient
       else
         result = new_object(body, @overriden_name)
         result._status = @response.status
+        result._etag = @response.headers['ETag']
         if !object_is_class? && options[:mutable] != false
           @object._copy_from(result)
           result = @object

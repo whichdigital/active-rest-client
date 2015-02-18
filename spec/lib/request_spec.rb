@@ -216,6 +216,13 @@ describe ActiveRestClient::Request do
     expect(object.id).to eq(1234)
   end
 
+  it "should expose etag if available" do
+    response = OpenStruct.new(body: "{}", headers: {"ETag" => "123456"}, status: 200)
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/123", an_instance_of(Hash)).and_return(response)
+    object = ExampleClient.find(123)
+    expect(object._etag).to eq("123456")
+  end
+
   it "should clearly pass through 200 status responses" do
     ActiveRestClient::Connection.
       any_instance.

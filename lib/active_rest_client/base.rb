@@ -8,6 +8,7 @@ module ActiveRestClient
     include Recording
 
     attr_accessor :_status
+    attr_accessor :_etag
 
     instance_methods.each do |m|
       next unless %w{display errors presence load require hash untrust trust freeze method enable_warnings with_warnings suppress capture silence quietly debugger breakpoint}.map(&:to_sym).include? m
