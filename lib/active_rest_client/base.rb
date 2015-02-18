@@ -97,15 +97,18 @@ module ActiveRestClient
         yield key, value
       end
     end
-    
+
     def inspect
-      inspection = if _attributes
-                     _attributes.collect { |key, value|
+      inspection = if @attributes.any?
+                     @attributes.collect { |key, value|
                        "#{key}: #{value_for_inspect(value)}"
                      }.compact.join(", ")
                    else
-                     "not initialized"
+                     "[uninitialized]"
                    end
+      inspection += "#{"," if @attributes.any?} ETag: #{@_etag}" unless @_etag.nil?
+      inspection += "#{"," if @attributes.any?} Status: #{@_status}" unless @_status.nil?
+      inspection += " (unsaved: #{@dirty_attributes.map(&:to_s).join(", ")})" if @dirty_attributes.any?
       "#<#{self.class} #{inspection}>"
     end
 
@@ -160,7 +163,7 @@ module ActiveRestClient
       output = to_hash
       output.to_json
     end
-   
+
     private
 
     def value_for_inspect(value)
@@ -172,7 +175,7 @@ module ActiveRestClient
         value.inspect
       end
     end
-    
+
   end
 
   class NoAttributeException < StandardError ; end

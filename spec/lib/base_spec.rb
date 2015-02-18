@@ -169,6 +169,47 @@ describe ActiveRestClient::Base do
     expect(example.first_name).to eq("Billy")
   end
 
+  context "#inspect output" do
+    it "displays a nice version" do
+      object = EmptyExample.new(id: 1, name: "John Smith")
+      expect(object.inspect).to match(/#<EmptyExample id: 1, name: "John Smith"/)
+    end
+
+    it "shows dirty attributes as a list of names at the end" do
+      object = EmptyExample.new(id: 1, name: "John Smith")
+      expect(object.inspect).to match(/#<EmptyExample id: 1, name: "John Smith" \(unsaved: id, name\)/)
+    end
+
+    it "doesn't show an empty list of dirty attributes" do
+      object = EmptyExample.new(id: 1, name: "John Smith")
+      object.instance_variable_set(:@dirty_attributes, Set.new)
+      expect(object.inspect).to_not match(/\(unsaved: id, name\)/)
+    end
+
+    it "shows dates in a nice format" do
+      object = EmptyExample.new(dob: Time.new(2015, 01, 02, 03, 04, 05))
+      expect(object.inspect).to match(/#<EmptyExample dob: "2015\-01\-02 03:04:05"/)
+    end
+
+    it "shows the etag if one is set" do
+      object = EmptyExample.new(id: 1)
+      object.instance_variable_set(:@_etag, "sample_etag")
+      expect(object.inspect).to match(/#<EmptyExample id: 1, ETag: sample_etag/)
+    end
+
+    it "shows the HTTP status code if one is set" do
+      object = EmptyExample.new(id: 1)
+      object.instance_variable_set(:@_status, 200)
+      expect(object.inspect).to match(/#<EmptyExample id: 1, Status: 200/)
+    end
+
+    it "shows [uninitialized] for new objects" do
+      object = EmptyExample.new
+      expect(object.inspect).to match(/#<EmptyExample \[uninitialized\]/)
+    end
+
+  end
+
   context "accepts a Translator to reformat JSON" do
     it "should log a deprecation warning when using a translator" do
       expect(ActiveRestClient::Logger).to receive(:warn) do |message|
