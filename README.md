@@ -443,6 +443,16 @@ or
 ActiveRestClient::Base.request_body_type = :json
 ```
 
+If you have an API that is inconsistent in its body type requirements, you can also specify it on the individual method mapping:
+
+```ruby
+class Person < ActiveRestClient::Base
+  request_body_type :form_encoded # This is the default, but just for demo purposes
+
+  get :all, '/people', request_body_type: :json
+end
+```
+
 ### Faking Calls
 
 There are times when an API hasn't been developed yet, so you want to fake the API call response.  To do this, you can simply pass a `fake` option when mapping the call containing the response.

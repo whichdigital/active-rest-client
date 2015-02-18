@@ -45,7 +45,9 @@ module ActiveRestClient
     end
 
     def request_body_type
-      if object_is_class?
+      if @method[:options][:request_body_type]
+        @method[:options][:request_body_type]
+      elsif object_is_class?
         @object.request_body_type
       else
         @object.class.request_body_type

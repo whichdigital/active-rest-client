@@ -24,7 +24,7 @@ describe ActiveRestClient::Request do
       get :headers, "/headers"
       get :find, "/:id"
       get :change, "/change"
-      post :create, "/create"
+      post :create, "/create", request_body_type: :json
       put :update, "/put/:id"
       delete :remove, "/remove/:id"
       get :hal, "/hal", fake:"{\"_links\":{\"child\": {\"href\": \"/child/1\"}, \"other\": {\"href\": \"/other/1\"}, \"cars\":[{\"href\": \"/car/1\", \"name\":\"car1\"}, {\"href\": \"/car/2\", \"name\":\"car2\"}, {\"href\": \"/car/not-embed\", \"name\":\"car_not_embed\"} ], \"lazy\": {\"href\": \"/lazy/load\"}, \"invalid\": [{\"href\": \"/invalid/1\"}]}, \"_embedded\":{\"other\":{\"name\":\"Jane\"},\"child\":{\"name\":\"Billy\"}, \"cars\":[{\"_links\": {\"self\": {\"href\": \"/car/1\"} }, \"make\": \"Bugatti\", \"model\": \"Veyron\"}, {\"_links\": {\"self\": {\"href\": \"/car/2\"} }, \"make\": \"Ferrari\", \"model\": \"F458 Italia\"} ], \"invalid\": [{\"present\":true, \"_links\": {} } ] } }", has_many:{other:ExampleOtherClient}
@@ -127,6 +127,12 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", %q({"debug":true,"test":"foo"}), an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
     ExampleClient.request_body_type :json
     ExampleClient.update id:1234, debug:true, test:'foo'
+  end
+
+  it "allows forcing a request_body_type per request" do
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:post).with("/create", %q({"id":1234,"test":"something"}), an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    ExampleClient.request_body_type :form_encoded # Should be ignored and the per_method :json used
+    ExampleClient.create id:1234, test: "something"
   end
 
   it "should pass through custom headers" do
