@@ -26,6 +26,10 @@ module ActiveRestClient
       size == 0
     end
 
+    def reverse
+      @items.reverse
+    end
+
     def each
       @items.each do |el|
         yield el
