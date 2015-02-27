@@ -70,6 +70,14 @@ describe ActiveRestClient::ResultIterator do
     expect(result.empty?).to be_falsey
   end
 
+  it "should implement reverse" do
+    result = ActiveRestClient::ResultIterator.new
+    result << "a"
+    result << "z"
+    expect(result.reverse.first).to eq("z")
+    expect(result.reverse.last).to eq("a")
+  end
+
   it "should implement direct index access" do
     result = ActiveRestClient::ResultIterator.new
     result << "a"
