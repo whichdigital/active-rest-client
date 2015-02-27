@@ -27,7 +27,7 @@ module ActiveRestClient
     end
 
     def reverse
-      @items.reverse
+      @reversed_items ||= @items.reverse
     end
 
     def each
