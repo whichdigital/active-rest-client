@@ -469,6 +469,7 @@ module ActiveRestClient
         result._etag = @response.headers['ETag']
         if !object_is_class? && options[:mutable] != false
           @object._copy_from(result)
+          @object._clean!
           result = @object
         end
       end
