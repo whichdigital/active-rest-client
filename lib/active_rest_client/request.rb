@@ -130,7 +130,7 @@ module ActiveRestClient
           @object.class.send(:_filter_request, :before, @method[:name], self)
         end
         append_get_parameters
-        prepare_request_body
+        prepare_request_body_type
         self.original_url = self.url
         cached = original_object_class.read_cached_response(self)
         if cached
@@ -206,11 +206,13 @@ module ActiveRestClient
       end
     end
 
-    def prepare_request_body(params = nil)
+    def prepare_request_body_type(params = nil)
       if request_body_type == :form_encoded
         @body ||= (params || @post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
       elsif request_body_type == :json
         @body ||= (params || @post_params || {}).to_json
+        headers["Content-Type"] = "application/json"
       end
     end
 

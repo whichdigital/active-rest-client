@@ -83,7 +83,7 @@ module ActiveRestClient
           @request.body = @body
         elsif @post_params != @original_post_params
           @request.body = nil
-          @request.prepare_request_body(@post_params)
+          @request.prepare_request_body_type(@post_params)
         end
         if @get_params != @original_get_params
           @request.get_params = @get_params
