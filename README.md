@@ -75,6 +75,15 @@ id = @person.id
 end
 ```
 
+If an API returns an array of results and you have [will_paginate](https://rubygems.org/gems/will_paginate) installed then you can call the paginate method to return a particular page of the results (note: this doesn't reduce the load on the server, but it can help with pagination if you have a cached response).
+
+```ruby
+@people = Person.all
+@people.paginate(page: 1, per_page: 10).each do |person|
+  puts "You made the first page: " + person.first_name
+end
+```
+
 Note, you can assign to any attribute, whether it exists or not before and read from any attribute (which will return nil if not found).  If you pass a string or a number to a method it will assume that it's for the "id" field.  Any other field values must be passed as a hash and you can't mix passing a string/number and a hash.
 
 ```ruby
