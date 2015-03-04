@@ -209,10 +209,10 @@ module ActiveRestClient
     def prepare_request_body(params = nil)
       if request_body_type == :form_encoded
         @body ||= (params || @post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
-        headers["Content-Type"] = "application/x-www-form-urlencoded"
+        headers["Content-Type"] ||= "application/x-www-form-urlencoded"
       elsif request_body_type == :json
         @body ||= (params || @post_params || {}).to_json
-        headers["Content-Type"] = "application/json"
+        headers["Content-Type"] ||= "application/json"
       end
     end
 
