@@ -229,6 +229,13 @@ describe ActiveRestClient::Request do
     expect(object._etag).to eq("123456")
   end
 
+  it "should expose all headers" do
+    response = OpenStruct.new(body: "{}", headers: {"X-Test-Header" => "true"}, status: 200)
+    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/123", an_instance_of(Hash)).and_return(response)
+    object = ExampleClient.find(123)
+    expect(object._headers["X-Test-Header"]).to eq("true")
+  end
+
   it "should clearly pass through 200 status responses" do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
