@@ -22,6 +22,8 @@ describe ActiveRestClient::Request do
       get :all, "/", :has_many => {:expenses => ExampleOtherClient}
       get :babies, "/babies", :has_many => {:children => ExampleOtherClient}
       get :headers, "/headers"
+      put :headers_default, "/headers_default"
+      put :headers_json, "/headers_json", request_body_type: :json
       get :find, "/:id"
       get :change, "/change"
       post :create, "/create"
@@ -153,6 +155,16 @@ describe ActiveRestClient::Request do
   it "should pass through custom headers" do
     expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/headers", hash_including("X-My-Header" => "myvalue")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.headers
+  end
+
+  it "should set request header with content-type for default" do
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_default", "", hash_including("Content-Type" => "application/x-www-form-urlencoded")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    ExampleClient.headers_default
+  end
+
+  it "should set request header with content-type for JSON" do
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_json", "{}", hash_including("Content-Type" => "application/json")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    ExampleClient.headers_json
   end
 
   it "should parse JSON to give a nice object" do
