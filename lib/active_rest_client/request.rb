@@ -212,7 +212,7 @@ module ActiveRestClient
         headers["Content-Type"] ||= "application/x-www-form-urlencoded"
       elsif request_body_type == :json
         @body ||= (params || @post_params || {}).to_json
-        headers["Content-Type"] ||= "application/json"
+        headers["Content-Type"] ||= "application/json; charset=utf-8"
       end
     end
 
