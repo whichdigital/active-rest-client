@@ -44,6 +44,30 @@ module ActiveRestClient
       end
     end
 
+    def base_url
+      if object_is_class?
+        @object.base_url
+      else
+        @object.class.base_url
+      end
+    end
+
+    def username
+      if object_is_class?
+        @object.username
+      else
+        @object.class.username
+      end
+    end
+
+    def password
+      if object_is_class?
+        @object.password
+      else
+        @object.class.password
+      end
+    end
+
     def request_body_type
       if @method[:options][:request_body_type]
         @method[:options][:request_body_type]
@@ -212,6 +236,7 @@ module ActiveRestClient
           else
             _, @base_url, @url = parts
           end
+          base_url.gsub!(%r{//(.)}, "//#{username}:#{password}@\\1") if username && !base_url[%r{//[^/]*:[^/]*@}]
           connection = ActiveRestClient::ConnectionManager.get_connection(@base_url)
         end
       else
@@ -222,6 +247,7 @@ module ActiveRestClient
           @url = "#{base_url}#{@url}".gsub(@base_url, "")
           base_url = @base_url
         end
+        base_url.gsub!(%r{//(.)}, "//#{username}:#{password}@\\1") if username && !base_url[%r{//[^/]*:[^/]*@}]
         connection = ActiveRestClient::ConnectionManager.get_connection(base_url)
       end
       ActiveRestClient::Logger.info "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Requesting #{connection.base_url}#{@url}"

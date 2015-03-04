@@ -8,6 +8,8 @@ describe ActiveRestClient::Configuration do
     class ConfigurationExample
       include ActiveRestClient::Configuration
       base_url "http://www.example.com"
+      username "john"
+      password "smith"
       request_body_type :json
     end
 
@@ -40,11 +42,13 @@ describe ActiveRestClient::Configuration do
   it "should remove a trailing slash from a globally configured base_url" do
     ActiveRestClient::Base.base_url = "http://general.example.com/"
     expect(ConfigurationExample.base_url).to eq("http://www.example.com")
+    ActiveRestClient::Base.base_url = ""
   end
 
   it "should remember the set base_url on the base class if a more specific one hasn't been set" do
     ActiveRestClient::Base.base_url = "http://general.example.com"
     expect(ConfigurationExampleBare.base_url).to eq("http://general.example.com")
+    ActiveRestClient::Base.base_url = ""
   end
 
   it "should remove a trailing slash from a specific class configured base_url" do
@@ -53,6 +57,26 @@ describe ActiveRestClient::Configuration do
       base_url "http://specific.example.com/"
     end
     expect(ConfigurationExample2.base_url).to eq("http://specific.example.com")
+  end
+
+  it "should remember the set username" do
+    expect(ConfigurationExample.username).to eq("john")
+  end
+
+  it "should remember the set username on a class, overriding a general one" do
+    ActiveRestClient::Base.username = "bill"
+    expect(ConfigurationExample.username).to eq("john")
+    ActiveRestClient::Base.username = nil
+  end
+
+  it "should remember the set password" do
+    expect(ConfigurationExample.password).to eq("smith")
+  end
+
+  it "should remember the set password on a class, overriding a general one" do
+    ActiveRestClient::Base.password = "bloggs"
+    expect(ConfigurationExample.password).to eq("smith")
+    ActiveRestClient::Base.password = nil
   end
 
   it "should default to a form_encoded request_body_type" do

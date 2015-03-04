@@ -34,6 +34,13 @@ describe ActiveRestClient::Request do
       get :defaults, "/defaults", defaults:{overwrite:"no", persist:"yes"}
     end
 
+    class AuthenticatedExampleClient < ActiveRestClient::Base
+      base_url "http://www.example.com"
+      username "john"
+      password "smith"
+      get :all, "/"
+    end
+
     class LazyLoadedExampleClient < ExampleClient
       base_url "http://www.example.com"
       lazy_load!
@@ -62,9 +69,16 @@ describe ActiveRestClient::Request do
 
   it "should get an HTTP connection when called" do
     connection = double(ActiveRestClient::Connection).as_null_object
-    expect(ActiveRestClient::ConnectionManager).to receive(:get_connection).and_return(connection)
+    expect(ActiveRestClient::ConnectionManager).to receive(:get_connection).with("http://www.example.com").and_return(connection)
     expect(connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.all
+  end
+
+  it "should get an HTTP connection with authentication when called" do
+    connection = double(ActiveRestClient::Connection).as_null_object
+    expect(ActiveRestClient::ConnectionManager).to receive(:get_connection).with("http://john:smith@www.example.com").and_return(connection)
+    expect(connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    AuthenticatedExampleClient.all
   end
 
   it "should get an HTTP connection when called and call get on it" do
@@ -224,14 +238,14 @@ describe ActiveRestClient::Request do
 
   it "should expose etag if available" do
     response = OpenStruct.new(body: "{}", headers: {"ETag" => "123456"}, status: 200)
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/123", an_instance_of(Hash)).and_return(response)
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/123", an_instance_of(Hash)).and_return(response)
     object = ExampleClient.find(123)
     expect(object._etag).to eq("123456")
   end
 
   it "should expose all headers" do
     response = OpenStruct.new(body: "{}", headers: {"X-Test-Header" => "true"}, status: 200)
-    ActiveRestClient::Connection.any_instance.should_receive(:get).with("/123", an_instance_of(Hash)).and_return(response)
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/123", an_instance_of(Hash)).and_return(response)
     object = ExampleClient.find(123)
     expect(object._headers["X-Test-Header"]).to eq("true")
   end
@@ -443,6 +457,8 @@ describe ActiveRestClient::Request do
         "http://www.example.com/"
       end
 
+      def username ; end
+      def password ; end
       def name ; end
       def _filter_request(*args) ; end
       def verbose ; false ; end

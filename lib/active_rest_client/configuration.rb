@@ -2,6 +2,8 @@ module ActiveRestClient
   module Configuration
     module ClassMethods
       @@base_url = nil
+      @@username = nil
+      @@password = nil
       @@request_body_type = :form_encoded
       @lazy_load = false
 
@@ -22,6 +24,40 @@ module ActiveRestClient
         ActiveRestClient::Logger.info "\033[1;4;32m#{name}\033[0m Base URL set to be #{value}"
         value = value.gsub(/\/+$/, '')
         @@base_url = value
+      end
+
+      def username(value = nil)
+        if value.nil?
+          if @username.nil?
+            @@username
+          else
+            @username
+          end
+        else
+          @username = value
+        end
+      end
+
+      def username=(value)
+        ActiveRestClient::Logger.info "\033[1;4;32m#{name}\033[0m Username set to be #{value}"
+        @@username = value
+      end
+
+      def password(value = nil)
+        if value.nil?
+          if @password.nil?
+            @@password
+          else
+            @password
+          end
+        else
+          @password = value
+        end
+      end
+
+      def password=(value)
+        ActiveRestClient::Logger.info "\033[1;4;32m#{name}\033[0m Password set..."
+        @@password = value
       end
 
       def request_body_type(value = nil)
