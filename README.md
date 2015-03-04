@@ -345,6 +345,8 @@ class Person < ActiveRestClient::Base
 
   before_request :replace_body
 
+  before_request :override_default_content_type
+
   private
 
   def replace_token_in_url(name, request)
@@ -358,6 +360,12 @@ class Person < ActiveRestClient::Base
   def replace_body(name, request)
     if name == :create
       request.body = request.post_params.to_json
+    end
+  end
+
+  def override_default_content_type(name, request)
+    if name == :save
+      request.headers["Content-Type"] = "application/json"
     end
   end
 end
@@ -452,7 +460,7 @@ or
 ActiveRestClient::Base.request_body_type = :json
 ```
 
-This will also set the header `Content-Type` to `application/x-www-form-urlencoded` by default or `application/json` when `:json`.
+This will also set the header `Content-Type` to `application/x-www-form-urlencoded` by default or `application/json; charset=utf-8` when `:json`. You can override this using the filter `before_request`.
 
 If you have an API that is inconsistent in its body type requirements, you can also specify it on the individual method mapping:
 
