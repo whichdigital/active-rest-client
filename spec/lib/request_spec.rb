@@ -163,7 +163,7 @@ describe ActiveRestClient::Request do
   end
 
   it "should set request header with content-type for JSON" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_json", "{}", hash_including("Content-Type" => "application/json")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_json", "{}", hash_including("Content-Type" => "application/json; charset=utf-8")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
     ExampleClient.headers_json
   end
 
