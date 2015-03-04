@@ -66,5 +66,19 @@ module ActiveRestClient
       collected_responses
     end
 
+    def paginate(options = {})
+      raise WillPaginateNotAvailableException.new unless Object.constants.include?(:WillPaginate)
+
+      page     = options[:page] || 1
+      per_page = options[:per_page] || WillPaginate.per_page
+      total    = options[:total_entries] || @items.length
+
+      WillPaginate::Collection.create(page, per_page, total) do |pager|
+        pager.replace @items[pager.offset, pager.per_page].to_a
+      end
+    end
+
   end
+
+  class WillPaginateNotAvailableException < StandardError ; end
 end

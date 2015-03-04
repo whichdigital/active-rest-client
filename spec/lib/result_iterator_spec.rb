@@ -109,4 +109,25 @@ describe ActiveRestClient::ResultIterator do
     expect(end_time-start_time).to be < (6*delay)
     expect(response).to eq([6,4,2])
   end
+
+  it "raises an error if you call paginate without WillPaginate installed" do
+    result = ActiveRestClient::ResultIterator.new
+    result << 3
+    expect{result.paginate}.to raise_error
+  end
+
+  it "returns a WillPaginate::Collection if you call paginate with WillPaginate installed" do
+    result = ActiveRestClient::ResultIterator.new
+    result << 3
+
+    module ::WillPaginate
+      class Collection ; end
+    end
+    allow(::WillPaginate).to receive(:per_page).and_return(10)
+    collection = double("WillPaginate::Collection")
+    allow(collection).to receive(:create).with(page: 1, per_page: 2).and_return(collection)
+    allow(::WillPaginate::Collection).to receive(:create).and_return(collection)
+    expect(result.paginate(page: 1, per_page: 2)).to eq(collection)
+    Object.send(:remove_const, :WillPaginate)
+  end
 end
