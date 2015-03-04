@@ -452,6 +452,8 @@ or
 ActiveRestClient::Base.request_body_type = :json
 ```
 
+This will also set the header `Content-Type` to `application/x-www-form-urlencoded` by default or `application/json` when `:json`.
+
 If you have an API that is inconsistent in its body type requirements, you can also specify it on the individual method mapping:
 
 ```ruby
