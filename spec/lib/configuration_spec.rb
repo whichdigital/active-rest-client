@@ -108,6 +108,32 @@ describe ActiveRestClient::Configuration do
     expect(LazyLoadingConfigurationExample2.lazy_load?).to be_truthy
   end
 
+  describe 'api auth' do
+    context 'default' do
+      it "should be false using_api_auth?" do
+        expect(ActiveRestClient::Base.using_api_auth?).to be_falsey
+      end
+    end
+
+    context 'setting api auth credentials' do
+      before(:each) do
+        ConfigurationExample.api_auth_credentials('id123', 'secret123')
+      end
+
+      it "should remember setting using_api_auth?" do
+        expect(ConfigurationExample.using_api_auth?).to be_truthy
+      end
+
+      it "should remember setting api_auth_access_id" do
+        expect(ConfigurationExample.api_auth_access_id).to eq('id123')
+      end
+
+      it "should remember setting api_auth_secret_key" do
+        expect(ConfigurationExample.api_auth_secret_key).to eq('secret123')
+      end
+    end
+  end
+
   it "should default to non-verbose loggingg" do
     class VerboseConfigurationExample1
       include ActiveRestClient::Configuration

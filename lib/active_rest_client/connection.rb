@@ -1,4 +1,5 @@
 require 'faraday'
+require 'api-auth'
 
 module ActiveRestClient
 
@@ -38,6 +39,7 @@ module ActiveRestClient
       make_safe_request(path) do
         @session.get(path) do |req|
           req.headers = req.headers.merge(headers)
+          sign_request(req)
         end
       end
     end
@@ -47,6 +49,7 @@ module ActiveRestClient
         @session.put(path) do |req|
           req.headers = req.headers.merge(headers)
           req.body = data
+          sign_request(req)
         end
       end
     end
@@ -56,6 +59,7 @@ module ActiveRestClient
         @session.post(path) do |req|
           req.headers = req.headers.merge(headers)
           req.body = data
+          sign_request(req)
         end
       end
     end
@@ -64,6 +68,7 @@ module ActiveRestClient
       make_safe_request(path) do
         @session.delete(path) do |req|
           req.headers = req.headers.merge(headers)
+          sign_request(req)
         end
       end
     end
@@ -74,9 +79,16 @@ module ActiveRestClient
       Faraday.new({url: @base_url}, &ActiveRestClient::Base.faraday_config)
     end
 
-
     def full_url(path)
       @session.build_url(path).to_s
+    end
+
+    def sign_request(request)
+      return if !ActiveRestClient::Base.using_api_auth?
+      ApiAuth.sign!(
+        request,
+        ActiveRestClient::Base.api_auth_access_id,
+        ActiveRestClient::Base.api_auth_secret_key)
     end
   end
 end
