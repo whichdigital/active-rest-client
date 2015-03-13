@@ -3,6 +3,7 @@ require 'spec_helper'
 describe ActiveRestClient::Request do
   before :each do
     class ExampleOtherClient < ActiveRestClient::Base ; end
+    class ExampleSingleClient < ActiveRestClient::Base ; end
     class ExampleClient < ActiveRestClient::Base
       base_url "http://www.example.com"
       request_body_type :form_encoded
@@ -21,6 +22,7 @@ describe ActiveRestClient::Request do
 
       get :all, "/", :has_many => {:expenses => ExampleOtherClient}
       get :babies, "/babies", :has_many => {:children => ExampleOtherClient}
+      get :single_association, "/single", :has_one => {:single => ExampleSingleClient}, :has_many => {:children => ExampleOtherClient}
       get :headers, "/headers"
       put :headers_default, "/headers_default"
       put :headers_json, "/headers_json", request_body_type: :json
@@ -234,6 +236,18 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/babies", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"children\":{\"eldest\":[{\"name\":\"Billy\"}]}}", status:200, headers:{}))
     object = ExampleClient.babies
     expect(object.children.eldest.first).to be_instance_of(ExampleOtherClient)
+  end
+
+  it "should instantiate other classes using has_one when required to do so" do
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/single", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"single\":{\"name\":\"Billy\"}}", status:200, headers:{}))
+    object = ExampleClient.single_association
+    expect(object.single).to be_instance_of(ExampleSingleClient)
+  end
+
+  it "should instantiate other classes using has_one even if nested off the root" do
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/single", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"children\":[{\"single\":{\"name\":\"Billy\"}}, {\"single\":{\"name\":\"Sharon\"}}]}", status:200, headers:{}))
+    object = ExampleClient.single_association
+    expect(object.children.first.single).to be_instance_of(ExampleSingleClient)
   end
 
   it "should assign new attributes to the existing object if possible" do
