@@ -146,7 +146,7 @@ There are two types of association.  One assumes when you call a method you actu
 
 #### Association Type 1 - Loading Other Classes
 
-If the call would return a list of instances that should be considered another object, you can also specify this when mapping the method using the `:has_many` option.  It doesn't call anything on that object except for instantiate it, but it does let you have objects of a different class to the one you initially called.
+If the call would return a single instance or a list of instances that should be considered another object, you can also specify this when mapping the method using the `:has_one` or `:has_many` options respectively.  It doesn't call anything on that object except for instantiate it, but it does let you have objects of a different class to the one you initially called.
 
 ```ruby
 class Expense < ActiveRestClient::Base
@@ -155,12 +155,19 @@ class Expense < ActiveRestClient::Base
   end
 end
 
+class Address < ActiveRestClient::Base
+  def full_string
+    return "#{self.street}, #{self.city}, #{self.region}, #{self.country}"
+  end
+end
+
 class Person < ActiveRestClient::Base
-  get :find, "/people/:id", :has_many => {:expenses => Expense}
+  get :find, "/people/:id", :has_many => {:expenses => Expense}, :has_one => {:address => Address}
 end
 
 @person = Person.find(1)
 puts @person.expenses.reduce {|e| e.inc_vat}
+puts @person.address.full_string
 ```
 
 #### Association Type 2 - Lazy Loading From Other URLs

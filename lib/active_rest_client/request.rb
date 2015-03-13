@@ -7,13 +7,14 @@ module ActiveRestClient
     attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object, :body, :forced_url, :original_url
 
     def initialize(method, object, params = {})
-      @method                  = method
-      @method[:options]        ||= {}
-      @method[:options][:lazy] ||= []
-      @overriden_name          = @method[:options][:overriden_name]
-      @object                  = object
-      @params                  = params
-      @headers                 = HeadersList.new
+      @method                     = method
+      @method[:options]           ||= {}
+      @method[:options][:lazy]    ||= []
+      @method[:options][:has_one] ||= {}
+      @overriden_name             = @method[:options][:overriden_name]
+      @object                     = object
+      @params                     = params
+      @headers                    = HeadersList.new
     end
 
     def object_is_class?
@@ -355,6 +356,9 @@ module ActiveRestClient
       if @method[:options][:has_many][name]
         overriden_name = name
         object = @method[:options][:has_many][name].new
+      elsif @method[:options][:has_one][name]
+        overriden_name = name
+        object = @method[:options][:has_one][name].new
       else
         if object_is_class?
           object = @object.new
@@ -369,15 +373,16 @@ module ActiveRestClient
 
       attributes.each do |k,v|
         k = k.to_sym
+        overriden_name = select_name(k, overriden_name)
         if @method[:options][:lazy].include?(k)
-          object._attributes[k] = ActiveRestClient::LazyAssociationLoader.new(overriden_name || k, v, self, overriden_name:(overriden_name||k))
+          object._attributes[k] = ActiveRestClient::LazyAssociationLoader.new(overriden_name, v, self, overriden_name:(overriden_name))
         elsif v.is_a? Hash
-          object._attributes[k] = new_object(v, overriden_name || k)
+          object._attributes[k] = new_object(v, overriden_name )
         elsif v.is_a? Array
           object._attributes[k] = ActiveRestClient::ResultIterator.new
           v.each do |item|
             if item.is_a? Hash
-              object._attributes[k] << new_object(item, overriden_name || k)
+              object._attributes[k] << new_object(item, overriden_name)
             else
               object._attributes[k] << item
             end
@@ -443,6 +448,14 @@ module ActiveRestClient
     end
 
     private
+
+    def select_name(name, parent_name)
+      if @method[:options][:has_many][name] || @method[:options][:has_one][name]
+        return name
+      end
+
+      parent_name || name
+    end
 
     def is_json_response?
       @response.headers['Content-Type'].nil? || @response.headers['Content-Type'].include?('json')
