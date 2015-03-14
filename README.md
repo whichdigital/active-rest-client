@@ -439,6 +439,8 @@ This will return an array of the named method for each object or the response fr
 
 ### Authentication
 
+#### Basic
+
 You can authenticate with Basic authentication by putting the username and password in to the `base_url` or by setting them within the specific model:
 
 ```ruby
@@ -449,6 +451,17 @@ class Person < ActiveRestClient::Base
   # ...
 end
 ```
+
+#### Api-Auth
+
+Using the [Api-Auth](https://github.com/mgomes/api_auth) integration it is very easy to sign requests. Simply configure Api-Auth one time in your app and all requests will be signed from then on.
+```ruby
+@access_id = '123456'
+@secret_key = 'abcdef'
+ActiveRestClient::Base.api_auth_credentials(@access_id, @secret_key)
+```
+
+For more information on how to generate an access id and secret key please read the [Api-Auth](https://github.com/mgomes/api_auth) documentation.
 
 ### Body Types
 
