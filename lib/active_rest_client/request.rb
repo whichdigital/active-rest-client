@@ -202,14 +202,13 @@ module ActiveRestClient
 
     def append_get_parameters
       if @get_params.any?
-        params = @get_params.map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}
-        @url += "?" + params.sort * "&"
+        @url += "?" + @get_params.to_query
       end
     end
 
     def prepare_request_body(params = nil)
       if request_body_type == :form_encoded
-        @body ||= (params || @post_params || {}).map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.sort * "&"
+        @body ||= (params || @post_params || {}).to_query
         headers["Content-Type"] ||= "application/x-www-form-urlencoded"
       elsif request_body_type == :json
         @body ||= (params || @post_params || {}).to_json
