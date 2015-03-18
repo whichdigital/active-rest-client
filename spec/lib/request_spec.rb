@@ -137,6 +137,11 @@ describe ActiveRestClient::Request do
     ExampleClient.update id:1234, debug:true
   end
 
+  it "should pass through 'array type' get parameters" do
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/?include%5B%5D=your&include%5B%5D=friends", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    ExampleClient.all :include => [:your,:friends]
+  end
+
   it "should encode the body in a form-encoded format by default" do
     expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true&test=foo", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
     ExampleClient.update id:1234, debug:true, test:'foo'
