@@ -68,7 +68,7 @@ module ActiveRestClient
 
       def translate(result, options = {})
         result.headers["content-type"] = "application/hal+json"
-        result = OpenStruct.new(status:result.status, headers:result.headers, body:result.body)
+        result = FaradayResponseProxy.new(OpenStruct.new(status:result.status, response_headers:result.headers, body:result.body))
         if result.body.present?
           result.body = yield MultiJson.load(result.body)
         end
@@ -135,12 +135,46 @@ module ActiveRestClient
 
       def render(body, status=200, content_type="application/javascript", headers={})
         headers["Content-type"] = content_type
-        OpenStruct.new(body:body, status:status, headers:headers, proxied:true)
+        FaradayResponseProxy.new(OpenStruct.new(body:body, status:status, response_headers:headers, proxied:true))
       end
     end
 
     def self.inherited(base)
       base.extend(ClassMethods)
+    end
+  end
+
+  # FaradayResponseProxy acts just like a Faraday Response object,
+  # however it always resolves the request immediately regardless of
+  # whether it is inside an in_parallel block or not
+  class FaradayResponseProxy
+    def initialize(response)
+      @response = response
+    end
+
+    def headers
+      @response.response_headers
+    end
+
+    def status
+      @response.status
+    end
+
+    def body
+      @response.body
+    end
+
+    def body=(value)
+      @response.body = value
+      value
+    end
+
+    def on_complete
+      yield(@response)
+    end
+
+    def finished?
+      true
     end
   end
 end

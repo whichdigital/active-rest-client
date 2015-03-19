@@ -33,4 +33,11 @@ describe ActiveRestClient::ConnectionManager do
     found_connection = ActiveRestClient::ConnectionManager.find_connection_for_url("#{base_url}:8080/people/test")
     expect(found_connection).to eq(connection)
   end
+
+  it "should call 'in_parllel' for a session and yield procedure inside that block" do
+    ActiveRestClient::Base.adapter = :typhoeus
+    session = ActiveRestClient::ConnectionManager.get_connection("http://www.example.com").session
+    expect { |b| ActiveRestClient::ConnectionManager.in_parallel("http://www.example.com", &b)}.to yield_control
+    ActiveRestClient::Base._reset_configuration!
+  end
 end

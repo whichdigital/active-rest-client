@@ -7,7 +7,7 @@ module ActiveRestClient
 
     def initialize(response = nil)
       @_status  = response.try :status
-      @_headers = response.try :headers
+      @_headers = response.try :response_headers
       @items = []
     end
 

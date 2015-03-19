@@ -56,17 +56,18 @@ module ActiveRestClient
         return if result.is_a? Symbol
         return unless perform_caching
         return unless !result.respond_to?(:_status) || [200, 304].include?(result._status)
+        headers = response.response_headers
 
-        response.headers.keys.select{|h| h.is_a? String}.each do |key|
-          response.headers[key.downcase.to_sym] = response.headers[key]
+        headers.keys.select{|h| h.is_a? String}.each do |key|
+          headers[key.downcase.to_sym] = headers[key]
         end
 
-        if cache_store && (response.headers[:etag] || response.headers[:expires])
+        if cache_store && (headers[:etag] || headers[:expires])
           key = "#{request.class_name}:#{request.original_url}"
           ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{key} - Writing to cache"
           cached_response = CachedResponse.new(status:response.status, result:result)
-          cached_response.etag = response.headers[:etag] if response.headers[:etag]
-          cached_response.expires = Time.parse(response.headers[:expires]) rescue nil if response.headers[:expires]
+          cached_response.etag = headers[:etag] if headers[:etag]
+          cached_response.expires = Time.parse(headers[:expires]) rescue nil if headers[:expires]
           cache_store.write(key, Marshal.dump(cached_response), {}) if cached_response.etag.present? || cached_response.expires
         end
       end

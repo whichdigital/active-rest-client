@@ -28,7 +28,7 @@ describe ActiveRestClient::Instrumentation do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:get).
       with("/real", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:200)))
     expect(ActiveRestClient::Logger).to receive(:debug).with(/ActiveRestClient.*ms\)/)
     expect(ActiveRestClient::Logger).to receive(:debug).at_least(:once).with(any_args)
     InstrumentationExampleClient.real
