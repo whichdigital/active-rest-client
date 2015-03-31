@@ -181,4 +181,5 @@ module ActiveRestClient
 
   class NoAttributeException < StandardError ; end
   class ValidationFailedException < StandardError ; end
+  class MissingOptionalLibraryError < StandardError ; end
 end

@@ -1,5 +1,4 @@
 require 'faraday'
-require 'api-auth'
 
 module ActiveRestClient
 
