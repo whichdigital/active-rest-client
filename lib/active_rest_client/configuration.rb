@@ -109,6 +109,12 @@ module ActiveRestClient
       end
 
       def api_auth_credentials(access_id, secret_key)
+        begin
+          require 'api-auth'
+        rescue LoadError
+          raise MissingOptionalLibraryError.new("You must include the gem 'api-auth' in your Gemfile to set api-auth credentials.")
+        end
+
         @@api_auth_access_id = access_id
         @@api_auth_secret_key = secret_key
       end
