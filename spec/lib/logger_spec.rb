@@ -28,22 +28,22 @@ describe ActiveRestClient::Instrumentation do
     ActiveRestClient::Logger.logfile = "/dev/null"
     file = double('file')
     expect(File).to receive(:open).with("/dev/null", "a").and_yield(file)
-    expect(file).to receive(:<<).with("Hello world")
+    expect(file).to receive(:<<).with("Hello world\n")
     ActiveRestClient::Logger.debug("Hello world")
 
     file = double('file')
     expect(File).to receive(:open).with("/dev/null", "a").and_yield(file)
-    expect(file).to receive(:<<).with("Hello info")
+    expect(file).to receive(:<<).with("Hello info\n")
     ActiveRestClient::Logger.info("Hello info")
 
     file = double('file')
     expect(File).to receive(:open).with("/dev/null", "a").and_yield(file)
-    expect(file).to receive(:<<).with("Hello error")
+    expect(file).to receive(:<<).with("Hello error\n")
     ActiveRestClient::Logger.error("Hello error")
 
     file = double('file')
     expect(File).to receive(:open).with("/dev/null", "a").and_yield(file)
-    expect(file).to receive(:<<).with("Hello warn")
+    expect(file).to receive(:<<).with("Hello warn\n")
     ActiveRestClient::Logger.warn("Hello warn")
   end
 

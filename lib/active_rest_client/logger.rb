@@ -21,7 +21,7 @@ module ActiveRestClient
         Rails.logger.debug(message)
       elsif @logfile
         File.open(@logfile, "a") do |f|
-          f << message
+          f << "#{message}\n"
         end
       else
         @messages << message
@@ -33,7 +33,7 @@ module ActiveRestClient
         Rails.logger.info(message)
       elsif @logfile
         File.open(@logfile, "a") do |f|
-          f << message
+          f << "#{message}\n"
         end
       else
         @messages << message
@@ -45,7 +45,7 @@ module ActiveRestClient
         Rails.logger.warn(message)
       elsif @logfile
         File.open(@logfile, "a") do |f|
-          f << message
+          f << "#{message}\n"
         end
       else
         @messages << message
@@ -57,7 +57,7 @@ module ActiveRestClient
         Rails.logger.error(message)
       elsif @logfile
         File.open(@logfile, "a") do |f|
-          f << message
+          f << "#{message}\n"
         end
       else
         @messages << message
