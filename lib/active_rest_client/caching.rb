@@ -66,8 +66,8 @@ module ActiveRestClient
           ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{key} - Writing to cache"
           cached_response = CachedResponse.new(status:response.status, result:result)
           cached_response.etag = response.headers[:etag] if response.headers[:etag]
-          cached_response.expires = Time.parse(response.headers[:expires]) if response.headers[:expires]
-          cache_store.write(key, Marshal.dump(cached_response), {})
+          cached_response.expires = Time.parse(response.headers[:expires]) rescue nil if response.headers[:expires]
+          cache_store.write(key, Marshal.dump(cached_response), {}) if cached_response.etag.present? || cached_response.expires
         end
       end
     end

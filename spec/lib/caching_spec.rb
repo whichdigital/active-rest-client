@@ -198,6 +198,14 @@ describe ActiveRestClient::Caching do
       ret = Person.all
     end
 
+    it "should not write the response to the cache if there's an invalid expiry" do
+      expect_any_instance_of(CachingExampleCacheStore5).to receive(:read).once.with("Person:/").and_return(nil)
+      expect_any_instance_of(CachingExampleCacheStore5).to_not receive(:write).once.with("Person:/", an_instance_of(String), an_instance_of(Hash))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(status:200, body:"{\"result\":true}", headers:{expires:"0"}))
+      Person.perform_caching = true
+      ret = Person.all
+    end
+
   end
 
 end
