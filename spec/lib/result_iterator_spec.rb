@@ -1,9 +1,16 @@
 require 'spec_helper'
 
 describe ActiveRestClient::ResultIterator do
+  let(:response) { double status: 200, headers: { some: 'header'} }
+
   it "should be able to have a status set during creation" do
-    result = ActiveRestClient::ResultIterator.new(200)
+    result = ActiveRestClient::ResultIterator.new(response)
     expect(result._status).to eq(200)
+  end
+
+  it "should be able to have headers set during creation" do
+    result = ActiveRestClient::ResultIterator.new(response)
+    expect(result._headers).to eq({ some: 'header'})
   end
 
   it "should be able to have a status set after creation" do

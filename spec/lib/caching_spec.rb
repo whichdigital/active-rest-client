@@ -159,7 +159,7 @@ describe ActiveRestClient::Caching do
 
     it "should restore a result iterator from the cache store, if there's a hard expiry" do
       class CachingExample3 < ActiveRestClient::Base ; end
-      object = ActiveRestClient::ResultIterator.new(200)
+      object = ActiveRestClient::ResultIterator.new(double(status: 200))
       object << CachingExample3.new(first_name:"Johnny")
       object << CachingExample3.new(first_name:"Billy")
       etag = "6527914a91e0c5769f6de281f25bd891"

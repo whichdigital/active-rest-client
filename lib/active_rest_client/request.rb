@@ -472,7 +472,7 @@ module ActiveRestClient
         body
       end
       if body.is_a? Array
-        result = ActiveRestClient::ResultIterator.new(@response.status)
+        result = ActiveRestClient::ResultIterator.new(@response)
         body.each do |json_object|
           result << new_object(json_object, @overriden_name)
         end
