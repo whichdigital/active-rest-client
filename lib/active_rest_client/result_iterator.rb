@@ -3,10 +3,11 @@ module ActiveRestClient
     include Enumerable
 
     attr_accessor :_status
-    attr_reader :items
+    attr_reader :items, :_headers
 
-    def initialize(status = nil)
-      @_status = status
+    def initialize(response = nil)
+      @_status  = response.try :status
+      @_headers = response.try :headers
       @items = []
     end
 
