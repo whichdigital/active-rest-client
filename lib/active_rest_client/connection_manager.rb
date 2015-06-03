@@ -17,5 +17,20 @@ module ActiveRestClient
       Thread.current[:_connections][found] if found
     end
 
+    def self.in_parallel(base_url)
+      begin
+        require 'typhoeus'
+        require 'typhoeus/adapters/faraday'
+      rescue LoadError
+        raise MissingOptionalLibraryError.new("To call '::ActiveRestClient::ConnectionManager.in_parallel' you must include the gem 'Typhoeus' in your Gemfile.")
+      end
+      session = ConnectionManager.get_connection(base_url).session
+      session.in_parallel do
+        yield
+      end
+    end
+
   end
+
+  class MissingOptionalLibraryError < StandardError ; end
 end

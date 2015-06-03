@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'terminal-notifier-guard'
   spec.add_development_dependency 'coveralls'
   spec.add_development_dependency "api-auth", ">= 1.3.1"
+  spec.add_development_dependency 'typhoeus'
 
   spec.add_runtime_dependency "multi_json"
   spec.add_runtime_dependency "activesupport"

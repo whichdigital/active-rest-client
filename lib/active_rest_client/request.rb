@@ -13,6 +13,7 @@ module ActiveRestClient
       @method[:options][:has_one] ||= {}
       @overriden_name             = @method[:options][:overriden_name]
       @object                     = object
+      @response_delegate          = ActiveRestClient::RequestDelegator.new(nil)
       @params                     = params
       @headers                    = HeadersList.new
     end
@@ -34,14 +35,6 @@ module ActiveRestClient
         @object
       else
         @object.class
-      end
-    end
-
-    def base_url
-      if object_is_class?
-        @object.base_url
-      else
-        @object.class.base_url
       end
     end
 
@@ -123,7 +116,7 @@ module ActiveRestClient
             fake = fake.call(self)
           end
           ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Faked response found"
-          return handle_response(OpenStruct.new(status:200, body:fake, headers:{"X-ARC-Faked-Response" => "true"}))
+          return handle_response(OpenStruct.new(status:200, body:fake, response_headers:{"X-ARC-Faked-Response" => "true"}))
         end
         if object_is_class?
           @object.send(:_filter_request, :before, @method[:name], self)
@@ -143,24 +136,47 @@ module ActiveRestClient
             etag = cached.etag
           end
         end
-        response = if proxy
-          proxy.handle(self) do |request|
-            request.do_request(etag)
+
+        response = (
+          if proxy
+            proxy.handle(self) do |request|
+              request.do_request(etag)
+            end
+          else
+            do_request(etag)
           end
-        else
-          do_request(etag)
+        )
+
+        # This block is called immediately when this request is not inside a parallel request block.
+        # Otherwise this callback is called after the parallel request block ends.
+        response.on_complete do |response_env|
+          if verbose?
+            ActiveRestClient::Logger.debug "  Response"
+            ActiveRestClient::Logger.debug "  << Status : #{response_env.status}"
+            response_env.response_headers.each do |k,v|
+              ActiveRestClient::Logger.debug "  << #{k} : #{v}"
+            end
+            ActiveRestClient::Logger.debug "  << Body:\n#{response_env.body}"
+          end
+
+          if object_is_class? && @object.record_response?
+            @object.record_response(self.url, response_env)
+          end
+          if object_is_class?
+            @object.send(:_filter_request, :after, @method[:name], response_env)
+          else
+            @object.class.send(:_filter_request, :after, @method[:name], response_env)
+          end
+
+          result = handle_response(response_env, cached)
+          @response_delegate.__setobj__(result)
+          original_object_class.write_cached_response(self, response_env, result)
         end
-        if object_is_class? && @object.record_response?
-          @object.record_response(self.url, response)
-        end
-        if object_is_class?
-          @object.send(:_filter_request, :after, @method[:name], response)
-        else
-          @object.class.send(:_filter_request, :after, @method[:name], response)
-        end
-        result = handle_response(response, cached)
-        original_object_class.write_cached_response(self, response, result)
-        result
+
+        # If this was not a parallel request just return the original result
+        return result if response.finished?
+        # Otherwise return the delegate which will get set later once the call back is completed
+        return @response_delegate
       end
     end
 
@@ -277,15 +293,6 @@ module ActiveRestClient
         raise InvalidRequestException.new("Invalid method #{http_method}")
       end
 
-      if verbose?
-        ActiveRestClient::Logger.debug "  Response"
-        ActiveRestClient::Logger.debug "  << Status : #{response.status}"
-        response.headers.each do |k,v|
-          ActiveRestClient::Logger.debug "  << #{k} : #{v}"
-        end
-        ActiveRestClient::Logger.debug "  << Body:\n#{response.body}"
-      end
-
       response
     end
 
@@ -343,6 +350,8 @@ module ActiveRestClient
           raise HTTPClientException.new(status:status, result:error_response, url:@url)
         elsif (500..599).include? status
           raise HTTPServerException.new(status:status, result:error_response, url:@url)
+        elsif status == 0
+          raise TimeoutException.new("Timed out getting #{response.url}")
         end
       end
 
@@ -359,11 +368,7 @@ module ActiveRestClient
         overriden_name = name
         object = @method[:options][:has_one][name].new
       else
-        if object_is_class?
-          object = @object.new
-        else
-          object = @object.class.new
-        end
+        object = create_object_instance
       end
 
       if hal_response? && name.nil?
@@ -400,8 +405,8 @@ module ActiveRestClient
     end
 
     def hal_response?
-      _, content_type = @response.headers.detect{|k,v| k.downcase == "content-type"}
-      faked_response = @response.headers.detect{|k,v| k.downcase == "x-arc-faked-response"}
+      _, content_type = @response.response_headers.detect{|k,v| k.downcase == "content-type"}
+      faked_response = @response.response_headers.detect{|k,v| k.downcase == "x-arc-faked-response"}
       if content_type && content_type.respond_to?(:each)
         content_type.each do |ct|
           return true if ct[%r{application\/hal\+json}i]
@@ -448,6 +453,10 @@ module ActiveRestClient
 
     private
 
+    def create_object_instance
+      return object_is_class? ? @object.new : @object.class.new
+    end
+
     def select_name(name, parent_name)
       if @method[:options][:has_many][name] || @method[:options][:has_one][name]
         return name
@@ -457,7 +466,7 @@ module ActiveRestClient
     end
 
     def is_json_response?
-      @response.headers['Content-Type'].nil? || @response.headers['Content-Type'].include?('json')
+      @response.response_headers['Content-Type'].nil? || @response.response_headers['Content-Type'].include?('json')
     end
 
     def generate_new_object(options={})
@@ -479,8 +488,8 @@ module ActiveRestClient
       else
         result = new_object(body, @overriden_name)
         result._status = @response.status
-        result._headers = @response.headers
-        result._etag = @response.headers['ETag']
+        result._headers = @response.response_headers
+        result._etag = @response.response_headers['ETag']
         if !object_is_class? && options[:mutable] != false
           @object._copy_from(result)
           @object._clean!

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe ActiveRestClient::ResultIterator do
-  let(:response) { double status: 200, headers: { some: 'header'} }
+  let(:response) { double(status: 200, response_headers: { some: 'header'}) }
 
   it "should be able to have a status set during creation" do
     result = ActiveRestClient::ResultIterator.new(response)

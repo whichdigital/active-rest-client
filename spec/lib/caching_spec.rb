@@ -111,7 +111,7 @@ describe ActiveRestClient::Caching do
         result:@cached_object,
         etag:@etag)
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:read).once.with("Person:/").and_return(Marshal.dump(cached_response))
-      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", hash_including("If-None-Match" => @etag)).and_return(OpenStruct.new(status:304, headers:{}))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", hash_including("If-None-Match" => @etag)).and_return(::FaradayResponseMock.new(OpenStruct.new(status:304, response_headers:{})))
       ret = Person.all
       expect(ret.first_name).to eq("Johnny")
     end
@@ -125,7 +125,7 @@ describe ActiveRestClient::Caching do
       allow_any_instance_of(CachingExampleCacheStore5).to receive(:read).and_return(Marshal.dump(cached_response))
       new_name = 'Pete'
       response_body = Person.new(first_name: new_name).to_json
-      response = double(status: 200, headers: {}, body: response_body)
+      response = ::FaradayResponseMock.new(double(status: 200, response_headers: {}, body: response_body))
       allow_any_instance_of(ActiveRestClient::Connection).to(
         receive(:get).with('/', hash_including('If-None-Match' => @etag)).and_return(response))
 
@@ -185,7 +185,7 @@ describe ActiveRestClient::Caching do
     it "should write the response to the cache if there's an etag" do
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:read).once.with("Person:/").and_return(nil)
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:write).once.with("Person:/", an_instance_of(String), {})
-      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(status:200, body:"{\"result\":true}", headers:{etag:"1234567890"}))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(status:200, body:"{\"result\":true}", response_headers:{etag:"1234567890"})))
       Person.perform_caching true
       ret = Person.all
     end
@@ -193,7 +193,7 @@ describe ActiveRestClient::Caching do
     it "should write the response to the cache if there's a hard expiry" do
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:read).once.with("Person:/").and_return(nil)
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:write).once.with("Person:/", an_instance_of(String), an_instance_of(Hash))
-      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(status:200, body:"{\"result\":true}", headers:{expires:(Time.now + 30).rfc822}))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(status:200, body:"{\"result\":true}", response_headers:{expires:(Time.now + 30).rfc822})))
       Person.perform_caching = true
       ret = Person.all
     end

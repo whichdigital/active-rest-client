@@ -74,24 +74,24 @@ describe ActiveRestClient::Request do
   it "should get an HTTP connection when called" do
     connection = double(ActiveRestClient::Connection).as_null_object
     expect(ActiveRestClient::ConnectionManager).to receive(:get_connection).with("http://www.example.com").and_return(connection)
-    expect(connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect(connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.all
   end
 
   it "should get an HTTP connection with authentication when called" do
     connection = double(ActiveRestClient::Connection).as_null_object
     expect(ActiveRestClient::ConnectionManager).to receive(:get_connection).with("http://john:smith@www.example.com").and_return(connection)
-    expect(connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect(connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     AuthenticatedExampleClient.all
   end
 
   it "should get an HTTP connection when called and call get on it" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.all
   end
 
   it "should get an HTTP connection when called and call delete on it" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:delete).with("/remove/1", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:delete).with("/remove/1", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.remove(id:1)
   end
 
@@ -103,79 +103,79 @@ describe ActiveRestClient::Request do
   end
 
   it "should pass through get parameters" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/?debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/?debug=true", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.all debug:true
   end
 
   it "should pass through get parameters, using defaults specified" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/defaults?overwrite=yes&persist=yes", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/defaults?overwrite=yes&persist=yes", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.defaults overwrite:"yes"
   end
 
   it "should pass through url parameters" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.find id:1234
   end
 
   it "should accept an integer as the only parameter and use it as id" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.find(1234)
   end
 
   it "should accept a string as the only parameter and use it as id" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.find("1234")
   end
 
   it "should pass through url parameters and get parameters" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234?debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/1234?debug=true", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"result\":true}", response_headers:{})))
     ExampleClient.find id:1234, debug:true
   end
 
   it "should pass through url parameters and put parameters" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"result\":true}", response_headers:{})))
     ExampleClient.update id:1234, debug:true
   end
 
   it "should pass through 'array type' get parameters" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/?include%5B%5D=your&include%5B%5D=friends", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/?include%5B%5D=your&include%5B%5D=friends", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"result\":true}", response_headers:{})))
     ExampleClient.all :include => [:your,:friends]
   end
 
   it "should encode the body in a form-encoded format by default" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true&test=foo", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true&test=foo", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"result\":true}", response_headers:{})))
     ExampleClient.update id:1234, debug:true, test:'foo'
   end
 
   it "should encode the body in a JSON format if specified" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", %q({"debug":true,"test":"foo"}), an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", %q({"debug":true,"test":"foo"}), an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"result\":true}", response_headers:{})))
     ExampleClient.request_body_type :json
     ExampleClient.update id:1234, debug:true, test:'foo'
   end
 
   it "allows forcing a request_body_type per request" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:post).with("/encoding", %q({"id":1234,"test":"something"}), an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:post).with("/encoding", %q({"id":1234,"test":"something"}), an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"result\":true}", response_headers:{})))
     ExampleClient.request_body_type :form_encoded # Should be ignored and the per_method :json used
     ExampleClient.test_encoding id:1234, test: "something"
   end
 
   it "should pass through custom headers" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/headers", hash_including("X-My-Header" => "myvalue")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/headers", hash_including("X-My-Header" => "myvalue")).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.headers
   end
 
   it "should set request header with content-type for default" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_default", "", hash_including("Content-Type" => "application/x-www-form-urlencoded")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_default", "", hash_including("Content-Type" => "application/x-www-form-urlencoded")).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.headers_default
   end
 
   it "should set request header with content-type for JSON" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_json", "{}", hash_including("Content-Type" => "application/json; charset=utf-8")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_json", "{}", hash_including("Content-Type" => "application/json; charset=utf-8")).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.headers_json
   end
 
   it "should parse JSON to give a nice object" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"created_at\":\"2012-03-04T01:02:03Z\", \"child\":{\"grandchild\":{\"test\":true}}}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"created_at\":\"2012-03-04T01:02:03Z\", \"child\":{\"grandchild\":{\"test\":true}}}", response_headers:{})))
     object = ExampleClient.update id:1234, debug:true
     expect(object.result).to eq(true)
     expect(object.list.first).to eq(1)
@@ -223,7 +223,7 @@ describe ActiveRestClient::Request do
   end
 
   it "should parse an array within JSON to be a result iterator" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, response_headers:{})))
     object = ExampleClient.update id:1234, debug:true
     expect(object).to be_instance_of(ActiveRestClient::ResultIterator)
     expect(object.first.first_name).to eq("Johnny")
@@ -232,25 +232,25 @@ describe ActiveRestClient::Request do
   end
 
   it "should instantiate other classes using has_many when required to do so" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, response_headers:{})))
     object = ExampleClient.all
     expect(object.expenses.first).to be_instance_of(ExampleOtherClient)
   end
 
   it "should instantiate other classes using has_many even if nested off the root" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/babies", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"children\":{\"eldest\":[{\"name\":\"Billy\"}]}}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/babies", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"children\":{\"eldest\":[{\"name\":\"Billy\"}]}}", status:200, response_headers:{})))
     object = ExampleClient.babies
     expect(object.children.eldest.first).to be_instance_of(ExampleOtherClient)
   end
 
   it "should instantiate other classes using has_one when required to do so" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/single", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"single\":{\"name\":\"Billy\"}}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/single", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"single\":{\"name\":\"Billy\"}}", status:200, response_headers:{})))
     object = ExampleClient.single_association
     expect(object.single).to be_instance_of(ExampleSingleClient)
   end
 
   it "should instantiate other classes using has_one even if nested off the root" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/single", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"children\":[{\"single\":{\"name\":\"Billy\"}}, {\"single\":{\"name\":\"Sharon\"}}]}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/single", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"children\":[{\"single\":{\"name\":\"Billy\"}}, {\"single\":{\"name\":\"Sharon\"}}]}", status:200, response_headers:{})))
     object = ExampleClient.single_association
     expect(object.children.first.single).to be_instance_of(ExampleSingleClient)
   end
@@ -259,7 +259,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{})))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     object.create
     expect(object.first_name).to eq("John")
@@ -268,21 +268,21 @@ describe ActiveRestClient::Request do
   end
 
   it "should expose etag if available" do
-    response = OpenStruct.new(body: "{}", headers: {"ETag" => "123456"}, status: 200)
+    response = ::FaradayResponseMock.new(OpenStruct.new(body: "{}", response_headers: {"ETag" => "123456"}, status: 200))
     expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/123", an_instance_of(Hash)).and_return(response)
     object = ExampleClient.find(123)
     expect(object._etag).to eq("123456")
   end
 
   it "should expose all headers" do
-    response = OpenStruct.new(body: "{}", headers: {"X-Test-Header" => "true"}, status: 200)
+    response = ::FaradayResponseMock.new(OpenStruct.new(body: "{}", response_headers: {"X-Test-Header" => "true"}, status: 200))
     expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/123", an_instance_of(Hash)).and_return(response)
     object = ExampleClient.find(123)
     expect(object._headers["X-Test-Header"]).to eq("true")
   end
 
   it "should expose all headers on collection" do
-    response = OpenStruct.new(body: "[{}]", headers: {"X-Test-Header" => "true"}, status: 200)
+    response = ::FaradayResponseMock.new(OpenStruct.new(body: "[{}]", response_headers: {"X-Test-Header" => "true"}, status: 200))
     expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/123", an_instance_of(Hash)).and_return(response)
     object = ExampleClient.find(123)
     expect(object._headers["X-Test-Header"]).to eq("true")
@@ -292,7 +292,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:200)))
     expect(ActiveRestClient::Logger).to receive(:info).with(%r'Requesting http://www.example.com/create')
     expect(ActiveRestClient::Logger).to receive(:debug).at_least(1).times.with(%r'(Response received \d+ bytes|Trying to read from cache)')
 
@@ -305,7 +305,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:200)))
     expect(ActiveRestClient::Logger).to receive(:info).with(%r'Requesting http://www.example.com/create')
     expect(ActiveRestClient::Logger).to receive(:debug).at_least(1).times.with(%r'(Response received \d+ bytes|Trying to read from cache)')
 
@@ -317,7 +317,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:200)))
     expect(ActiveRestClient::Logger).to receive(:debug).with(/ POST /)
     allow(ActiveRestClient::Logger).to receive(:debug).with(any_args)
 
@@ -328,7 +328,7 @@ describe ActiveRestClient::Request do
   it "should verbose log if enabled" do
     connection = double(ActiveRestClient::Connection).as_null_object
     expect(ActiveRestClient::ConnectionManager).to receive(:get_connection).and_return(connection)
-    expect(connection).to receive(:get).with("/all", an_instance_of(Hash)).and_return(OpenStruct.new(body:'{"result":true}', headers:{"Content-Type" => "application/json", "Connection" => "close"}))
+    expect(connection).to receive(:get).with("/all", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{"Content-Type" => "application/json", "Connection" => "close"})))
     expect(ActiveRestClient::Logger).to receive(:debug).with("ActiveRestClient Verbose Log:")
     expect(ActiveRestClient::Logger).to receive(:debug).with(/ >> /).at_least(:twice)
     expect(ActiveRestClient::Logger).to receive(:debug).with(/ << /).at_least(:twice)
@@ -340,7 +340,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:401))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:401)))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
@@ -356,7 +356,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:403))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:403)))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
@@ -372,7 +372,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:404))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:404)))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
@@ -388,7 +388,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:409))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:409)))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
@@ -404,7 +404,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:500))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:500)))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
@@ -421,7 +421,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:error_content, headers:{'Content-Type' => 'text/html'}, status:500))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:error_content, response_headers:{'Content-Type' => 'text/html'}, status:500)))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
@@ -438,7 +438,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:error_content, headers:{'Content-Type' => 'text/html'}, status:400))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:error_content, response_headers:{'Content-Type' => 'text/html'}, status:400)))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
@@ -455,7 +455,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:error_content, headers:{'Content-Type' => 'text/html'}, status:200))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:error_content, response_headers:{'Content-Type' => 'text/html'}, status:200)))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
@@ -471,7 +471,7 @@ describe ActiveRestClient::Request do
     expect_any_instance_of(ActiveRestClient::Connection).
       to receive(:post).
       with("/create", "first_name=John&should_disappear=true", an_instance_of(Hash)).
-      and_return(OpenStruct.new(body:'{"errors": ["validation": "error in validation"]}', headers:{'Content-Type' => 'text/html'}, status:400))
+      and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"errors": ["validation": "error in validation"]}', response_headers:{'Content-Type' => 'text/html'}, status:400)))
     object = ExampleClient.new(first_name:"John", should_disappear:true)
     begin
       object.create
@@ -486,13 +486,11 @@ describe ActiveRestClient::Request do
 
   it "should raise an exception if you try to pass in an unsupport method" do
     method = {:method => :wiggle, url:"/"}
-    class RequestFakeObject
+    class RequestFakeObject < ActiveRestClient::Base
+      base_url "http://www.example.com/"
+
       def request_body_type
         :form_encoded
-      end
-
-      def base_url
-        "http://www.example.com/"
       end
 
       def username ; end
@@ -508,20 +506,20 @@ describe ActiveRestClient::Request do
   end
 
   it "should send all class mapped methods through _filter_request" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, response_headers:{})))
     expect(ExampleClient).to receive(:_filter_request).with(any_args).exactly(2).times
     ExampleClient.all
   end
 
   it "should send all instance mapped methods through _filter_request" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, response_headers:{})))
     expect(ExampleClient).to receive(:_filter_request).with(any_args).exactly(2).times
     e = ExampleClient.new
     e.all
   end
 
   it "should change the generated object if an after_filter changes it" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/change", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/change", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"Johnny\", \"expenses\":[{\"amount\":1}, {\"amount\":2}]}", status:200, response_headers:{})))
     obj = ExampleClient.change
     expect(obj.test).to eq(1)
   end
@@ -544,7 +542,7 @@ describe ActiveRestClient::Request do
       expect_any_instance_of(ActiveRestClient::Connection).
         to receive(:get).
         with("/some/url", an_instance_of(Hash)).
-        and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+        and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:200)))
       SameServerExampleClient.same_server
     end
 
@@ -554,7 +552,7 @@ describe ActiveRestClient::Request do
       expect(connection).
         to receive(:get).
         with("/some/url", an_instance_of(Hash)).
-        and_return(OpenStruct.new(body:"{}", headers:{}, status:304))
+        and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{}", response_headers:{}, status:304)))
       allow(connection).
         to receive(:base_url).
         and_return("http://other.example.com")
@@ -570,7 +568,7 @@ describe ActiveRestClient::Request do
       expect(connection).
         to receive(:get).
         with("/v1/people", an_instance_of(Hash)).
-        and_return(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", headers:{}, status:200))
+        and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"first_name\":\"John\", \"id\":1234}", response_headers:{}, status:200)))
       @obj = SameServerExampleClient._request('/people')
     end
   end
@@ -580,7 +578,7 @@ describe ActiveRestClient::Request do
     let(:hal) { ExampleClient.hal }
 
     it "should request a HAL response or plain JSON" do
-      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/headers", hash_including("Accept" => "application/hal+json, application/json;q=0.5")).and_return(OpenStruct.new(body:'{"result":true}', headers:{}))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/headers", hash_including("Accept" => "application/hal+json, application/json;q=0.5")).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
       ExampleClient.headers
     end
 
@@ -596,17 +594,17 @@ describe ActiveRestClient::Request do
       end
       fake_object = RequestFakeObject.new
       request = ActiveRestClient::Request.new(method, fake_object, {})
-      request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "application/hal+json"}))
+      request.instance_variable_set(:@response, OpenStruct.new(response_headers:{"Content-Type" => "application/hal+json"}))
       expect(request.hal_response?).to be_truthy
-      request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "application/json"}))
+      request.instance_variable_set(:@response, OpenStruct.new(response_headers:{"Content-Type" => "application/json"}))
       expect(request.hal_response?).to be_truthy
-      request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => "text/plain"}))
+      request.instance_variable_set(:@response, OpenStruct.new(response_headers:{"Content-Type" => "text/plain"}))
       expect(request.hal_response?).to be_falsey
-      request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain", "application/hal+json"]}))
+      request.instance_variable_set(:@response, OpenStruct.new(response_headers:{"Content-Type" => ["text/plain", "application/hal+json"]}))
       expect(request.hal_response?).to be_truthy
-      request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain", "application/json"]}))
+      request.instance_variable_set(:@response, OpenStruct.new(response_headers:{"Content-Type" => ["text/plain", "application/json"]}))
       expect(request.hal_response?).to be_truthy
-      request.instance_variable_set(:@response, OpenStruct.new(headers:{"Content-Type" => ["text/plain"]}))
+      request.instance_variable_set(:@response, OpenStruct.new(response_headers:{"Content-Type" => ["text/plain"]}))
       expect(request.hal_response?).to be_falsey
     end
 
@@ -640,7 +638,59 @@ describe ActiveRestClient::Request do
   end
 
   it "replaces the body completely in a filter" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:post).with("/save", "{\"id\":1234,\"name\":\"john\"}", an_instance_of(Hash)).and_return(OpenStruct.new(body:"{}", headers:{}))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:post).with("/save", "{\"id\":1234,\"name\":\"john\"}", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{}", response_headers:{})))
     FilteredBodyExampleClient.save id:1234, name:'john'
+  end
+
+  context 'Simulating Faraday connection in_parallel' do
+    it 'should parse JSON and return a single object' do
+      response = ::FaradayResponseMock.new(
+        OpenStruct.new(body:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"created_at\":\"2012-03-04T01:02:03Z\", \"child\":{\"grandchild\":{\"test\":true}}}", response_headers:{}),
+        false)
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(response)
+      object = ExampleClient.update id:1234, debug:true
+
+      expect(object).to eq(nil)
+
+      response.finish
+      expect(object.result).to eq(true)
+      expect(object.list.first).to eq(1)
+      expect(object.list.last.test).to eq(true)
+      expect(object.created_at).to be_an_instance_of(DateTime)
+      expect(object.child.grandchild.test).to eq(true)
+    end
+
+    it 'should parse an array within JSON and return a result iterator' do
+      response = ::FaradayResponseMock.new(
+        OpenStruct.new(body:"[{\"first_name\":\"Johnny\"}, {\"first_name\":\"Billy\"}]", status:200, response_headers:{}),
+        false)
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(response)
+      object = ExampleClient.all
+
+      expect(object).to eq(nil)
+
+      response.finish
+      expect(object).to be_instance_of(ActiveRestClient::ResultIterator)
+      expect(object.first.first_name).to eq("Johnny")
+      expect(object[1].first_name).to eq("Billy")
+      expect(object._status).to eq(200)
+      object.each do |item|
+        expect(item).to_not be_nil
+      end
+    end
+
+    it 'should return a RequestDelegator object to wrap the result' do
+      response = ::FaradayResponseMock.new(
+        OpenStruct.new(body:"{\"result\":true, \"list\":[1,2,3,{\"test\":true}], \"created_at\":\"2012-03-04T01:02:03Z\", \"child\":{\"grandchild\":{\"test\":true}}}", response_headers:{}),
+        false)
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(response)
+      object = ExampleClient.update id:1234, debug:true
+      response.finish
+
+      expect(object.class).to eq(ExampleClient)
+      expect(object.kind_of?(ExampleClient)).to be_truthy
+      expect(object.is_a?(ExampleClient)).to be_truthy
+      expect(object._delegate?).to be_truthy
+    end
   end
 end
