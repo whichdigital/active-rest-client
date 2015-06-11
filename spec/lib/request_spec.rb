@@ -481,7 +481,7 @@ describe ActiveRestClient::Request do
     expect(e).to be_instance_of(ActiveRestClient::HTTPBadRequestClientException)
     expect(e.status).to eq(400)
     expect(object.first_name).to eq 'John'
-    expect(object.errors).to be_nil
+    expect(object.errors).to eq(nil)
   end
 
   it "should raise an exception if you try to pass in an unsupport method" do

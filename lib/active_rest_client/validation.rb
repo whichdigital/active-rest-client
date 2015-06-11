@@ -51,7 +51,7 @@ module ActiveRestClient
       @errors.empty?
     end
 
-    def errors
+    def _errors
       @errors ||= Hash.new {|h,k| h[k] = []}
       @errors
     end

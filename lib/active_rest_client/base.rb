@@ -12,7 +12,7 @@ module ActiveRestClient
     attr_accessor :_headers
 
     instance_methods.each do |m|
-      next unless %w{display errors presence load require hash untrust trust freeze method enable_warnings with_warnings suppress capture silence quietly debugger breakpoint}.map(&:to_sym).include? m
+      next unless %w{display presence load require hash untrust trust freeze method enable_warnings with_warnings suppress capture silence quietly debugger breakpoint}.map(&:to_sym).include? m
       undef_method m
     end
 
@@ -50,6 +50,10 @@ module ActiveRestClient
 
     def dirty?
       @dirty_attributes.size > 0
+    end
+
+    def errors
+      @attributes[:errors] || (_errors != {} ? _errors : nil)
     end
 
     def self._request(request, method = :get, params = nil)
