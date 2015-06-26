@@ -166,7 +166,7 @@ describe ActiveRestClient::Caching do
       cached_response = ActiveRestClient::CachedResponse.new(
         status:200,
         result:object,
-        etag:@etag,
+        etag:etag,
         expires:Time.now + 30)
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:read).once.with("Person:/").and_return(Marshal.dump(cached_response))
       expect_any_instance_of(ActiveRestClient::Connection).not_to receive(:get)
@@ -179,7 +179,7 @@ describe ActiveRestClient::Caching do
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:read).once.with("Person:/").and_return(nil)
       expect_any_instance_of(CachingExampleCacheStore5).not_to receive(:write)
       expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(status:200, body:"{\"result\":true}", headers:{}))
-      ret = Person.all
+      Person.all
     end
 
     it "should write the response to the cache if there's an etag" do
@@ -187,7 +187,7 @@ describe ActiveRestClient::Caching do
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:write).once.with("Person:/", an_instance_of(String), {})
       expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(status:200, body:"{\"result\":true}", response_headers:{etag:"1234567890"})))
       Person.perform_caching true
-      ret = Person.all
+      Person.all
     end
 
     it "should write the response to the cache if there's a hard expiry" do
@@ -195,7 +195,7 @@ describe ActiveRestClient::Caching do
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:write).once.with("Person:/", an_instance_of(String), an_instance_of(Hash))
       expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(status:200, body:"{\"result\":true}", response_headers:{expires:(Time.now + 30).rfc822})))
       Person.perform_caching = true
-      ret = Person.all
+      Person.all
     end
 
     it "should not write the response to the cache if there's an invalid expiry" do
@@ -203,7 +203,7 @@ describe ActiveRestClient::Caching do
       expect_any_instance_of(CachingExampleCacheStore5).to_not receive(:write).once.with("Person:/", an_instance_of(String), an_instance_of(Hash))
       expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", an_instance_of(Hash)).and_return(OpenStruct.new(status:200, body:"{\"result\":true}", headers:{expires:"0"}))
       Person.perform_caching = true
-      ret = Person.all
+      Person.all
     end
 
   end
