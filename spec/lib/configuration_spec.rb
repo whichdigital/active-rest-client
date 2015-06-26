@@ -69,6 +69,18 @@ describe ActiveRestClient::Configuration do
     ActiveRestClient::Base.username = nil
   end
 
+  it "should escape the username" do
+    ActiveRestClient::Base.username = "bill@example.com"
+    expect(ActiveRestClient::Base.username).to eq("bill%40example.com")
+    ActiveRestClient::Base.username = nil
+  end
+
+  it "should not doubly escape the username" do
+    ActiveRestClient::Base.username = "bill%40example.com"
+    expect(ActiveRestClient::Base.username).to_not eq("bill%2540example.com")
+    ActiveRestClient::Base.username = nil
+  end
+
   it "should remember the set password" do
     expect(ConfigurationExample.password).to eq("smith")
   end
@@ -76,6 +88,18 @@ describe ActiveRestClient::Configuration do
   it "should remember the set password on a class, overriding a general one" do
     ActiveRestClient::Base.password = "bloggs"
     expect(ConfigurationExample.password).to eq("smith")
+    ActiveRestClient::Base.password = nil
+  end
+
+  it "should escape the password" do
+    ActiveRestClient::Base.password = "something@else"
+    expect(ActiveRestClient::Base.password).to eq("something%40else")
+    ActiveRestClient::Base.password = nil
+  end
+
+  it "should not doubly escape the password" do
+    ActiveRestClient::Base.password = "something%40else"
+    expect(ActiveRestClient::Base.password).to_not eq("something%2540else")
     ActiveRestClient::Base.password = nil
   end
 
