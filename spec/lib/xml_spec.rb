@@ -45,6 +45,11 @@ describe XmlResponseExample do
     expect(@atom.feed.title).to eq("Example Feed")
   end
 
+  it "provides the link's href" do
+    @atom = XmlResponseExample.atom
+    expect(@atom.feed.link.href).to eq("http://example.org/")
+  end
+
   it "each entry item has a title" do
     @atom = XmlResponseExample.atom
     expect(@atom.feed.entry.class).to eq(ActiveRestClient::ResultIterator)
