@@ -84,7 +84,7 @@ module ActiveRestClient
         method = MultiJson.load(MultiJson.dump(@request.method),:symbolize_keys => true)
         method[:method] = :get
         method[:options][:url] = @url
-        method[:options][:overriden_name] = @options[:overriden_name]
+        method[:options][:overridden_name] = @options[:overridden_name]
         request = ActiveRestClient::Request.new(method, @request.object)
         request.url = request.forced_url = @url
         @object = request.call
