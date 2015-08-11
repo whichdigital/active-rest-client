@@ -1,5 +1,7 @@
 require "cgi"
 require "multi_json"
+require 'crack'
+require 'crack/xml'
 
 module ActiveRestClient
 
@@ -116,7 +118,8 @@ module ActiveRestClient
             fake = fake.call(self)
           end
           ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Faked response found"
-          return handle_response(OpenStruct.new(status:200, body:fake, response_headers:{"X-ARC-Faked-Response" => "true"}))
+          content_type = @method[:options][:fake_content_type] || "application/json"
+          return handle_response(OpenStruct.new(status:200, body:fake, response_headers:{"X-ARC-Faked-Response" => "true", "Content-Type" => content_type}))
         end
         if object_is_class?
           @object.send(:_filter_request, :before, @method[:name], self)
@@ -322,7 +325,7 @@ module ActiveRestClient
       if (200..399).include?(status)
         if @method[:options][:plain]
           return @response = response.body
-        elsif is_json_response?
+        elsif is_json_response? || is_xml_response?
           if @response.respond_to?(:proxied) && @response.proxied
             ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response was proxied, unable to determine size"
           else
@@ -333,7 +336,7 @@ module ActiveRestClient
           raise ResponseParseException.new(status:status, body:@response.body)
         end
       else
-        if is_json_response?
+        if is_json_response? || is_xml_response?
           error_response = generate_new_object(mutable: false)
         else
           error_response = @response.body
@@ -469,11 +472,17 @@ module ActiveRestClient
       @response.response_headers['Content-Type'].nil? || @response.response_headers['Content-Type'].include?('json')
     end
 
+    def is_xml_response?
+      @response.response_headers['Content-Type'].include?('xml')
+    end
+
     def generate_new_object(options={})
       if @response.body.is_a?(Array) || @response.body.is_a?(Hash)
         body = @response.body
-      else
+      elsif is_json_response?
         body = @response.body.blank? ? {} : MultiJson.load(@response.body)
+      elsif is_xml_response?
+        body = @response.body.blank? ? {} : Crack::XML.parse(@response.body)
       end
       body = begin
         @method[:name].nil? ? body : translator.send(@method[:name], body)

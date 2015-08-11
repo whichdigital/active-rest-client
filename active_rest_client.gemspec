@@ -33,6 +33,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'typhoeus'
 
   spec.add_runtime_dependency "multi_json"
+  spec.add_runtime_dependency "crack"
   spec.add_runtime_dependency "activesupport"
   spec.add_runtime_dependency "faraday"
   spec.add_runtime_dependency "patron", ">= 0.4.9" # 0.4.18 breaks against Curl v0.7.15 but works with webmock
