@@ -80,6 +80,13 @@ describe ActiveRestClient::Base do
     expect(client["test"].to_s).to eq(t.to_datetime.to_s)
   end
 
+  it "should automatically parse ISO 8601 format date and time with milliseconds" do
+    t = Time.now
+    client = EmptyExample.new(:test => t.iso8601(3))
+    expect(client["test"]).to be_an_instance_of(DateTime)
+    expect(client["test"].to_s).to eq(t.to_datetime.to_s)
+  end
+
   it "should automatically parse ISO 8601 format dates" do
     d = Date.today
     client = EmptyExample.new(:test => d.iso8601)
