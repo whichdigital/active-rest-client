@@ -48,6 +48,30 @@ module ActiveRestClient
       end
     end
 
+    def using_api_auth?
+      if object_is_class?
+        @object.using_api_auth?
+      else
+        @object.class.using_api_auth?
+      end
+    end
+
+    def api_auth_access_id
+      if object_is_class?
+        @object.api_auth_access_id
+      else
+        @object.class.api_auth_access_id
+      end
+    end
+
+    def api_auth_secret_key
+      if object_is_class?
+        @object.api_auth_secret_key
+      else
+        @object.class.api_auth_secret_key
+      end
+    end
+
     def username
       if object_is_class?
         @object.username
@@ -283,15 +307,23 @@ module ActiveRestClient
         ActiveRestClient::Logger.debug "  >> Body:\n#{@body}"
       end
 
+      request_options = {:headers => http_headers}
+      if using_api_auth?
+        request_options[:api_auth] = {
+          :api_auth_access_id => api_auth_access_id,
+          :api_auth_secret_key => api_auth_secret_key
+        }
+      end
+
       case http_method
       when :get
-        response = connection.get(@url, http_headers)
+        response = connection.get(@url, request_options)
       when :put
-        response = connection.put(@url, @body, http_headers)
+        response = connection.put(@url, @body, request_options)
       when :post
-        response = connection.post(@url, @body, http_headers)
+        response = connection.post(@url, @body, request_options)
       when :delete
-        response = connection.delete(@url, http_headers)
+        response = connection.delete(@url, request_options)
       else
         raise InvalidRequestException.new("Invalid method #{http_method}")
       end

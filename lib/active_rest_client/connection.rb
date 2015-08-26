@@ -34,40 +34,44 @@ module ActiveRestClient
       end
     end
 
-    def get(path, headers={})
+    def get(path, options={})
+      set_defaults(options)
       make_safe_request(path) do
         @session.get(path) do |req|
-          req.headers = req.headers.merge(headers)
-          sign_request(req)
+          req.headers = req.headers.merge(options[:headers])
+          sign_request(req, options[:api_auth])
         end
       end
     end
 
-    def put(path, data, headers={})
+    def put(path, data, options={})
+      set_defaults(options)
       make_safe_request(path) do
         @session.put(path) do |req|
-          req.headers = req.headers.merge(headers)
+          req.headers = req.headers.merge(options[:headers])
           req.body = data
-          sign_request(req)
+          sign_request(req, options[:api_auth])
         end
       end
     end
 
-    def post(path, data, headers={})
+    def post(path, data, options={})
+      set_defaults(options)
       make_safe_request(path) do
         @session.post(path) do |req|
-          req.headers = req.headers.merge(headers)
+          req.headers = req.headers.merge(options[:headers])
           req.body = data
-          sign_request(req)
+          sign_request(req, options[:api_auth])
         end
       end
     end
 
-    def delete(path, headers={})
+    def delete(path, options={})
+      set_defaults(options)
       make_safe_request(path) do
         @session.delete(path) do |req|
-          req.headers = req.headers.merge(headers)
-          sign_request(req)
+          req.headers = req.headers.merge(options[:headers])
+          sign_request(req, options[:api_auth])
         end
       end
     end
@@ -82,12 +86,18 @@ module ActiveRestClient
       @session.build_url(path).to_s
     end
 
-    def sign_request(request)
-      return if !ActiveRestClient::Base.using_api_auth?
+    def set_defaults(options)
+      options[:headers]   ||= {}
+      options[:api_auth]  ||= {}
+      return options
+    end
+
+    def sign_request(request, api_auth)
+      return if api_auth[:api_auth_access_id].nil? || api_auth[:api_auth_secret_key].nil?
       ApiAuth.sign!(
         request,
-        ActiveRestClient::Base.api_auth_access_id,
-        ActiveRestClient::Base.api_auth_secret_key)
+        api_auth[:api_auth_access_id],
+        api_auth[:api_auth_secret_key])
     end
   end
 end

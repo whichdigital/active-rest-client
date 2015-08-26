@@ -464,6 +464,13 @@ require 'api-auth'
 ActiveRestClient::Base.api_auth_credentials(@access_id, @secret_key)
 ```
 
+You can also specify different credentials for different models just like configuring base_url
+```ruby
+class Person < ActiveRestClient::Base
+  api_auth_credentials('123456', 'abcdef')
+end
+```
+
 For more information on how to generate an access id and secret key please read the [Api-Auth](https://github.com/mgomes/api_auth) documentation.
 
 ### Body Types

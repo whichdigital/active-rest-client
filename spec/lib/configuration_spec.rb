@@ -155,6 +155,21 @@ describe ActiveRestClient::Configuration do
       it "should remember setting api_auth_secret_key" do
         expect(ConfigurationExample.api_auth_secret_key).to eq('secret123')
       end
+
+      it "should inherit api_auth_credentials when not set" do
+        class ConfigurationExtension < ConfigurationExample
+        end
+        expect(ConfigurationExtension.api_auth_access_id).to eq('id123')
+        expect(ConfigurationExtension.api_auth_secret_key).to eq('secret123')
+      end
+
+      it "should override inherited api_auth_credentials when set" do
+        class ConfigurationExtension2 < ConfigurationExample
+        end
+        ConfigurationExtension2.api_auth_credentials('id456', 'secret456')
+        expect(ConfigurationExtension2.api_auth_access_id).to eq('id456')
+        expect(ConfigurationExtension2.api_auth_secret_key).to eq('secret456')
+      end
     end
   end
 

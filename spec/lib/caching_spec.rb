@@ -111,7 +111,10 @@ describe ActiveRestClient::Caching do
         result:@cached_object,
         etag:@etag)
       expect_any_instance_of(CachingExampleCacheStore5).to receive(:read).once.with("Person:/").and_return(Marshal.dump(cached_response))
-      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/", hash_including("If-None-Match" => @etag)).and_return(::FaradayResponseMock.new(OpenStruct.new(status:304, response_headers:{})))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get){ |connection, path, options|
+        expect(path).to eq('/')
+        expect(options[:headers]).to include("If-None-Match" => @etag)
+      }.and_return(::FaradayResponseMock.new(OpenStruct.new(status:304, response_headers:{})))
       ret = Person.all
       expect(ret.first_name).to eq("Johnny")
     end
@@ -127,7 +130,10 @@ describe ActiveRestClient::Caching do
       response_body = Person.new(first_name: new_name).to_json
       response = ::FaradayResponseMock.new(double(status: 200, response_headers: {}, body: response_body))
       allow_any_instance_of(ActiveRestClient::Connection).to(
-        receive(:get).with('/', hash_including('If-None-Match' => @etag)).and_return(response))
+        receive(:get){ |connection, path, options|
+          expect(path).to eq('/')
+          expect(options[:headers]).to include('If-None-Match' => @etag)
+        }.and_return(response))
 
       result = Person.all
 

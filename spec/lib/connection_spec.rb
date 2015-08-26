@@ -100,7 +100,15 @@ describe ActiveRestClient::Connection do
 
   context 'with api auth signing requests' do
     before(:each) do
+      # Need to still call this to load the api_auth library so tests work
       ActiveRestClient::Base.api_auth_credentials('id123', 'secret123')
+
+      @options = {
+        :api_auth => {
+          :api_auth_access_id => 'id123',
+          :api_auth_secret_key => 'secret123'
+        }
+      }
 
       @default_headers = {'Date' => 'Sat, 14 Mar 2015 15:13:24 GMT'}
 
@@ -115,7 +123,7 @@ describe ActiveRestClient::Connection do
       stub_request(:get, "www.example.com/foo")
         .with(:headers => @default_headers)
         .to_return(body: "{result:true}")
-      result = @connection.get("/foo")
+      result = @connection.get("/foo", @options)
       expect(result.env.request_headers['Authorization']).to eq("APIAuth id123:PMWBThkB8vKbvUccHvoqu9G3eVk=")
     end
 
@@ -124,7 +132,7 @@ describe ActiveRestClient::Connection do
         with(body: "body", :headers => @default_headers).
         to_return(body: "{result:true}")
 
-      result = @connection.put("/foo", "body")
+      result = @connection.put("/foo", "body", @options)
       expect(result.env.request_headers['Content-MD5']).to eq("hBotaJrYa9FhFEdFPCLG/A==")
     end
   end

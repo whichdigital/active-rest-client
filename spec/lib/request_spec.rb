@@ -7,6 +7,7 @@ describe ActiveRestClient::Request do
     class ExampleClient < ActiveRestClient::Base
       base_url "http://www.example.com"
       request_body_type :form_encoded
+      api_auth_credentials('id123', 'secret123')
 
       before_request do |name, request|
         if request.method[:name] == :headers
@@ -160,17 +161,28 @@ describe ActiveRestClient::Request do
   end
 
   it "should pass through custom headers" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/headers", hash_including("X-My-Header" => "myvalue")).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get){ |connection, path, options|
+      expect(path).to eq('/headers')
+      expect(options[:headers]).to include("X-My-Header" => "myvalue")
+    }.and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.headers
   end
 
   it "should set request header with content-type for default" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_default", "", hash_including("Content-Type" => "application/x-www-form-urlencoded")).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put){ |connection, path, data, options|
+      expect(path).to eq('/headers_default')
+      expect(data).to eq('')
+      expect(options[:headers]).to include("Content-Type" => "application/x-www-form-urlencoded")
+    }.and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.headers_default
   end
 
   it "should set request header with content-type for JSON" do
-    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/headers_json", "{}", hash_including("Content-Type" => "application/json; charset=utf-8")).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put){ |connection, path, data, options|
+      expect(path).to eq('/headers_json')
+      expect(data).to eq('{}')
+      expect(options[:headers]).to include("Content-Type" => "application/json; charset=utf-8")
+    }.and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
     ExampleClient.headers_json
   end
 
@@ -578,7 +590,10 @@ describe ActiveRestClient::Request do
     let(:hal) { ExampleClient.hal }
 
     it "should request a HAL response or plain JSON" do
-      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/headers", hash_including("Accept" => "application/hal+json, application/json;q=0.5")).and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
+      expect_any_instance_of(ActiveRestClient::Connection).to receive(:get){ |connection, path, options|
+        expect(path).to eq('/headers')
+        expect(options[:headers]).to include("Accept" => "application/hal+json, application/json;q=0.5")
+      }.and_return(::FaradayResponseMock.new(OpenStruct.new(body:'{"result":true}', response_headers:{})))
       ExampleClient.headers
     end
 

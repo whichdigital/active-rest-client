@@ -8,8 +8,8 @@ module ActiveRestClient
       @@password = nil
       @@request_body_type = :form_encoded
       @lazy_load = false
-      @@api_auth_access_id = nil
-      @@api_auth_secret_key = nil
+      @api_auth_access_id = nil
+      @api_auth_secret_key = nil
 
       def base_url(value = nil)
         if value.nil?
@@ -121,20 +121,32 @@ module ActiveRestClient
           raise MissingOptionalLibraryError.new("You must include the gem 'api-auth' in your Gemfile to set api-auth credentials.")
         end
 
-        @@api_auth_access_id = access_id
-        @@api_auth_secret_key = secret_key
+        @api_auth_access_id = access_id
+        @api_auth_secret_key = secret_key
       end
 
       def using_api_auth?
-        !@@api_auth_access_id.nil? && !@@api_auth_secret_key.nil?
+        !self.api_auth_access_id.nil? && !self.api_auth_secret_key.nil?
       end
 
       def api_auth_access_id
-        @@api_auth_access_id
+        if !@api_auth_access_id.nil?
+          return @api_auth_access_id
+        elsif self.superclass.respond_to?(:api_auth_access_id)
+          return self.superclass.api_auth_access_id
+        end
+
+        return nil
       end
 
       def api_auth_secret_key
-        @@api_auth_secret_key
+        if !@api_auth_secret_key.nil?
+          return @api_auth_secret_key
+        elsif self.superclass.respond_to?(:api_auth_secret_key)
+          return self.superclass.api_auth_secret_key
+        end
+
+        return nil
       end
 
       def verbose!
@@ -163,8 +175,8 @@ module ActiveRestClient
         @lazy_load            = false
         @faraday_config       = default_faraday_config
         @adapter              = :patron
-        @@api_auth_access_id  = nil
-        @@api_auth_secret_key = nil
+        @api_auth_access_id   = nil
+        @api_auth_secret_key  = nil
       end
 
       private
