@@ -66,11 +66,24 @@ module ActiveRestClient
         @original_handler.call(@request)
       end
 
+      def result_is_json_or_unspecified?(result)
+        result.headers['Content-Type'].include?('json')
+      rescue
+        true
+      end
+
       def translate(result, options = {})
-        result.headers["content-type"] = "application/hal+json"
+        incoming_content_type = result.headers['Content-Type']
+        if result_is_json_or_unspecified?(result)
+          result.headers["content-type"] = "application/hal+json"
+        end
         result = FaradayResponseProxy.new(OpenStruct.new(status:result.status, response_headers:result.headers, body:result.body))
         if result.body.present?
-          result.body = yield MultiJson.load(result.body)
+          if incoming_content_type && incoming_content_type["xml"]
+            result.body = yield Crack::XML.parse(result.body)
+          else
+            result.body = yield MultiJson.load(result.body)
+          end
         end
         result
       end

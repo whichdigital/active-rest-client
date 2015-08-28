@@ -2,6 +2,12 @@ require 'spec_helper'
 
 class XmlResponseExample < ActiveRestClient::Base
   base_url "http://www.example.com/v1/"
+  get :root, "/root", ignore_xml_root: "feed", fake_content_type: "application/xml", fake: %Q{
+    <?xml version="1.0" encoding="utf-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <title>Example Feed</title>
+    </feed>
+  }
   get :atom, "/atom", fake: %Q{
     <?xml version="1.0" encoding="utf-8"?>
     <feed xmlns="http://www.w3.org/2005/Atom">
@@ -61,4 +67,8 @@ describe XmlResponseExample do
     expect(@atom.feed.entry[1].title).to eq("Something else cool happened")
   end
 
+  it "allows ignoring of the XML root node" do
+    @feed = XmlResponseExample.root
+    expect(@feed.title).to eq("Example Feed")
+  end
 end

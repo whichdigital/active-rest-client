@@ -139,7 +139,7 @@ ActiveRestClient::Base.faraday_config do |faraday|
   faraday.options.timeout       = 10
   faraday.headers['User-Agent'] = "ActiveRestClient/#{ActiveRestClient::VERSION}"
 end
-````
+```
 ### Associations
 
 There are two types of association.  One assumes when you call a method you actually want it to call the method on a separate class (as that class has other methods that are useful).  The other is lazy loading related classes from a separate URL.
@@ -205,9 +205,9 @@ And use it like this:
 
 #### Association Type 3 - HAL Auto-loaded Resources
 
-You don't need to define lazy attributes if they are defined using [HAL](http://stateless.co/hal_specification.html) (with an optional embedded representation).  If your resource has an _links item (and optionally an _embedded item) then it will automatically treat the linked resources (with the _embedded cache) as if they were defined using `:lazy` as per type 2 above.
+You don't need to define lazy attributes if they are defined using [HAL](http://stateless.co/hal_specification.html) (with an optional embedded representation).  If your resource has an `_links` item (and optionally an `_embedded` item) then it will automatically treat the linked resources (with the `_embedded` cache) as if they were defined using `:lazy` as per type 2 above.
 
-If you need to, you can access properties of the HAL association.  By default just using the HAL association gets the embedded resource (or requests the remote resource if not available in the _embedded list).
+If you need to, you can access properties of the HAL association.  By default just using the HAL association gets the embedded resource (or requests the remote resource if not available in the `_embedded` list).
 
 ```ruby
 @person = Person.find(1)
@@ -584,7 +584,7 @@ people = Person._plain_request('http://api.example.com/v1/people') # Defaults to
 Person._plain_request('http://api.example.com/v1/people', :post, {id:1234,name:"John"}) # Post with parameters
 ```
 
-The parameters are the same as for _request, but it does no parsing on the response
+The parameters are the same as for `_request`, but it does no parsing on the response
 
 ### Proxying APIs
 
@@ -818,6 +818,14 @@ puts @atom.feed.title
 puts @atom.feed.link.href
 @atom.feed.entry.each do |entry|
   puts "#{entry.title} -> #{entry.link.href}"
+end
+```
+
+If your XML object comes back with a root node and you'd like to ignore it, you can define the mapping as:
+
+```ruby
+class Feed < ActiveRestClient::Base
+  get :atom, "/atom", ignore_xml_root: "feed"
 end
 ```
 

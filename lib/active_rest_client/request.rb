@@ -363,13 +363,13 @@ module ActiveRestClient
           else
             ActiveRestClient::Logger.debug "  \033[1;4;32m#{ActiveRestClient::NAME}\033[0m #{@instrumentation_name} - Response received #{@response.body.size} bytes"
           end
-          result = generate_new_object
+          result = generate_new_object(ignore_xml_root: @method[:options][:ignore_xml_root])
         else
           raise ResponseParseException.new(status:status, body:@response.body)
         end
       else
         if is_json_response? || is_xml_response?
-          error_response = generate_new_object(mutable: false)
+          error_response = generate_new_object(mutable: false, ignore_xml_root: @method[:options][:ignore_xml_root])
         else
           error_response = @response.body
         end
@@ -515,6 +515,9 @@ module ActiveRestClient
         body = @response.body.blank? ? {} : MultiJson.load(@response.body)
       elsif is_xml_response?
         body = @response.body.blank? ? {} : Crack::XML.parse(@response.body)
+        if options[:ignore_xml_root]
+          body = body[options[:ignore_xml_root].to_s]
+        end
       end
       body = begin
         @method[:name].nil? ? body : translator.send(@method[:name], body)

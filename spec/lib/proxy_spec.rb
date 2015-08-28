@@ -43,6 +43,14 @@ class ProxyExample < ActiveRestClient::ProxyBase
     end
   end
 
+  get "/change-xml-format" do
+    response = passthrough
+    translate(response) do |body|
+      body["first_name"] = body["object"].delete("fname")
+      body
+    end
+  end
+
   get "/hal_test/:id" do
     response = passthrough
     translate(response) do |body|
@@ -70,6 +78,7 @@ class ProxyClientExample < ActiveRestClient::Base
   get :fake, "/fake"
   get :param, "/param/:id/:name"
   get :change_format, "/change-format"
+  get :change_xml_format, "/change-xml-format"
   post :create, "/create"
   put :update, "/update"
   get :not_proxied, "/not_proxied"
@@ -117,6 +126,16 @@ describe ActiveRestClient::Base do
   it "can intercept the response and parse the response, alter it and pass it on during the request" do
     expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/change-format", instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"fname\":\"Billy\"}", status:200, response_headers:{})))
     ret = ProxyClientExample.change_format
+    expect(ret.first_name).to eq("Billy")
+  end
+
+  it "can intercept XML responses, parse the response, alter it and pass it on during the request" do
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:get).with("/change-xml-format",
+      instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(
+      body:"<?xml version=\"1.0\" encoding=\"UTF-8\"?><object><fname>Billy</fname></object>",
+      status:200,
+      response_headers:{"Content-Type" => "application/xml"})))
+    ret = ProxyClientExample.change_xml_format
     expect(ret.first_name).to eq("Billy")
   end
 
