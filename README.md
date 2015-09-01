@@ -131,7 +131,7 @@ ActiveRestClient uses Faraday to allow switching HTTP backends, the default is P
 ActiveRestClient::Base.adapter = :net_http
 ```
 
-If you want more control you can pass a complete configuration block. For available config variables look into the Faraday documentation.
+If you want more control you can pass a **complete** configuration block ("complete" means that the block does not *override* [the default configuration](https://github.com/whichdigital/active-rest-client/blob/5b1953d89e26c02ca74f74464ccb7cd4c9439dcc/lib/active_rest_client/configuration.rb#L184-L201), but rather *replaces* it). For available config variables look into the Faraday documentation.
 
 ```ruby
 ActiveRestClient::Base.faraday_config do |faraday|
