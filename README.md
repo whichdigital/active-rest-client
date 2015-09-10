@@ -4,6 +4,8 @@
 [![Coverage Status](https://coveralls.io/repos/whichdigital/active-rest-client/badge.png)](https://coveralls.io/r/whichdigital/active-rest-client)
 [![Code Climate](https://codeclimate.com/github/whichdigital/active-rest-client.png)](https://codeclimate.com/github/whichdigital/active-rest-client)
 [![Gem Version](https://badge.fury.io/rb/active_rest_client.png)](http://badge.fury.io/rb/active_rest_client)
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/whichdigital/active-rest-client.svg)](http://isitmaintained.com/project/whichdigital/active-rest-client "Average time to resolve an issue")
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/whichdigital/active-rest-client.svg)](http://isitmaintained.com/project/whichdigital/active-rest-client "Percentage of issues still open")
 
 This gem is for accessing REST services in an ActiveRecord style.  ActiveResource already exists for this, but it doesn't work where the resource naming doesn't follow Rails conventions, it doesn't have in-built caching and it's not as flexible in general.
 
