@@ -91,7 +91,7 @@ module ActiveRestClient
       end
 
       def adapter
-        @adapter ||= :patron
+        @adapter ||= Faraday.default_adapter
       end
 
       def faraday_config(&block)
@@ -174,7 +174,7 @@ module ActiveRestClient
         @whiny_missing        = nil
         @lazy_load            = false
         @faraday_config       = default_faraday_config
-        @adapter              = :patron
+        @adapter              = Faraday.default_adapter
         @api_auth_access_id   = nil
         @api_auth_secret_key  = nil
       end
