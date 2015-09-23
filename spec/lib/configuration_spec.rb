@@ -209,7 +209,7 @@ describe ActiveRestClient::Configuration do
     let(:faraday_double){double(:faraday).as_null_object}
 
     it "should use default adapter if no other block set" do
-      expect(faraday_double).to receive(:adapter).with(:patron)
+      expect(faraday_double).to receive(:adapter).with(Faraday.default_adapter)
       ConfigurationExample.faraday_config.call(faraday_double)
     end
 
