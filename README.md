@@ -127,11 +127,15 @@ puts @person.to_json
 
 ### Faraday Configuration
 
-ActiveRestClient uses Faraday to allow switching HTTP backends, the default is Patron. To change the used backend just set it in the class by setting `adapter` to a Faraday supported adapter symbol.
+ActiveRestClient uses Faraday to allow switching HTTP backends, the default is to just use Faraday's default. To change the used backend just set it in the class by setting `adapter` to a Faraday supported adapter symbol.
 
 ```ruby
 ActiveRestClient::Base.adapter = :net_http
+# or ...
+ActiveRestClient::Base.adapter = :patron
 ```
+
+In versions before 1.2.0 the adapter was hardcoded to `:patron`, so if you want to ensure it still uses Patron, you should set this setting.
 
 If you want more control you can pass a **complete** configuration block ("complete" means that the block does not *override* [the default configuration](https://github.com/whichdigital/active-rest-client/blob/5b1953d89e26c02ca74f74464ccb7cd4c9439dcc/lib/active_rest_client/configuration.rb#L184-L201), but rather *replaces* it). For available config variables look into the Faraday documentation.
 
