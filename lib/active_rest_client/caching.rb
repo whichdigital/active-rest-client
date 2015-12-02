@@ -30,7 +30,7 @@ module ActiveRestClient
 
       def cache_store
         rails_cache_store = if Object.const_defined?(:Rails)
-          ::Rails.cache
+          ::Rails.try(:cache)
         else
           nil
         end

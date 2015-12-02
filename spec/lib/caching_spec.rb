@@ -49,6 +49,15 @@ describe ActiveRestClient::Caching do
 
     end
 
+    it "should not error if Rails.cache is not found" do
+      begin
+        class Rails; end
+        expect { ActiveRestClient::Base.cache_store }.not_to raise_error
+      ensure
+        Object.send(:remove_const, :Rails) if defined?(Rails)
+      end
+    end
+
     it "should use a custom cache store if a valid one is manually set" do
       class CachingExampleCacheStore1
         def read(key) ; end
