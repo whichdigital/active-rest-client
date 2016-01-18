@@ -460,7 +460,7 @@ end
 
 #### Api-Auth
 
-Using the [Api-Auth](https://github.com/mgomes/api_auth) integration it is very easy to sign requests. Include the Api-Auth gem in your Gemfile and in then add it to your application. Then simply configure Api-Auth one time in your app and all requests will be signed from then on.
+Using the [Api-Auth](https://github.com/mgomes/api_auth) integration it is very easy to sign requests. Include the Api-Auth gem in your Gemfile and in then add it to your application. Then simply configure Api-Auth one time in your app and PUT/POST requests will be signed from then on.
 
 ```ruby
 require 'api-auth'
