@@ -196,6 +196,14 @@ describe ActiveRestClient::Request do
     expect(object.child.grandchild.test).to eq(true)
   end
 
+  it "should not parse string when dates within it" do
+    t = Time.now
+    result = "this is a string with a date on it #{t.iso8601}"
+    expect_any_instance_of(ActiveRestClient::Connection).to receive(:put).with("/put/1234", "debug=true", an_instance_of(Hash)).and_return(::FaradayResponseMock.new(OpenStruct.new(body:"{\"result\":\"#{result}\"}", response_headers:{})))
+    object = ExampleClient.update id:1234, debug:true
+    expect(object.result.to_s).to eq(result)
+  end
+
   it "should parse JSON and return a nice object for faked responses" do
     object = ExampleClient.fake id:1234, debug:true
     expect(object.result).to eq(true)

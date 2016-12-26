@@ -427,7 +427,7 @@ module ActiveRestClient
             end
           end
         else
-          if v.to_s[/\d{4}\-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})/]
+          if /\A\d{4}\-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})\z/.match(v.to_s)
             object._attributes[k] = DateTime.parse(v)
           else
             object._attributes[k] = v
