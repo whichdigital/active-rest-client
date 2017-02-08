@@ -6,7 +6,7 @@ require 'crack/xml'
 module ActiveRestClient
 
   class Request
-    attr_accessor :post_params, :get_params, :url, :path, :headers, :method, :object, :body, :forced_url, :original_url
+    attr_accessor :params, :post_params, :get_params, :url, :path, :headers, :method, :object, :body, :forced_url, :original_url
 
     def initialize(method, object, params = {})
       @method                     = method
